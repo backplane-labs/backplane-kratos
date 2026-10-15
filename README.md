@@ -94,6 +94,13 @@ steps:
 result: {}
 ```
 
+Codes by SMS: give a trait `"format": "tel"` and `"via": "sms"` in the
+identity schema (credentials `code`, verification, recovery); Kratos sends
+those codes on the `sms` channel of the same hook, `req.channel == 'sms'`,
+`req.recipient` the phone in E.164. Recovery by SMS needs the setting
+*Choose the recovery address*. courier delivers SMS through a provider
+plugin (`courier.SendSms`).
+
 A registration policy in CEL alone:
 
 ```yaml

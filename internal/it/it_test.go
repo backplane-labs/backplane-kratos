@@ -77,6 +77,13 @@ var serial sync.Mutex
 func start(t *testing.T, bind func(*backplanetest.Harness, *flows.Flows)) env {
 	t.Helper()
 
+	return startWith(t, nil, bind)
+}
+
+// startWith is start with the settings changed by edit.
+func startWith(t *testing.T, edit func(*overlay.Settings), bind func(*backplanetest.Harness, *flows.Flows)) env {
+	t.Helper()
+
 	path := os.Getenv("KRATOS_IT_OVERLAY")
 	if path == "" {
 		t.Skip("KRATOS_IT_OVERLAY not set: make it-up it")
@@ -96,7 +103,13 @@ func start(t *testing.T, bind func(*backplanetest.Harness, *flows.Flows)) env {
 	}
 
 	h := backplanetest.New(t, backplanetest.Name("kratos"))
-	e := env{h: h, kratos: client, settings: config.LiveOf(defaults())}
+
+	settings := defaults()
+	if edit != nil {
+		edit(&settings)
+	}
+
+	e := env{h: h, kratos: client, settings: config.LiveOf(settings)}
 	e.flows = flows.New(h.Root(), key, config.LiveOf([]string(nil)))
 	e.activities = activities.New(h.Root(), client)
 	apply.New(h.Root(), path, 0o644, e.settings, apply.Secrets{
@@ -609,4 +622,152 @@ func TestRecoveryByOperator(t *testing.T) {
 	}
 
 	finishRecovery(t, link.Query().Get("flow"), recovery.Code, email)
+}
+
+// phoneSchema identifies people by a phone: codes to sign in, verify and
+// recover go by SMS.
+const phoneSchema = `{
+  "$id": "https://backplane-kratos.test/phone.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {"traits": {"type": "object", "properties": {"phone": {
+    "type": "string", "format": "tel",
+    "ory.sh/kratos": {
+      "credentials": {"code": {"identifier": true, "via": "sms"}},
+      "verification": {"via": "sms"},
+      "recovery": {"via": "sms"}
+    }
+  }}, "required": ["phone"], "additionalProperties": false}}
+}`
+
+// A phone identity signs in with a code Kratos sends by SMS: it reaches
+// kratos.Deliver on the sms channel and signs the user in.
+func TestSMSCode(t *testing.T) {
+	t.Parallel()
+
+	codes := make(chan flows.DeliverIn, 64)
+
+	e := startWith(t, func(s *overlay.Settings) {
+		emailSchema, err := os.ReadFile("testdata/identity.schema.json")
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		s.Identity = overlay.Identity{DefaultSchemaID: "default", Schemas: map[string]string{"default": string(emailSchema), "phone": phoneSchema}}
+		s.Methods.Code.Passwordless = true
+	}, func(h *backplanetest.Harness, f *flows.Flows) {
+		backplanetest.Answer(h, f.DeliverRef(), func(_ context.Context, in flows.DeliverIn) (flows.DeliverOut, error) {
+			codes <- in
+
+			return flows.DeliverOut{}, nil
+		})
+	})
+
+	phone := fmt.Sprintf("+49151%08d", time.Now().UnixNano()%100_000_000)
+
+	ident, err := backplanetest.Activity[activities.IdentityIn, ory.Identity](t.Context(), e.h, "CreateIdentity", activities.IdentityIn{
+		SchemaID: "phone", Traits: json.RawMessage(fmt.Sprintf(`{"phone":%q}`, phone)),
+	})
+	if err != nil {
+		t.Fatalf("phone identity: %v", err)
+	}
+
+	status, flow := call(t, http.MethodGet, "/self-service/login/api", nil)
+	if status != http.StatusOK {
+		t.Fatalf("login flow: %d %v", status, flow)
+	}
+
+	flowPath := fmt.Sprintf("/self-service/login?flow=%v", flow["id"])
+
+	status, body := call(t, http.MethodPost, flowPath, map[string]any{"method": "code", "identifier": phone})
+	if status != http.StatusBadRequest && status != http.StatusOK { // Kratos answers the form asking for the code
+		t.Fatalf("ask for a code: %d %v", status, body)
+	}
+
+	msg := awaitMessage(t, codes, phone, "login_code_valid")
+	if msg.Channel != "sms" || msg.Code == "" {
+		t.Fatalf("sms: %+v", msg)
+	}
+
+	status, body = call(t, http.MethodPost, flowPath, map[string]any{"method": "code", "identifier": phone, "code": msg.Code})
+	if status != http.StatusOK {
+		t.Fatalf("sign in with the code: %d %v", status, body)
+	}
+
+	session, _ := body["session"].(map[string]any)
+	who, _ := session["identity"].(map[string]any)
+
+	if who["id"] != ident.ID {
+		t.Fatalf("signed in as %v, want %s", who["id"], ident.ID)
+	}
+}
+
+// A phone identity recovers by SMS (Kratos's recovery with a chosen
+// address): the code reaches kratos.Deliver on the sms channel and grants
+// a session.
+func TestSMSRecovery(t *testing.T) {
+	t.Parallel()
+
+	codes := make(chan flows.DeliverIn, 64)
+
+	e := startWith(t, func(s *overlay.Settings) {
+		emailSchema, err := os.ReadFile("testdata/identity.schema.json")
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		s.Identity = overlay.Identity{DefaultSchemaID: "default", Schemas: map[string]string{"default": string(emailSchema), "phone": phoneSchema}}
+		s.Features.ChooseRecoveryAddress = true
+	}, func(h *backplanetest.Harness, f *flows.Flows) {
+		backplanetest.Answer(h, f.DeliverRef(), func(_ context.Context, in flows.DeliverIn) (flows.DeliverOut, error) {
+			codes <- in
+
+			return flows.DeliverOut{}, nil
+		})
+	})
+
+	phone := fmt.Sprintf("+49151%08d", time.Now().UnixNano()%100_000_000)
+
+	ident, err := backplanetest.Activity[activities.IdentityIn, ory.Identity](t.Context(), e.h, "CreateIdentity", activities.IdentityIn{
+		SchemaID: "phone", Traits: json.RawMessage(fmt.Sprintf(`{"phone":%q}`, phone)),
+	})
+	if err != nil {
+		t.Fatalf("phone identity: %v", err)
+	}
+
+	status, flow := call(t, http.MethodGet, "/self-service/recovery/api", nil)
+	if status != http.StatusOK {
+		t.Fatalf("recovery flow: %d %v", status, flow)
+	}
+
+	flowPath := fmt.Sprintf("/self-service/recovery?flow=%v", flow["id"])
+
+	status, body := call(t, http.MethodPost, flowPath, map[string]any{"method": "code", "recovery_address": phone})
+	if status != http.StatusOK {
+		t.Fatalf("recovery address: %d %v", status, body)
+	}
+
+	msg := awaitMessage(t, codes, phone, "recovery_code_valid")
+	if msg.Channel != "sms" || msg.Code == "" {
+		t.Fatalf("sms: %+v", msg)
+	}
+
+	status, body = call(t, http.MethodPost, flowPath, map[string]any{"method": "code", "code": msg.Code})
+	if status != http.StatusOK {
+		t.Fatalf("recovery code: %d %v", status, body)
+	}
+
+	token := ""
+
+	steps, _ := body["continue_with"].([]any)
+	for _, step := range steps {
+		if m, _ := step.(map[string]any); m["action"] == "set_ory_session_token" {
+			token, _ = m["ory_session_token"].(string)
+		}
+	}
+
+	who, err := e.kratos.WhoAmI(t.Context(), token, "")
+	if err != nil || who.Identity == nil || who.Identity.ID != ident.ID {
+		t.Fatalf("recovered session: %+v %v (%v)", who, err, body)
+	}
 }
