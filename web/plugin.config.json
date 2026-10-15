@@ -2,6 +2,7 @@
   "service": "kratos",
   "nav": [
     { "path": "", "labelKey": "overview" },
+    { "path": "flows", "labelKey": "flowsNav" },
     { "path": "identities", "labelKey": "identities" },
     { "path": "import", "labelKey": "importNav" },
     { "path": "sessions", "labelKey": "sessions" },

@@ -44,6 +44,7 @@ type Admin struct {
 	flows    *flows.Flows
 	applier  *apply.Applier
 	failOpen config.Live[[]string]
+	settings config.Live[overlay.Settings]
 	events   bool
 }
 
@@ -54,13 +55,14 @@ func New(
 	f *flows.Flows,
 	a *apply.Applier,
 	failOpen config.Live[[]string],
+	settings config.Live[overlay.Settings],
 	events bool,
 ) *Admin {
 	return &Admin{
 		Component: deps.NewComponent(
 			parent,
 			"admin",
-		), kratos: k, flows: f, applier: a, failOpen: failOpen, events: events,
+		), kratos: k, flows: f, applier: a, failOpen: failOpen, settings: settings, events: events,
 	}
 }
 

@@ -21,6 +21,8 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	AdminService_GetStatus_FullMethodName          = "/kratos.console.v1.AdminService/GetStatus"
 	AdminService_GetOverlay_FullMethodName         = "/kratos.console.v1.AdminService/GetOverlay"
+	AdminService_GetFlows_FullMethodName           = "/kratos.console.v1.AdminService/GetFlows"
+	AdminService_TryFlow_FullMethodName            = "/kratos.console.v1.AdminService/TryFlow"
 	AdminService_ListIdentities_FullMethodName     = "/kratos.console.v1.AdminService/ListIdentities"
 	AdminService_GetIdentity_FullMethodName        = "/kratos.console.v1.AdminService/GetIdentity"
 	AdminService_CreateIdentity_FullMethodName     = "/kratos.console.v1.AdminService/CreateIdentity"
@@ -51,6 +53,12 @@ type AdminServiceClient interface {
 	// GetOverlay is the rendered overlay (secrets masked) and the snippet
 	// a deployment without the shared file pastes.
 	GetOverlay(ctx context.Context, in *GetOverlayRequest, opts ...grpc.CallOption) (*GetOverlayResponse, error)
+	// GetFlows is every self-service flow: its settings, hook points, event
+	// and the findings of settings that do not work together.
+	GetFlows(ctx context.Context, in *GetFlowsRequest, opts ...grpc.CallOption) (*GetFlowsResponse, error)
+	// TryFlow starts a flow as a native app would and answers the form Kratos
+	// hands the UI; nothing is submitted.
+	TryFlow(ctx context.Context, in *TryFlowRequest, opts ...grpc.CallOption) (*TryFlowResponse, error)
 	ListIdentities(ctx context.Context, in *ListIdentitiesRequest, opts ...grpc.CallOption) (*ListIdentitiesResponse, error)
 	GetIdentity(ctx context.Context, in *GetIdentityRequest, opts ...grpc.CallOption) (*GetIdentityResponse, error)
 	CreateIdentity(ctx context.Context, in *CreateIdentityRequest, opts ...grpc.CallOption) (*CreateIdentityResponse, error)
@@ -96,6 +104,26 @@ func (c *adminServiceClient) GetOverlay(ctx context.Context, in *GetOverlayReque
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetOverlayResponse)
 	err := c.cc.Invoke(ctx, AdminService_GetOverlay_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) GetFlows(ctx context.Context, in *GetFlowsRequest, opts ...grpc.CallOption) (*GetFlowsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetFlowsResponse)
+	err := c.cc.Invoke(ctx, AdminService_GetFlows_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) TryFlow(ctx context.Context, in *TryFlowRequest, opts ...grpc.CallOption) (*TryFlowResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TryFlowResponse)
+	err := c.cc.Invoke(ctx, AdminService_TryFlow_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -265,6 +293,12 @@ type AdminServiceServer interface {
 	// GetOverlay is the rendered overlay (secrets masked) and the snippet
 	// a deployment without the shared file pastes.
 	GetOverlay(context.Context, *GetOverlayRequest) (*GetOverlayResponse, error)
+	// GetFlows is every self-service flow: its settings, hook points, event
+	// and the findings of settings that do not work together.
+	GetFlows(context.Context, *GetFlowsRequest) (*GetFlowsResponse, error)
+	// TryFlow starts a flow as a native app would and answers the form Kratos
+	// hands the UI; nothing is submitted.
+	TryFlow(context.Context, *TryFlowRequest) (*TryFlowResponse, error)
 	ListIdentities(context.Context, *ListIdentitiesRequest) (*ListIdentitiesResponse, error)
 	GetIdentity(context.Context, *GetIdentityRequest) (*GetIdentityResponse, error)
 	CreateIdentity(context.Context, *CreateIdentityRequest) (*CreateIdentityResponse, error)
@@ -301,6 +335,12 @@ func (UnimplementedAdminServiceServer) GetStatus(context.Context, *GetStatusRequ
 }
 func (UnimplementedAdminServiceServer) GetOverlay(context.Context, *GetOverlayRequest) (*GetOverlayResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetOverlay not implemented")
+}
+func (UnimplementedAdminServiceServer) GetFlows(context.Context, *GetFlowsRequest) (*GetFlowsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetFlows not implemented")
+}
+func (UnimplementedAdminServiceServer) TryFlow(context.Context, *TryFlowRequest) (*TryFlowResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method TryFlow not implemented")
 }
 func (UnimplementedAdminServiceServer) ListIdentities(context.Context, *ListIdentitiesRequest) (*ListIdentitiesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListIdentities not implemented")
@@ -400,6 +440,42 @@ func _AdminService_GetOverlay_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AdminServiceServer).GetOverlay(ctx, req.(*GetOverlayRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_GetFlows_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFlowsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).GetFlows(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_GetFlows_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).GetFlows(ctx, req.(*GetFlowsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_TryFlow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TryFlowRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).TryFlow(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_TryFlow_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).TryFlow(ctx, req.(*TryFlowRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -688,6 +764,14 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetOverlay",
 			Handler:    _AdminService_GetOverlay_Handler,
+		},
+		{
+			MethodName: "GetFlows",
+			Handler:    _AdminService_GetFlows_Handler,
+		},
+		{
+			MethodName: "TryFlow",
+			Handler:    _AdminService_TryFlow_Handler,
 		},
 		{
 			MethodName: "ListIdentities",

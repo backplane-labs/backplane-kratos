@@ -271,3 +271,15 @@ func (c Client) ListSchemas(ctx context.Context) ([]Schema, error) {
 
 	return out, err
 }
+
+// InitFlow starts a self-service flow for native apps (/self-service/<kind>/api)
+// and answers it as Kratos sends it: its id, state and UI nodes.
+func (c Client) InitFlow(ctx context.Context, kind string) (json.RawMessage, error) {
+	var out json.RawMessage
+
+	path := "/self-service/" + url.PathEscape(kind) + "/api"
+
+	_, err := c.do(ctx, request{method: http.MethodGet, base: c.public, path: path}, &out)
+
+	return out, err
+}

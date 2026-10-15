@@ -10,8 +10,6 @@ const S = 'settings';
 const durationFields = ['registration.lifespan', 'login.lifespan', 'settings.lifespan', 'settings.privileged_session_max_age', 'recovery.lifespan',
   'verification.lifespan', 'methods.code.lifespan', 'session.lifespan', 'session.earliest_possible_extend'] as const;
 const muted = { color: 'var(--muted-foreground)', fontSize: 12 } as const;
-const hookNames = ['Deliver', 'BeforeRegistration', 'AfterRegistration', 'BeforeLogin', 'AfterLogin', 'BeforeSettings', 'AfterSettings',
-  'BeforeRecovery', 'AfterRecovery', 'BeforeVerification', 'AfterVerification'] as const;
 const providers = ['generic', 'google', 'github', 'gitlab', 'microsoft', 'apple', 'discord', 'slack', 'facebook', 'auth0', 'yandex', 'vk'] as const;
 
 function useText() { return useTranslation('module.kratos').t; }
@@ -40,79 +38,60 @@ export function Settings() {
       ? <Stack gap={8} role="status" aria-label={t('loading')}><Skeleton style={{ height: 120 }} /><Skeleton style={{ height: 120 }} /></Stack>
       : <>
         <SaveBar cfg={cfg} labels={labels} />
-        <Flows cfg={cfg} />
+        <General cfg={cfg} />
         <Methods cfg={cfg} />
         <Oidc cfg={cfg} />
         <Sessions cfg={cfg} />
         <Features cfg={cfg} />
         <Schemas cfg={cfg} />
         <Hydra cfg={cfg} />
-        <Hooks cfg={cfg} />
         <Overrides cfg={cfg} />
         <SaveBar cfg={cfg} labels={labels} />
       </>}
   </Stack>;
 }
 
-function Flows({ cfg }: { cfg: LiveConfig }) {
+function General({ cfg }: { cfg: LiveConfig }) {
   const t = useText();
-  return <Panel title={t('flowsSection')} description={t('flowsHint')}>
+  return <Panel title={t('generalSection')} description={t('generalHint')}>
     <Text cfg={cfg} path={S} field="default_return_url" label={t('defaultReturnUrl')} placeholder="https://app.example.com/" />
     <Lines cfg={cfg} path={S} field="allowed_return_urls" label={t('allowedReturnUrls')} hint={t('onePerLine')} />
     <Text cfg={cfg} path={S} field="error_ui_url" label={t('errorUi')} />
-    <h3 style={{ fontSize: 13, margin: '12px 0 4px' }}>{t('registration')}</h3>
-    <Toggle cfg={cfg} path={S} field="registration.enabled" label={t('registrationEnabled')} hint={t('registrationEnabledHint')} />
-    <Text cfg={cfg} path={S} field="registration.ui_url" label={t('uiUrl')} />
-    <Duration cfg={cfg} path={S} field="registration.lifespan" label={t('lifespan')} />
-    <Choice cfg={cfg} path={S} field="registration.style" label={t('style')} options={['profile_first', 'unified']} />
-    <Toggle cfg={cfg} path={S} field="registration.login_after" label={t('loginAfter')} />
-    <Toggle cfg={cfg} path={S} field="registration.show_verification_ui" label={t('showVerificationUi')} />
-    <h3 style={{ fontSize: 13, margin: '12px 0 4px' }}>{t('login')}</h3>
-    <Text cfg={cfg} path={S} field="login.ui_url" label={t('uiUrl')} />
-    <Duration cfg={cfg} path={S} field="login.lifespan" label={t('lifespan')} />
-    <Choice cfg={cfg} path={S} field="login.style" label={t('style')} options={['unified', 'identifier_first']} />
-    <Toggle cfg={cfg} path={S} field="login.require_verified_address" label={t('requireVerified')} />
-    <Toggle cfg={cfg} path={S} field="login.revoke_other_sessions" label={t('revokeOther')} />
-    <h3 style={{ fontSize: 13, margin: '12px 0 4px' }}>{t('settingsFlow')}</h3>
-    <Text cfg={cfg} path={S} field="settings.ui_url" label={t('uiUrl')} />
-    <Duration cfg={cfg} path={S} field="settings.lifespan" label={t('lifespan')} />
-    <Duration cfg={cfg} path={S} field="settings.privileged_session_max_age" label={t('privilegedAge')} hint={t('privilegedAgeHint')} />
-    <Choice cfg={cfg} path={S} field="settings.required_aal" label={t('requiredAal')} options={['highest_available', 'aal1']} />
-    {(['recovery', 'verification'] as const).map((flow) => <div key={flow}>
-      <h3 style={{ fontSize: 13, margin: '12px 0 4px' }}>{t(`${flow}Flow`)}</h3>
-      <Toggle cfg={cfg} path={S} field={`${flow}.enabled`} label={t('enabled')} />
-      <Text cfg={cfg} path={S} field={`${flow}.ui_url`} label={t('uiUrl')} />
-      <Duration cfg={cfg} path={S} field={`${flow}.lifespan`} label={t('lifespan')} />
-      <Choice cfg={cfg} path={S} field={`${flow}.use`} label={t('use')} options={['code', 'link']} />
-      <Toggle cfg={cfg} path={S} field={`${flow}.notify_unknown_recipients`} label={t('notifyUnknown')} />
-      {flow === 'recovery' && <Toggle cfg={cfg} path={S} field="recovery.revoke_sessions" label={t('revokeAfterRecovery')} />}
-    </div>)}
   </Panel>;
 }
 
 function Methods({ cfg }: { cfg: LiveConfig }) {
   const t = useText(), m = 'methods.';
+  const on = (method: string) => cfg.get(S, `${m}${method}.enabled`) === true;
   return <Panel title={t('methodsSection')} description={t('methodsHint')}>
     <Toggle cfg={cfg} path={S} field={`${m}password.enabled`} label={t('password')} />
-    <NumberField cfg={cfg} path={S} field={`${m}password.min_length`} label={t('minLength')} min={6} />
-    <Toggle cfg={cfg} path={S} field={`${m}password.identifier_similarity_check`} label={t('similarity')} />
-    <Toggle cfg={cfg} path={S} field={`${m}password.haveibeenpwned`} label={t('pwned')} />
+    {on('password') && <>
+      <NumberField cfg={cfg} path={S} field={`${m}password.min_length`} label={t('minLength')} min={6} />
+      <Toggle cfg={cfg} path={S} field={`${m}password.identifier_similarity_check`} label={t('similarity')} />
+      <Toggle cfg={cfg} path={S} field={`${m}password.haveibeenpwned`} label={t('pwned')} />
+    </>}
     <Toggle cfg={cfg} path={S} field={`${m}code.enabled`} label={t('codes')} hint={t('codesHint')} />
-    <Toggle cfg={cfg} path={S} field={`${m}code.passwordless`} label={t('codePasswordless')} />
-    <Toggle cfg={cfg} path={S} field={`${m}code.mfa`} label={t('codeMfa')} />
-    <Duration cfg={cfg} path={S} field={`${m}code.lifespan`} label={t('codeLifespan')} />
+    {on('code') && <>
+      <Toggle cfg={cfg} path={S} field={`${m}code.passwordless`} label={t('codePasswordless')} />
+      <Toggle cfg={cfg} path={S} field={`${m}code.mfa`} label={t('codeMfa')} />
+      <Duration cfg={cfg} path={S} field={`${m}code.lifespan`} label={t('codeLifespan')} />
+    </>}
     <Toggle cfg={cfg} path={S} field={`${m}totp.enabled`} label={t('totp')} />
-    <Text cfg={cfg} path={S} field={`${m}totp.issuer`} label={t('totpIssuer')} />
+    {on('totp') && <Text cfg={cfg} path={S} field={`${m}totp.issuer`} label={t('totpIssuer')} />}
     <Toggle cfg={cfg} path={S} field={`${m}lookup_secret.enabled`} label={t('lookupSecret')} />
     <Toggle cfg={cfg} path={S} field={`${m}passkey.enabled`} label={t('passkey')} />
-    <Text cfg={cfg} path={S} field={`${m}passkey.rp.id`} label={t('rpId')} placeholder="example.com" />
-    <Text cfg={cfg} path={S} field={`${m}passkey.rp.display_name`} label={t('rpName')} />
-    <Lines cfg={cfg} path={S} field={`${m}passkey.rp.origins`} label={t('rpOrigins')} hint={t('onePerLine')} />
+    {on('passkey') && <>
+      <Text cfg={cfg} path={S} field={`${m}passkey.rp.id`} label={t('rpId')} placeholder="example.com" />
+      <Text cfg={cfg} path={S} field={`${m}passkey.rp.display_name`} label={t('rpName')} />
+      <Lines cfg={cfg} path={S} field={`${m}passkey.rp.origins`} label={t('rpOrigins')} hint={t('onePerLine')} />
+    </>}
     <Toggle cfg={cfg} path={S} field={`${m}webauthn.enabled`} label={t('webauthn')} />
-    <Toggle cfg={cfg} path={S} field={`${m}webauthn.passwordless`} label={t('webauthnPasswordless')} />
-    <Text cfg={cfg} path={S} field={`${m}webauthn.rp.id`} label={t('rpId')} />
-    <Text cfg={cfg} path={S} field={`${m}webauthn.rp.display_name`} label={t('rpName')} />
-    <Lines cfg={cfg} path={S} field={`${m}webauthn.rp.origins`} label={t('rpOrigins')} hint={t('onePerLine')} />
+    {on('webauthn') && <>
+      <Toggle cfg={cfg} path={S} field={`${m}webauthn.passwordless`} label={t('webauthnPasswordless')} />
+      <Text cfg={cfg} path={S} field={`${m}webauthn.rp.id`} label={t('rpId')} />
+      <Text cfg={cfg} path={S} field={`${m}webauthn.rp.display_name`} label={t('rpName')} />
+      <Lines cfg={cfg} path={S} field={`${m}webauthn.rp.origins`} label={t('rpOrigins')} hint={t('onePerLine')} />
+    </>}
     <Toggle cfg={cfg} path={S} field={`${m}profile.enabled`} label={t('profile')} />
     <Toggle cfg={cfg} path={S} field={`${m}link.enabled`} label={t('linkMethod')} hint={t('linkHint')} />
   </Panel>;
@@ -214,13 +193,6 @@ function Hydra({ cfg }: { cfg: LiveConfig }) {
   </Panel>;
 }
 
-function Hooks({ cfg }: { cfg: LiveConfig }) {
-  const t = useText(), open = ((cfg.get('fail_open') as string[] | null | undefined) ?? []);
-  return <Panel title={t('failOpenSection')} description={t('failOpenSectionHint')}>
-    <Stack direction="row" gap={8} style={{ flexWrap: 'wrap' }}>{hookNames.filter((h) => h !== 'Deliver').map((h) => <label key={h} style={{ display: 'flex', gap: 6, alignItems: 'center', fontSize: 13 }}>
-      <input type="checkbox" checked={open.includes(h)} onChange={(e) => cfg.set('fail_open', undefined, e.target.checked ? [...open, h] : open.filter((x) => x !== h))} />{h}</label>)}</Stack>
-  </Panel>;
-}
 
 function Overrides({ cfg }: { cfg: LiveConfig }) {
   const t = useText(), { mode } = usePluginContext(), v = cfg.get(S, 'overrides');

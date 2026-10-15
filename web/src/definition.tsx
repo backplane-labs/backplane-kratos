@@ -19,6 +19,7 @@ import {
 } from './gen/proto/kratos/console/v1/admin_pb';
 import navigation from './navigation';
 import { Settings } from './settings';
+import { Flows } from './flows-page';
 
 const mono = { fontFamily: 'var(--font-mono)' } as const;
 const muted = { color: 'var(--muted-foreground)', fontSize: 12 } as const;
@@ -424,7 +425,7 @@ function Missing() {
 export const definition = definePlugin({
   ...navigation,
   routes: [
-    { index: true, element: <Overview /> }, { path: 'identities', element: <Identities /> }, { path: 'sessions', element: <Sessions /> },
+    { index: true, element: <Overview /> }, { path: 'flows', element: <Flows /> }, { path: 'identities', element: <Identities /> }, { path: 'sessions', element: <Sessions /> },
     { path: 'import', element: <Import /> }, { path: 'courier', element: <Courier /> }, { path: 'schemas', element: <Schemas /> }, { path: 'settings', element: <Settings /> }, { path: '*', element: <Missing /> },
   ],
 });

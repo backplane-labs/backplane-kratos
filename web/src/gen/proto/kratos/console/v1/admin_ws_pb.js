@@ -3,7 +3,7 @@
 /* eslint-disable */
 
 import { applyUnaryCallbacks } from "@gopherex/ws-proto-transport";
-import { CreateIdentityRequestSchema, CreateIdentityResponseSchema, CreateRecoveryCodeRequestSchema, CreateRecoveryCodeResponseSchema, DeleteCredentialsRequestSchema, DeleteCredentialsResponseSchema, DeleteIdentityRequestSchema, DeleteIdentityResponseSchema, ExtendSessionRequestSchema, ExtendSessionResponseSchema, GetIdentityRequestSchema, GetIdentityResponseSchema, GetMessageRequestSchema, GetMessageResponseSchema, GetOverlayRequestSchema, GetOverlayResponseSchema, GetStatusRequestSchema, GetStatusResponseSchema, ImportIdentitiesRequestSchema, ImportIdentitiesResponseSchema, ListIdentitiesRequestSchema, ListIdentitiesResponseSchema, ListMessagesRequestSchema, ListMessagesResponseSchema, ListSchemasRequestSchema, ListSchemasResponseSchema, ListSessionsRequestSchema, ListSessionsResponseSchema, RevokeSessionsRequestSchema, RevokeSessionsResponseSchema, SetAddressVerifiedRequestSchema, SetAddressVerifiedResponseSchema, UpdateIdentityRequestSchema, UpdateIdentityResponseSchema } from "./admin_pb";
+import { CreateIdentityRequestSchema, CreateIdentityResponseSchema, CreateRecoveryCodeRequestSchema, CreateRecoveryCodeResponseSchema, DeleteCredentialsRequestSchema, DeleteCredentialsResponseSchema, DeleteIdentityRequestSchema, DeleteIdentityResponseSchema, ExtendSessionRequestSchema, ExtendSessionResponseSchema, GetFlowsRequestSchema, GetFlowsResponseSchema, GetIdentityRequestSchema, GetIdentityResponseSchema, GetMessageRequestSchema, GetMessageResponseSchema, GetOverlayRequestSchema, GetOverlayResponseSchema, GetStatusRequestSchema, GetStatusResponseSchema, ImportIdentitiesRequestSchema, ImportIdentitiesResponseSchema, ListIdentitiesRequestSchema, ListIdentitiesResponseSchema, ListMessagesRequestSchema, ListMessagesResponseSchema, ListSchemasRequestSchema, ListSchemasResponseSchema, ListSessionsRequestSchema, ListSessionsResponseSchema, RevokeSessionsRequestSchema, RevokeSessionsResponseSchema, SetAddressVerifiedRequestSchema, SetAddressVerifiedResponseSchema, TryFlowRequestSchema, TryFlowResponseSchema, UpdateIdentityRequestSchema, UpdateIdentityResponseSchema } from "./admin_pb";
 const AdminService_GetStatus = {
     typeName: "kratos.console.v1.AdminService",
     name: "GetStatus",
@@ -17,6 +17,20 @@ const AdminService_GetOverlay = {
     kind: "unary",
     input: GetOverlayRequestSchema,
     output: GetOverlayResponseSchema,
+};
+const AdminService_GetFlows = {
+    typeName: "kratos.console.v1.AdminService",
+    name: "GetFlows",
+    kind: "unary",
+    input: GetFlowsRequestSchema,
+    output: GetFlowsResponseSchema,
+};
+const AdminService_TryFlow = {
+    typeName: "kratos.console.v1.AdminService",
+    name: "TryFlow",
+    kind: "unary",
+    input: TryFlowRequestSchema,
+    output: TryFlowResponseSchema,
 };
 const AdminService_ListIdentities = {
     typeName: "kratos.console.v1.AdminService",
@@ -151,6 +165,26 @@ export class AdminServiceClient {
      */
     async getOverlay(req, options) {
         const res = await this.transport.unary(AdminService_GetOverlay, req, { headers: options === null || options === void 0 ? void 0 : options.headers, signal: options === null || options === void 0 ? void 0 : options.signal, timeoutMs: options === null || options === void 0 ? void 0 : options.timeoutMs });
+        return applyUnaryCallbacks(res, options);
+    }
+    /**
+     * GetFlows is every self-service flow: its settings, hook points, event
+     * and the findings of settings that do not work together.
+     *
+     * @generated from rpc kratos.console.v1.AdminService.GetFlows
+     */
+    async getFlows(req, options) {
+        const res = await this.transport.unary(AdminService_GetFlows, req, { headers: options === null || options === void 0 ? void 0 : options.headers, signal: options === null || options === void 0 ? void 0 : options.signal, timeoutMs: options === null || options === void 0 ? void 0 : options.timeoutMs });
+        return applyUnaryCallbacks(res, options);
+    }
+    /**
+     * TryFlow starts a flow as a native app would and answers the form Kratos
+     * hands the UI; nothing is submitted.
+     *
+     * @generated from rpc kratos.console.v1.AdminService.TryFlow
+     */
+    async tryFlow(req, options) {
+        const res = await this.transport.unary(AdminService_TryFlow, req, { headers: options === null || options === void 0 ? void 0 : options.headers, signal: options === null || options === void 0 ? void 0 : options.signal, timeoutMs: options === null || options === void 0 ? void 0 : options.timeoutMs });
         return applyUnaryCallbacks(res, options);
     }
     /**

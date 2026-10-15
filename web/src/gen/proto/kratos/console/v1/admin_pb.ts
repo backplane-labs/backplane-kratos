@@ -12,7 +12,7 @@ import type { Message as Message$1 } from "@bufbuild/protobuf";
  * Describes the file proto/kratos/console/v1/admin.proto.
  */
 export const file_proto_kratos_console_v1_admin: GenFile = /*@__PURE__*/
-  fileDesc("CiNwcm90by9rcmF0b3MvY29uc29sZS92MS9hZG1pbi5wcm90bxIRa3JhdG9zLmNvbnNvbGUudjEiEgoQR2V0U3RhdHVzUmVxdWVzdCKRAgoRR2V0U3RhdHVzUmVzcG9uc2USEQoJYWRtaW5fdXJsGAEgASgJEhIKCnB1YmxpY191cmwYAiABKAkSDwoHdmVyc2lvbhgDIAEoCRIPCgdwcm9ibGVtGAQgASgJEisKB292ZXJsYXkYBSABKAsyGi5rcmF0b3MuY29uc29sZS52MS5PdmVybGF5EisKBWhvb2tzGAYgAygLMhwua3JhdG9zLmNvbnNvbGUudjEuSG9va1BvaW50EjIKCWNhbGxiYWNrcxgHIAMoCzIfLmtyYXRvcy5jb25zb2xlLnYxLkNhbGxiYWNrU3RhdBIOCgZldmVudHMYCCABKAgSFQoNY2FsbGJhY2tzX3VybBgJIAEoCSJkCgdPdmVybGF5EgwKBHBhdGgYASABKAkSDAoEaGFzaBgCIAEoCRIuCgp3cml0dGVuX2F0GAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBINCgVlcnJvchgEIAEoCSJQCglIb29rUG9pbnQSDAoEbmFtZRgBIAEoCRITCgtkZXNjcmlwdGlvbhgCIAEoCRINCgVib3VuZBgDIAEoCBIRCglmYWlsX29wZW4YBCABKAgirgEKDENhbGxiYWNrU3RhdBINCgVwb2ludBgBIAEoCRINCgVjYWxscxgCIAEoBBIQCghmYWlsdXJlcxgDIAEoBBIrCgdsYXN0X2F0GAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIUCgxsYXN0X291dGNvbWUYBSABKAkSEgoKbGFzdF9lcnJvchgGIAEoCRIXCg9sYXN0X2xhdGVuY3lfbXMYByABKAEiEwoRR2V0T3ZlcmxheVJlcXVlc3QiNAoSR2V0T3ZlcmxheVJlc3BvbnNlEg8KB2NvbnRlbnQYASABKAkSDQoFZXJyb3IYAiABKAkisgMKCElkZW50aXR5EgoKAmlkGAEgASgJEhEKCXNjaGVtYV9pZBgCIAEoCRINCgVzdGF0ZRgDIAEoCRITCgt0cmFpdHNfanNvbhgEIAEoCRIcChRtZXRhZGF0YV9wdWJsaWNfanNvbhgFIAEoCRIbChNtZXRhZGF0YV9hZG1pbl9qc29uGAYgASgJEhMKC2V4dGVybmFsX2lkGAcgASgJEjgKFHZlcmlmaWFibGVfYWRkcmVzc2VzGAggAygLMhoua3JhdG9zLmNvbnNvbGUudjEuQWRkcmVzcxI2ChJyZWNvdmVyeV9hZGRyZXNzZXMYCSADKAsyGi5rcmF0b3MuY29uc29sZS52MS5BZGRyZXNzEjIKC2NyZWRlbnRpYWxzGAogAygLMh0ua3JhdG9zLmNvbnNvbGUudjEuQ3JlZGVudGlhbBIuCgpjcmVhdGVkX2F0GAsgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIuCgp1cGRhdGVkX2F0GAwgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBINCgVsYWJlbBgNIAEoCSJHCgdBZGRyZXNzEg0KBXZhbHVlGAEgASgJEgsKA3ZpYRgCIAEoCRIQCgh2ZXJpZmllZBgDIAEoCBIOCgZzdGF0dXMYBCABKAkiXwoKQ3JlZGVudGlhbBIMCgR0eXBlGAEgASgJEhMKC2lkZW50aWZpZXJzGAIgAygJEi4KCmNyZWF0ZWRfYXQYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wIk0KFUxpc3RJZGVudGl0aWVzUmVxdWVzdBINCgVxdWVyeRgBIAEoCRIRCglwYWdlX3NpemUYAiABKAUSEgoKcGFnZV90b2tlbhgDIAEoCSJiChZMaXN0SWRlbnRpdGllc1Jlc3BvbnNlEi8KCmlkZW50aXRpZXMYASADKAsyGy5rcmF0b3MuY29uc29sZS52MS5JZGVudGl0eRIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkiIAoSR2V0SWRlbnRpdHlSZXF1ZXN0EgoKAmlkGAEgASgJInIKE0dldElkZW50aXR5UmVzcG9uc2USLQoIaWRlbnRpdHkYASABKAsyGy5rcmF0b3MuY29uc29sZS52MS5JZGVudGl0eRIsCghzZXNzaW9ucxgCIAMoCzIaLmtyYXRvcy5jb25zb2xlLnYxLlNlc3Npb24isAEKFUNyZWF0ZUlkZW50aXR5UmVxdWVzdBIRCglzY2hlbWFfaWQYASABKAkSEwoLdHJhaXRzX2pzb24YAiABKAkSDQoFc3RhdGUYAyABKAkSEAoIcGFzc3dvcmQYBCABKAkSHAoUbWV0YWRhdGFfcHVibGljX2pzb24YBSABKAkSGwoTbWV0YWRhdGFfYWRtaW5fanNvbhgGIAEoCRITCgtleHRlcm5hbF9pZBgHIAEoCSJHChZDcmVhdGVJZGVudGl0eVJlc3BvbnNlEi0KCGlkZW50aXR5GAEgASgLMhsua3JhdG9zLmNvbnNvbGUudjEuSWRlbnRpdHkilQEKFVVwZGF0ZUlkZW50aXR5UmVxdWVzdBIKCgJpZBgBIAEoCRIRCglzY2hlbWFfaWQYAiABKAkSEwoLdHJhaXRzX2pzb24YAyABKAkSDQoFc3RhdGUYBCABKAkSHAoUbWV0YWRhdGFfcHVibGljX2pzb24YBSABKAkSGwoTbWV0YWRhdGFfYWRtaW5fanNvbhgGIAEoCSJHChZVcGRhdGVJZGVudGl0eVJlc3BvbnNlEi0KCGlkZW50aXR5GAEgASgLMhsua3JhdG9zLmNvbnNvbGUudjEuSWRlbnRpdHkiIwoVRGVsZXRlSWRlbnRpdHlSZXF1ZXN0EgoKAmlkGAEgASgJIhgKFkRlbGV0ZUlkZW50aXR5UmVzcG9uc2UiSAoYRGVsZXRlQ3JlZGVudGlhbHNSZXF1ZXN0EgoKAmlkGAEgASgJEgwKBHR5cGUYAiABKAkSEgoKaWRlbnRpZmllchgDIAEoCSIbChlEZWxldGVDcmVkZW50aWFsc1Jlc3BvbnNlIlwKGUNyZWF0ZVJlY292ZXJ5Q29kZVJlcXVlc3QSCgoCaWQYASABKAkSEgoKZXhwaXJlc19pbhgCIAEoCRIMCgRsaW5rGAMgASgIEhEKCWZsb3dfdHlwZRgEIAEoCSJoChpDcmVhdGVSZWNvdmVyeUNvZGVSZXNwb25zZRIMCgRjb2RlGAEgASgJEgwKBGxpbmsYAiABKAkSLgoKZXhwaXJlc19hdBgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiggIKB1Nlc3Npb24SCgoCaWQYASABKAkSDgoGYWN0aXZlGAIgASgIEhMKC2lkZW50aXR5X2lkGAMgASgJEhYKDmlkZW50aXR5X2xhYmVsGAQgASgJEgsKA2FhbBgFIAEoCRIPCgdtZXRob2RzGAYgAygJEjQKEGF1dGhlbnRpY2F0ZWRfYXQYByABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi4KCmV4cGlyZXNfYXQYCCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEioKB2RldmljZXMYCSADKAsyGS5rcmF0b3MuY29uc29sZS52MS5EZXZpY2UiQgoGRGV2aWNlEhIKCmlwX2FkZHJlc3MYASABKAkSEgoKdXNlcl9hZ2VudBgCIAEoCRIQCghsb2NhdGlvbhgDIAEoCSJRChNMaXN0U2Vzc2lvbnNSZXF1ZXN0EhMKC2FjdGl2ZV9vbmx5GAEgASgIEhEKCXBhZ2Vfc2l6ZRgCIAEoBRISCgpwYWdlX3Rva2VuGAMgASgJIl0KFExpc3RTZXNzaW9uc1Jlc3BvbnNlEiwKCHNlc3Npb25zGAEgAygLMhoua3JhdG9zLmNvbnNvbGUudjEuU2Vzc2lvbhIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkiQAoVUmV2b2tlU2Vzc2lvbnNSZXF1ZXN0EhIKCnNlc3Npb25faWQYASABKAkSEwoLaWRlbnRpdHlfaWQYAiABKAkiGAoWUmV2b2tlU2Vzc2lvbnNSZXNwb25zZSKFAgoHTWVzc2FnZRIKCgJpZBgBIAEoCRIOCgZzdGF0dXMYAiABKAkSDwoHY2hhbm5lbBgDIAEoCRIRCglyZWNpcGllbnQYBCABKAkSFQoNdGVtcGxhdGVfdHlwZRgFIAEoCRISCgpzZW5kX2NvdW50GAYgASgFEi4KCmNyZWF0ZWRfYXQYByABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi4KCnVwZGF0ZWRfYXQYCCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi8KCmRpc3BhdGNoZXMYCSADKAsyGy5rcmF0b3MuY29uc29sZS52MS5EaXNwYXRjaCJZCghEaXNwYXRjaBIOCgZzdGF0dXMYASABKAkSDQoFZXJyb3IYAiABKAkSLgoKY3JlYXRlZF9hdBgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiXwoTTGlzdE1lc3NhZ2VzUmVxdWVzdBIOCgZzdGF0dXMYASABKAkSEQoJcmVjaXBpZW50GAIgASgJEhEKCXBhZ2Vfc2l6ZRgDIAEoBRISCgpwYWdlX3Rva2VuGAQgASgJIl0KFExpc3RNZXNzYWdlc1Jlc3BvbnNlEiwKCG1lc3NhZ2VzGAEgAygLMhoua3JhdG9zLmNvbnNvbGUudjEuTWVzc2FnZRIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkiLwoRR2V0TWVzc2FnZVJlcXVlc3QSCgoCaWQYASABKAkSDgoGcmV2ZWFsGAIgASgIImAKEkdldE1lc3NhZ2VSZXNwb25zZRIrCgdtZXNzYWdlGAEgASgLMhoua3JhdG9zLmNvbnNvbGUudjEuTWVzc2FnZRIPCgdzdWJqZWN0GAIgASgJEgwKBGJvZHkYAyABKAkiFAoSTGlzdFNjaGVtYXNSZXF1ZXN0IkEKE0xpc3RTY2hlbWFzUmVzcG9uc2USKgoHc2NoZW1hcxgBIAMoCzIZLmtyYXRvcy5jb25zb2xlLnYxLlNjaGVtYSIpCgZTY2hlbWESCgoCaWQYASABKAkSEwoLc2NoZW1hX2pzb24YAiABKAkiSAoZU2V0QWRkcmVzc1ZlcmlmaWVkUmVxdWVzdBIKCgJpZBgBIAEoCRINCgV2YWx1ZRgCIAEoCRIQCgh2ZXJpZmllZBgDIAEoCCJLChpTZXRBZGRyZXNzVmVyaWZpZWRSZXNwb25zZRItCghpZGVudGl0eRgBIAEoCzIbLmtyYXRvcy5jb25zb2xlLnYxLklkZW50aXR5IjIKF0ltcG9ydElkZW50aXRpZXNSZXF1ZXN0EhcKD2lkZW50aXRpZXNfanNvbhgBIAEoCSJMChhJbXBvcnRJZGVudGl0aWVzUmVzcG9uc2USMAoHcmVzdWx0cxgBIAMoCzIfLmtyYXRvcy5jb25zb2xlLnYxLkltcG9ydFJlc3VsdCJCCgxJbXBvcnRSZXN1bHQSDgoGYWN0aW9uGAEgASgJEhMKC2lkZW50aXR5X2lkGAIgASgJEg0KBWVycm9yGAMgASgJIiIKFEV4dGVuZFNlc3Npb25SZXF1ZXN0EgoKAmlkGAEgASgJIkQKFUV4dGVuZFNlc3Npb25SZXNwb25zZRIrCgdzZXNzaW9uGAEgASgLMhoua3JhdG9zLmNvbnNvbGUudjEuU2Vzc2lvbjLEDQoMQWRtaW5TZXJ2aWNlElYKCUdldFN0YXR1cxIjLmtyYXRvcy5jb25zb2xlLnYxLkdldFN0YXR1c1JlcXVlc3QaJC5rcmF0b3MuY29uc29sZS52MS5HZXRTdGF0dXNSZXNwb25zZRJZCgpHZXRPdmVybGF5EiQua3JhdG9zLmNvbnNvbGUudjEuR2V0T3ZlcmxheVJlcXVlc3QaJS5rcmF0b3MuY29uc29sZS52MS5HZXRPdmVybGF5UmVzcG9uc2USZQoOTGlzdElkZW50aXRpZXMSKC5rcmF0b3MuY29uc29sZS52MS5MaXN0SWRlbnRpdGllc1JlcXVlc3QaKS5rcmF0b3MuY29uc29sZS52MS5MaXN0SWRlbnRpdGllc1Jlc3BvbnNlElwKC0dldElkZW50aXR5EiUua3JhdG9zLmNvbnNvbGUudjEuR2V0SWRlbnRpdHlSZXF1ZXN0GiYua3JhdG9zLmNvbnNvbGUudjEuR2V0SWRlbnRpdHlSZXNwb25zZRJlCg5DcmVhdGVJZGVudGl0eRIoLmtyYXRvcy5jb25zb2xlLnYxLkNyZWF0ZUlkZW50aXR5UmVxdWVzdBopLmtyYXRvcy5jb25zb2xlLnYxLkNyZWF0ZUlkZW50aXR5UmVzcG9uc2USZQoOVXBkYXRlSWRlbnRpdHkSKC5rcmF0b3MuY29uc29sZS52MS5VcGRhdGVJZGVudGl0eVJlcXVlc3QaKS5rcmF0b3MuY29uc29sZS52MS5VcGRhdGVJZGVudGl0eVJlc3BvbnNlEmUKDkRlbGV0ZUlkZW50aXR5Eigua3JhdG9zLmNvbnNvbGUudjEuRGVsZXRlSWRlbnRpdHlSZXF1ZXN0Gikua3JhdG9zLmNvbnNvbGUudjEuRGVsZXRlSWRlbnRpdHlSZXNwb25zZRJuChFEZWxldGVDcmVkZW50aWFscxIrLmtyYXRvcy5jb25zb2xlLnYxLkRlbGV0ZUNyZWRlbnRpYWxzUmVxdWVzdBosLmtyYXRvcy5jb25zb2xlLnYxLkRlbGV0ZUNyZWRlbnRpYWxzUmVzcG9uc2UScQoSQ3JlYXRlUmVjb3ZlcnlDb2RlEiwua3JhdG9zLmNvbnNvbGUudjEuQ3JlYXRlUmVjb3ZlcnlDb2RlUmVxdWVzdBotLmtyYXRvcy5jb25zb2xlLnYxLkNyZWF0ZVJlY292ZXJ5Q29kZVJlc3BvbnNlEnEKElNldEFkZHJlc3NWZXJpZmllZBIsLmtyYXRvcy5jb25zb2xlLnYxLlNldEFkZHJlc3NWZXJpZmllZFJlcXVlc3QaLS5rcmF0b3MuY29uc29sZS52MS5TZXRBZGRyZXNzVmVyaWZpZWRSZXNwb25zZRJrChBJbXBvcnRJZGVudGl0aWVzEioua3JhdG9zLmNvbnNvbGUudjEuSW1wb3J0SWRlbnRpdGllc1JlcXVlc3QaKy5rcmF0b3MuY29uc29sZS52MS5JbXBvcnRJZGVudGl0aWVzUmVzcG9uc2USXwoMTGlzdFNlc3Npb25zEiYua3JhdG9zLmNvbnNvbGUudjEuTGlzdFNlc3Npb25zUmVxdWVzdBonLmtyYXRvcy5jb25zb2xlLnYxLkxpc3RTZXNzaW9uc1Jlc3BvbnNlEmUKDlJldm9rZVNlc3Npb25zEigua3JhdG9zLmNvbnNvbGUudjEuUmV2b2tlU2Vzc2lvbnNSZXF1ZXN0Gikua3JhdG9zLmNvbnNvbGUudjEuUmV2b2tlU2Vzc2lvbnNSZXNwb25zZRJiCg1FeHRlbmRTZXNzaW9uEicua3JhdG9zLmNvbnNvbGUudjEuRXh0ZW5kU2Vzc2lvblJlcXVlc3QaKC5rcmF0b3MuY29uc29sZS52MS5FeHRlbmRTZXNzaW9uUmVzcG9uc2USXwoMTGlzdE1lc3NhZ2VzEiYua3JhdG9zLmNvbnNvbGUudjEuTGlzdE1lc3NhZ2VzUmVxdWVzdBonLmtyYXRvcy5jb25zb2xlLnYxLkxpc3RNZXNzYWdlc1Jlc3BvbnNlElkKCkdldE1lc3NhZ2USJC5rcmF0b3MuY29uc29sZS52MS5HZXRNZXNzYWdlUmVxdWVzdBolLmtyYXRvcy5jb25zb2xlLnYxLkdldE1lc3NhZ2VSZXNwb25zZRJcCgtMaXN0U2NoZW1hcxIlLmtyYXRvcy5jb25zb2xlLnYxLkxpc3RTY2hlbWFzUmVxdWVzdBomLmtyYXRvcy5jb25zb2xlLnYxLkxpc3RTY2hlbWFzUmVzcG9uc2VCVFpSZ2l0aHViLmNvbS9iYWNrcGxhbmUtbGFicy9iYWNrcGxhbmUta3JhdG9zL3Byb3RvL2tyYXRvcy9jb25zb2xlL3YxO2tyYXRvc2NvbnNvbGV2MWIGcHJvdG8z", [file_google_protobuf_timestamp]);
+  fileDesc("CiNwcm90by9rcmF0b3MvY29uc29sZS92MS9hZG1pbi5wcm90bxIRa3JhdG9zLmNvbnNvbGUudjEiEgoQR2V0U3RhdHVzUmVxdWVzdCKRAgoRR2V0U3RhdHVzUmVzcG9uc2USEQoJYWRtaW5fdXJsGAEgASgJEhIKCnB1YmxpY191cmwYAiABKAkSDwoHdmVyc2lvbhgDIAEoCRIPCgdwcm9ibGVtGAQgASgJEisKB292ZXJsYXkYBSABKAsyGi5rcmF0b3MuY29uc29sZS52MS5PdmVybGF5EisKBWhvb2tzGAYgAygLMhwua3JhdG9zLmNvbnNvbGUudjEuSG9va1BvaW50EjIKCWNhbGxiYWNrcxgHIAMoCzIfLmtyYXRvcy5jb25zb2xlLnYxLkNhbGxiYWNrU3RhdBIOCgZldmVudHMYCCABKAgSFQoNY2FsbGJhY2tzX3VybBgJIAEoCSJkCgdPdmVybGF5EgwKBHBhdGgYASABKAkSDAoEaGFzaBgCIAEoCRIuCgp3cml0dGVuX2F0GAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBINCgVlcnJvchgEIAEoCSJQCglIb29rUG9pbnQSDAoEbmFtZRgBIAEoCRITCgtkZXNjcmlwdGlvbhgCIAEoCRINCgVib3VuZBgDIAEoCBIRCglmYWlsX29wZW4YBCABKAgirgEKDENhbGxiYWNrU3RhdBINCgVwb2ludBgBIAEoCRINCgVjYWxscxgCIAEoBBIQCghmYWlsdXJlcxgDIAEoBBIrCgdsYXN0X2F0GAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIUCgxsYXN0X291dGNvbWUYBSABKAkSEgoKbGFzdF9lcnJvchgGIAEoCRIXCg9sYXN0X2xhdGVuY3lfbXMYByABKAEiEwoRR2V0T3ZlcmxheVJlcXVlc3QiNAoSR2V0T3ZlcmxheVJlc3BvbnNlEg8KB2NvbnRlbnQYASABKAkSDQoFZXJyb3IYAiABKAkisgMKCElkZW50aXR5EgoKAmlkGAEgASgJEhEKCXNjaGVtYV9pZBgCIAEoCRINCgVzdGF0ZRgDIAEoCRITCgt0cmFpdHNfanNvbhgEIAEoCRIcChRtZXRhZGF0YV9wdWJsaWNfanNvbhgFIAEoCRIbChNtZXRhZGF0YV9hZG1pbl9qc29uGAYgASgJEhMKC2V4dGVybmFsX2lkGAcgASgJEjgKFHZlcmlmaWFibGVfYWRkcmVzc2VzGAggAygLMhoua3JhdG9zLmNvbnNvbGUudjEuQWRkcmVzcxI2ChJyZWNvdmVyeV9hZGRyZXNzZXMYCSADKAsyGi5rcmF0b3MuY29uc29sZS52MS5BZGRyZXNzEjIKC2NyZWRlbnRpYWxzGAogAygLMh0ua3JhdG9zLmNvbnNvbGUudjEuQ3JlZGVudGlhbBIuCgpjcmVhdGVkX2F0GAsgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIuCgp1cGRhdGVkX2F0GAwgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBINCgVsYWJlbBgNIAEoCSJHCgdBZGRyZXNzEg0KBXZhbHVlGAEgASgJEgsKA3ZpYRgCIAEoCRIQCgh2ZXJpZmllZBgDIAEoCBIOCgZzdGF0dXMYBCABKAkiXwoKQ3JlZGVudGlhbBIMCgR0eXBlGAEgASgJEhMKC2lkZW50aWZpZXJzGAIgAygJEi4KCmNyZWF0ZWRfYXQYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wIk0KFUxpc3RJZGVudGl0aWVzUmVxdWVzdBINCgVxdWVyeRgBIAEoCRIRCglwYWdlX3NpemUYAiABKAUSEgoKcGFnZV90b2tlbhgDIAEoCSJiChZMaXN0SWRlbnRpdGllc1Jlc3BvbnNlEi8KCmlkZW50aXRpZXMYASADKAsyGy5rcmF0b3MuY29uc29sZS52MS5JZGVudGl0eRIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkiIAoSR2V0SWRlbnRpdHlSZXF1ZXN0EgoKAmlkGAEgASgJInIKE0dldElkZW50aXR5UmVzcG9uc2USLQoIaWRlbnRpdHkYASABKAsyGy5rcmF0b3MuY29uc29sZS52MS5JZGVudGl0eRIsCghzZXNzaW9ucxgCIAMoCzIaLmtyYXRvcy5jb25zb2xlLnYxLlNlc3Npb24isAEKFUNyZWF0ZUlkZW50aXR5UmVxdWVzdBIRCglzY2hlbWFfaWQYASABKAkSEwoLdHJhaXRzX2pzb24YAiABKAkSDQoFc3RhdGUYAyABKAkSEAoIcGFzc3dvcmQYBCABKAkSHAoUbWV0YWRhdGFfcHVibGljX2pzb24YBSABKAkSGwoTbWV0YWRhdGFfYWRtaW5fanNvbhgGIAEoCRITCgtleHRlcm5hbF9pZBgHIAEoCSJHChZDcmVhdGVJZGVudGl0eVJlc3BvbnNlEi0KCGlkZW50aXR5GAEgASgLMhsua3JhdG9zLmNvbnNvbGUudjEuSWRlbnRpdHkilQEKFVVwZGF0ZUlkZW50aXR5UmVxdWVzdBIKCgJpZBgBIAEoCRIRCglzY2hlbWFfaWQYAiABKAkSEwoLdHJhaXRzX2pzb24YAyABKAkSDQoFc3RhdGUYBCABKAkSHAoUbWV0YWRhdGFfcHVibGljX2pzb24YBSABKAkSGwoTbWV0YWRhdGFfYWRtaW5fanNvbhgGIAEoCSJHChZVcGRhdGVJZGVudGl0eVJlc3BvbnNlEi0KCGlkZW50aXR5GAEgASgLMhsua3JhdG9zLmNvbnNvbGUudjEuSWRlbnRpdHkiIwoVRGVsZXRlSWRlbnRpdHlSZXF1ZXN0EgoKAmlkGAEgASgJIhgKFkRlbGV0ZUlkZW50aXR5UmVzcG9uc2UiSAoYRGVsZXRlQ3JlZGVudGlhbHNSZXF1ZXN0EgoKAmlkGAEgASgJEgwKBHR5cGUYAiABKAkSEgoKaWRlbnRpZmllchgDIAEoCSIbChlEZWxldGVDcmVkZW50aWFsc1Jlc3BvbnNlIlwKGUNyZWF0ZVJlY292ZXJ5Q29kZVJlcXVlc3QSCgoCaWQYASABKAkSEgoKZXhwaXJlc19pbhgCIAEoCRIMCgRsaW5rGAMgASgIEhEKCWZsb3dfdHlwZRgEIAEoCSJoChpDcmVhdGVSZWNvdmVyeUNvZGVSZXNwb25zZRIMCgRjb2RlGAEgASgJEgwKBGxpbmsYAiABKAkSLgoKZXhwaXJlc19hdBgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiggIKB1Nlc3Npb24SCgoCaWQYASABKAkSDgoGYWN0aXZlGAIgASgIEhMKC2lkZW50aXR5X2lkGAMgASgJEhYKDmlkZW50aXR5X2xhYmVsGAQgASgJEgsKA2FhbBgFIAEoCRIPCgdtZXRob2RzGAYgAygJEjQKEGF1dGhlbnRpY2F0ZWRfYXQYByABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi4KCmV4cGlyZXNfYXQYCCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEioKB2RldmljZXMYCSADKAsyGS5rcmF0b3MuY29uc29sZS52MS5EZXZpY2UiQgoGRGV2aWNlEhIKCmlwX2FkZHJlc3MYASABKAkSEgoKdXNlcl9hZ2VudBgCIAEoCRIQCghsb2NhdGlvbhgDIAEoCSJRChNMaXN0U2Vzc2lvbnNSZXF1ZXN0EhMKC2FjdGl2ZV9vbmx5GAEgASgIEhEKCXBhZ2Vfc2l6ZRgCIAEoBRISCgpwYWdlX3Rva2VuGAMgASgJIl0KFExpc3RTZXNzaW9uc1Jlc3BvbnNlEiwKCHNlc3Npb25zGAEgAygLMhoua3JhdG9zLmNvbnNvbGUudjEuU2Vzc2lvbhIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkiQAoVUmV2b2tlU2Vzc2lvbnNSZXF1ZXN0EhIKCnNlc3Npb25faWQYASABKAkSEwoLaWRlbnRpdHlfaWQYAiABKAkiGAoWUmV2b2tlU2Vzc2lvbnNSZXNwb25zZSKFAgoHTWVzc2FnZRIKCgJpZBgBIAEoCRIOCgZzdGF0dXMYAiABKAkSDwoHY2hhbm5lbBgDIAEoCRIRCglyZWNpcGllbnQYBCABKAkSFQoNdGVtcGxhdGVfdHlwZRgFIAEoCRISCgpzZW5kX2NvdW50GAYgASgFEi4KCmNyZWF0ZWRfYXQYByABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi4KCnVwZGF0ZWRfYXQYCCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi8KCmRpc3BhdGNoZXMYCSADKAsyGy5rcmF0b3MuY29uc29sZS52MS5EaXNwYXRjaCJZCghEaXNwYXRjaBIOCgZzdGF0dXMYASABKAkSDQoFZXJyb3IYAiABKAkSLgoKY3JlYXRlZF9hdBgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiXwoTTGlzdE1lc3NhZ2VzUmVxdWVzdBIOCgZzdGF0dXMYASABKAkSEQoJcmVjaXBpZW50GAIgASgJEhEKCXBhZ2Vfc2l6ZRgDIAEoBRISCgpwYWdlX3Rva2VuGAQgASgJIl0KFExpc3RNZXNzYWdlc1Jlc3BvbnNlEiwKCG1lc3NhZ2VzGAEgAygLMhoua3JhdG9zLmNvbnNvbGUudjEuTWVzc2FnZRIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkiLwoRR2V0TWVzc2FnZVJlcXVlc3QSCgoCaWQYASABKAkSDgoGcmV2ZWFsGAIgASgIImAKEkdldE1lc3NhZ2VSZXNwb25zZRIrCgdtZXNzYWdlGAEgASgLMhoua3JhdG9zLmNvbnNvbGUudjEuTWVzc2FnZRIPCgdzdWJqZWN0GAIgASgJEgwKBGJvZHkYAyABKAkiFAoSTGlzdFNjaGVtYXNSZXF1ZXN0IkEKE0xpc3RTY2hlbWFzUmVzcG9uc2USKgoHc2NoZW1hcxgBIAMoCzIZLmtyYXRvcy5jb25zb2xlLnYxLlNjaGVtYSIpCgZTY2hlbWESCgoCaWQYASABKAkSEwoLc2NoZW1hX2pzb24YAiABKAkiSAoZU2V0QWRkcmVzc1ZlcmlmaWVkUmVxdWVzdBIKCgJpZBgBIAEoCRINCgV2YWx1ZRgCIAEoCRIQCgh2ZXJpZmllZBgDIAEoCCJLChpTZXRBZGRyZXNzVmVyaWZpZWRSZXNwb25zZRItCghpZGVudGl0eRgBIAEoCzIbLmtyYXRvcy5jb25zb2xlLnYxLklkZW50aXR5IjIKF0ltcG9ydElkZW50aXRpZXNSZXF1ZXN0EhcKD2lkZW50aXRpZXNfanNvbhgBIAEoCSJMChhJbXBvcnRJZGVudGl0aWVzUmVzcG9uc2USMAoHcmVzdWx0cxgBIAMoCzIfLmtyYXRvcy5jb25zb2xlLnYxLkltcG9ydFJlc3VsdCJCCgxJbXBvcnRSZXN1bHQSDgoGYWN0aW9uGAEgASgJEhMKC2lkZW50aXR5X2lkGAIgASgJEg0KBWVycm9yGAMgASgJIiIKFEV4dGVuZFNlc3Npb25SZXF1ZXN0EgoKAmlkGAEgASgJIkQKFUV4dGVuZFNlc3Npb25SZXNwb25zZRIrCgdzZXNzaW9uGAEgASgLMhoua3JhdG9zLmNvbnNvbGUudjEuU2Vzc2lvbiIRCg9HZXRGbG93c1JlcXVlc3QibAoQR2V0Rmxvd3NSZXNwb25zZRIqCgVmbG93cxgBIAMoCzIbLmtyYXRvcy5jb25zb2xlLnYxLkZsb3dDYXJkEiwKCGZpbmRpbmdzGAIgAygLMhoua3JhdG9zLmNvbnNvbGUudjEuRmluZGluZyKBAQoIRmxvd0NhcmQSDAoEZmxvdxgBIAEoCRIqCgVob29rcxgCIAMoCzIbLmtyYXRvcy5jb25zb2xlLnYxLkZsb3dIb29rEg0KBWV2ZW50GAMgASgJEiwKCGZpbmRpbmdzGAQgAygLMhoua3JhdG9zLmNvbnNvbGUudjEuRmluZGluZyKsAQoIRmxvd0hvb2sSDAoEbmFtZRgBIAEoCRIMCgR3aGVuGAIgASgJEg0KBWJvdW5kGAMgASgIEhEKCWZhaWxfb3BlbhgEIAEoCBINCgVjYWxscxgFIAEoBBIQCghmYWlsdXJlcxgGIAEoBBIUCgxsYXN0X291dGNvbWUYByABKAkSKwoHbGFzdF9hdBgIIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiNQoHRmluZGluZxINCgVsZXZlbBgBIAEoCRIMCgR0ZXh0GAIgASgJEg0KBWZpZWxkGAMgASgJIh4KDlRyeUZsb3dSZXF1ZXN0EgwKBGZsb3cYASABKAkicQoPVHJ5Rmxvd1Jlc3BvbnNlEhEKCWZsb3dfanNvbhgBIAEoCRIqCgVub2RlcxgCIAMoCzIbLmtyYXRvcy5jb25zb2xlLnYxLkZvcm1Ob2RlEhAKCG1lc3NhZ2VzGAMgAygJEg0KBWVycm9yGAQgASgJIncKCEZvcm1Ob2RlEg0KBWdyb3VwGAEgASgJEgwKBG5hbWUYAiABKAkSDAoEdHlwZRgDIAEoCRIQCghyZXF1aXJlZBgEIAEoCBINCgVsYWJlbBgFIAEoCRINCgV2YWx1ZRgGIAEoCRIQCghtZXNzYWdlcxgHIAMoCTLrDgoMQWRtaW5TZXJ2aWNlElYKCUdldFN0YXR1cxIjLmtyYXRvcy5jb25zb2xlLnYxLkdldFN0YXR1c1JlcXVlc3QaJC5rcmF0b3MuY29uc29sZS52MS5HZXRTdGF0dXNSZXNwb25zZRJZCgpHZXRPdmVybGF5EiQua3JhdG9zLmNvbnNvbGUudjEuR2V0T3ZlcmxheVJlcXVlc3QaJS5rcmF0b3MuY29uc29sZS52MS5HZXRPdmVybGF5UmVzcG9uc2USUwoIR2V0Rmxvd3MSIi5rcmF0b3MuY29uc29sZS52MS5HZXRGbG93c1JlcXVlc3QaIy5rcmF0b3MuY29uc29sZS52MS5HZXRGbG93c1Jlc3BvbnNlElAKB1RyeUZsb3cSIS5rcmF0b3MuY29uc29sZS52MS5UcnlGbG93UmVxdWVzdBoiLmtyYXRvcy5jb25zb2xlLnYxLlRyeUZsb3dSZXNwb25zZRJlCg5MaXN0SWRlbnRpdGllcxIoLmtyYXRvcy5jb25zb2xlLnYxLkxpc3RJZGVudGl0aWVzUmVxdWVzdBopLmtyYXRvcy5jb25zb2xlLnYxLkxpc3RJZGVudGl0aWVzUmVzcG9uc2USXAoLR2V0SWRlbnRpdHkSJS5rcmF0b3MuY29uc29sZS52MS5HZXRJZGVudGl0eVJlcXVlc3QaJi5rcmF0b3MuY29uc29sZS52MS5HZXRJZGVudGl0eVJlc3BvbnNlEmUKDkNyZWF0ZUlkZW50aXR5Eigua3JhdG9zLmNvbnNvbGUudjEuQ3JlYXRlSWRlbnRpdHlSZXF1ZXN0Gikua3JhdG9zLmNvbnNvbGUudjEuQ3JlYXRlSWRlbnRpdHlSZXNwb25zZRJlCg5VcGRhdGVJZGVudGl0eRIoLmtyYXRvcy5jb25zb2xlLnYxLlVwZGF0ZUlkZW50aXR5UmVxdWVzdBopLmtyYXRvcy5jb25zb2xlLnYxLlVwZGF0ZUlkZW50aXR5UmVzcG9uc2USZQoORGVsZXRlSWRlbnRpdHkSKC5rcmF0b3MuY29uc29sZS52MS5EZWxldGVJZGVudGl0eVJlcXVlc3QaKS5rcmF0b3MuY29uc29sZS52MS5EZWxldGVJZGVudGl0eVJlc3BvbnNlEm4KEURlbGV0ZUNyZWRlbnRpYWxzEisua3JhdG9zLmNvbnNvbGUudjEuRGVsZXRlQ3JlZGVudGlhbHNSZXF1ZXN0Giwua3JhdG9zLmNvbnNvbGUudjEuRGVsZXRlQ3JlZGVudGlhbHNSZXNwb25zZRJxChJDcmVhdGVSZWNvdmVyeUNvZGUSLC5rcmF0b3MuY29uc29sZS52MS5DcmVhdGVSZWNvdmVyeUNvZGVSZXF1ZXN0Gi0ua3JhdG9zLmNvbnNvbGUudjEuQ3JlYXRlUmVjb3ZlcnlDb2RlUmVzcG9uc2UScQoSU2V0QWRkcmVzc1ZlcmlmaWVkEiwua3JhdG9zLmNvbnNvbGUudjEuU2V0QWRkcmVzc1ZlcmlmaWVkUmVxdWVzdBotLmtyYXRvcy5jb25zb2xlLnYxLlNldEFkZHJlc3NWZXJpZmllZFJlc3BvbnNlEmsKEEltcG9ydElkZW50aXRpZXMSKi5rcmF0b3MuY29uc29sZS52MS5JbXBvcnRJZGVudGl0aWVzUmVxdWVzdBorLmtyYXRvcy5jb25zb2xlLnYxLkltcG9ydElkZW50aXRpZXNSZXNwb25zZRJfCgxMaXN0U2Vzc2lvbnMSJi5rcmF0b3MuY29uc29sZS52MS5MaXN0U2Vzc2lvbnNSZXF1ZXN0Gicua3JhdG9zLmNvbnNvbGUudjEuTGlzdFNlc3Npb25zUmVzcG9uc2USZQoOUmV2b2tlU2Vzc2lvbnMSKC5rcmF0b3MuY29uc29sZS52MS5SZXZva2VTZXNzaW9uc1JlcXVlc3QaKS5rcmF0b3MuY29uc29sZS52MS5SZXZva2VTZXNzaW9uc1Jlc3BvbnNlEmIKDUV4dGVuZFNlc3Npb24SJy5rcmF0b3MuY29uc29sZS52MS5FeHRlbmRTZXNzaW9uUmVxdWVzdBooLmtyYXRvcy5jb25zb2xlLnYxLkV4dGVuZFNlc3Npb25SZXNwb25zZRJfCgxMaXN0TWVzc2FnZXMSJi5rcmF0b3MuY29uc29sZS52MS5MaXN0TWVzc2FnZXNSZXF1ZXN0Gicua3JhdG9zLmNvbnNvbGUudjEuTGlzdE1lc3NhZ2VzUmVzcG9uc2USWQoKR2V0TWVzc2FnZRIkLmtyYXRvcy5jb25zb2xlLnYxLkdldE1lc3NhZ2VSZXF1ZXN0GiUua3JhdG9zLmNvbnNvbGUudjEuR2V0TWVzc2FnZVJlc3BvbnNlElwKC0xpc3RTY2hlbWFzEiUua3JhdG9zLmNvbnNvbGUudjEuTGlzdFNjaGVtYXNSZXF1ZXN0GiYua3JhdG9zLmNvbnNvbGUudjEuTGlzdFNjaGVtYXNSZXNwb25zZUJUWlJnaXRodWIuY29tL2JhY2twbGFuZS1sYWJzL2JhY2twbGFuZS1rcmF0b3MvcHJvdG8va3JhdG9zL2NvbnNvbGUvdjE7a3JhdG9zY29uc29sZXYxYgZwcm90bzM", [file_google_protobuf_timestamp]);
 
 /**
  * @generated from message kratos.console.v1.GetStatusRequest
@@ -1287,6 +1287,272 @@ export const ExtendSessionResponseSchema: GenMessage<ExtendSessionResponse> = /*
   messageDesc(file_proto_kratos_console_v1_admin, 45);
 
 /**
+ * @generated from message kratos.console.v1.GetFlowsRequest
+ */
+export type GetFlowsRequest = Message$1<"kratos.console.v1.GetFlowsRequest"> & {
+};
+
+/**
+ * Describes the message kratos.console.v1.GetFlowsRequest.
+ * Use `create(GetFlowsRequestSchema)` to create a new message.
+ */
+export const GetFlowsRequestSchema: GenMessage<GetFlowsRequest> = /*@__PURE__*/
+  messageDesc(file_proto_kratos_console_v1_admin, 46);
+
+/**
+ * @generated from message kratos.console.v1.GetFlowsResponse
+ */
+export type GetFlowsResponse = Message$1<"kratos.console.v1.GetFlowsResponse"> & {
+  /**
+   * @generated from field: repeated kratos.console.v1.FlowCard flows = 1;
+   */
+  flows: FlowCard[];
+
+  /**
+   * findings of the whole installation.
+   *
+   * @generated from field: repeated kratos.console.v1.Finding findings = 2;
+   */
+  findings: Finding[];
+};
+
+/**
+ * Describes the message kratos.console.v1.GetFlowsResponse.
+ * Use `create(GetFlowsResponseSchema)` to create a new message.
+ */
+export const GetFlowsResponseSchema: GenMessage<GetFlowsResponse> = /*@__PURE__*/
+  messageDesc(file_proto_kratos_console_v1_admin, 47);
+
+/**
+ * @generated from message kratos.console.v1.FlowCard
+ */
+export type FlowCard = Message$1<"kratos.console.v1.FlowCard"> & {
+  /**
+   * flow is registration, login, settings, recovery or verification.
+   *
+   * @generated from field: string flow = 1;
+   */
+  flow: string;
+
+  /**
+   * @generated from field: repeated kratos.console.v1.FlowHook hooks = 2;
+   */
+  hooks: FlowHook[];
+
+  /**
+   * event published when the flow completes.
+   *
+   * @generated from field: string event = 3;
+   */
+  event: string;
+
+  /**
+   * @generated from field: repeated kratos.console.v1.Finding findings = 4;
+   */
+  findings: Finding[];
+};
+
+/**
+ * Describes the message kratos.console.v1.FlowCard.
+ * Use `create(FlowCardSchema)` to create a new message.
+ */
+export const FlowCardSchema: GenMessage<FlowCard> = /*@__PURE__*/
+  messageDesc(file_proto_kratos_console_v1_admin, 48);
+
+/**
+ * @generated from message kratos.console.v1.FlowHook
+ */
+export type FlowHook = Message$1<"kratos.console.v1.FlowHook"> & {
+  /**
+   * name, e.g. AfterRegistration.
+   *
+   * @generated from field: string name = 1;
+   */
+  name: string;
+
+  /**
+   * when is before or after.
+   *
+   * @generated from field: string when = 2;
+   */
+  when: string;
+
+  /**
+   * @generated from field: bool bound = 3;
+   */
+  bound: boolean;
+
+  /**
+   * @generated from field: bool fail_open = 4;
+   */
+  failOpen: boolean;
+
+  /**
+   * @generated from field: uint64 calls = 5;
+   */
+  calls: bigint;
+
+  /**
+   * @generated from field: uint64 failures = 6;
+   */
+  failures: bigint;
+
+  /**
+   * @generated from field: string last_outcome = 7;
+   */
+  lastOutcome: string;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp last_at = 8;
+   */
+  lastAt?: Timestamp | undefined;
+};
+
+/**
+ * Describes the message kratos.console.v1.FlowHook.
+ * Use `create(FlowHookSchema)` to create a new message.
+ */
+export const FlowHookSchema: GenMessage<FlowHook> = /*@__PURE__*/
+  messageDesc(file_proto_kratos_console_v1_admin, 49);
+
+/**
+ * @generated from message kratos.console.v1.Finding
+ */
+export type Finding = Message$1<"kratos.console.v1.Finding"> & {
+  /**
+   * level is error, warning or info.
+   *
+   * @generated from field: string level = 1;
+   */
+  level: string;
+
+  /**
+   * @generated from field: string text = 2;
+   */
+  text: string;
+
+  /**
+   * field of the settings to change, e.g. recovery.ui_url.
+   *
+   * @generated from field: string field = 3;
+   */
+  field: string;
+};
+
+/**
+ * Describes the message kratos.console.v1.Finding.
+ * Use `create(FindingSchema)` to create a new message.
+ */
+export const FindingSchema: GenMessage<Finding> = /*@__PURE__*/
+  messageDesc(file_proto_kratos_console_v1_admin, 50);
+
+/**
+ * @generated from message kratos.console.v1.TryFlowRequest
+ */
+export type TryFlowRequest = Message$1<"kratos.console.v1.TryFlowRequest"> & {
+  /**
+   * @generated from field: string flow = 1;
+   */
+  flow: string;
+};
+
+/**
+ * Describes the message kratos.console.v1.TryFlowRequest.
+ * Use `create(TryFlowRequestSchema)` to create a new message.
+ */
+export const TryFlowRequestSchema: GenMessage<TryFlowRequest> = /*@__PURE__*/
+  messageDesc(file_proto_kratos_console_v1_admin, 51);
+
+/**
+ * @generated from message kratos.console.v1.TryFlowResponse
+ */
+export type TryFlowResponse = Message$1<"kratos.console.v1.TryFlowResponse"> & {
+  /**
+   * flow_json is the flow as Kratos sends it.
+   *
+   * @generated from field: string flow_json = 1;
+   */
+  flowJson: string;
+
+  /**
+   * @generated from field: repeated kratos.console.v1.FormNode nodes = 2;
+   */
+  nodes: FormNode[];
+
+  /**
+   * messages of the whole form.
+   *
+   * @generated from field: repeated string messages = 3;
+   */
+  messages: string[];
+
+  /**
+   * error is why the flow could not start (e.g. disabled).
+   *
+   * @generated from field: string error = 4;
+   */
+  error: string;
+};
+
+/**
+ * Describes the message kratos.console.v1.TryFlowResponse.
+ * Use `create(TryFlowResponseSchema)` to create a new message.
+ */
+export const TryFlowResponseSchema: GenMessage<TryFlowResponse> = /*@__PURE__*/
+  messageDesc(file_proto_kratos_console_v1_admin, 52);
+
+/**
+ * @generated from message kratos.console.v1.FormNode
+ */
+export type FormNode = Message$1<"kratos.console.v1.FormNode"> & {
+  /**
+   * group is the method the node belongs to (default, password, code, oidc, …).
+   *
+   * @generated from field: string group = 1;
+   */
+  group: string;
+
+  /**
+   * @generated from field: string name = 2;
+   */
+  name: string;
+
+  /**
+   * type is the input type (text, password, email, hidden, submit, …) or the node kind.
+   *
+   * @generated from field: string type = 3;
+   */
+  type: string;
+
+  /**
+   * @generated from field: bool required = 4;
+   */
+  required: boolean;
+
+  /**
+   * @generated from field: string label = 5;
+   */
+  label: string;
+
+  /**
+   * @generated from field: string value = 6;
+   */
+  value: string;
+
+  /**
+   * @generated from field: repeated string messages = 7;
+   */
+  messages: string[];
+};
+
+/**
+ * Describes the message kratos.console.v1.FormNode.
+ * Use `create(FormNodeSchema)` to create a new message.
+ */
+export const FormNodeSchema: GenMessage<FormNode> = /*@__PURE__*/
+  messageDesc(file_proto_kratos_console_v1_admin, 53);
+
+/**
  * AdminService is the console module's API: the Kratos installation's
  * state, its identities, sessions and courier, and the overlay. Payloads
  * Kratos owns the shape of (traits, metadata) travel as JSON text.
@@ -1314,6 +1580,28 @@ export const AdminService: GenService<{
     methodKind: "unary";
     input: typeof GetOverlayRequestSchema;
     output: typeof GetOverlayResponseSchema;
+  },
+  /**
+   * GetFlows is every self-service flow: its settings, hook points, event
+   * and the findings of settings that do not work together.
+   *
+   * @generated from rpc kratos.console.v1.AdminService.GetFlows
+   */
+  getFlows: {
+    methodKind: "unary";
+    input: typeof GetFlowsRequestSchema;
+    output: typeof GetFlowsResponseSchema;
+  },
+  /**
+   * TryFlow starts a flow as a native app would and answers the form Kratos
+   * hands the UI; nothing is submitted.
+   *
+   * @generated from rpc kratos.console.v1.AdminService.TryFlow
+   */
+  tryFlow: {
+    methodKind: "unary";
+    input: typeof TryFlowRequestSchema;
+    output: typeof TryFlowResponseSchema;
   },
   /**
    * @generated from rpc kratos.console.v1.AdminService.ListIdentities

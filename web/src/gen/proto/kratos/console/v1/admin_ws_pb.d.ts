@@ -3,7 +3,7 @@
 /* eslint-disable */
 
 import { WsTransport } from "@gopherex/ws-proto-transport";
-import type { CreateIdentityRequest, CreateIdentityResponse, CreateRecoveryCodeRequest, CreateRecoveryCodeResponse, DeleteCredentialsRequest, DeleteCredentialsResponse, DeleteIdentityRequest, DeleteIdentityResponse, ExtendSessionRequest, ExtendSessionResponse, GetIdentityRequest, GetIdentityResponse, GetMessageRequest, GetMessageResponse, GetOverlayRequest, GetOverlayResponse, GetStatusRequest, GetStatusResponse, ImportIdentitiesRequest, ImportIdentitiesResponse, ListIdentitiesRequest, ListIdentitiesResponse, ListMessagesRequest, ListMessagesResponse, ListSchemasRequest, ListSchemasResponse, ListSessionsRequest, ListSessionsResponse, RevokeSessionsRequest, RevokeSessionsResponse, SetAddressVerifiedRequest, SetAddressVerifiedResponse, UpdateIdentityRequest, UpdateIdentityResponse } from "./admin_pb";
+import type { CreateIdentityRequest, CreateIdentityResponse, CreateRecoveryCodeRequest, CreateRecoveryCodeResponse, DeleteCredentialsRequest, DeleteCredentialsResponse, DeleteIdentityRequest, DeleteIdentityResponse, ExtendSessionRequest, ExtendSessionResponse, GetFlowsRequest, GetFlowsResponse, GetIdentityRequest, GetIdentityResponse, GetMessageRequest, GetMessageResponse, GetOverlayRequest, GetOverlayResponse, GetStatusRequest, GetStatusResponse, ImportIdentitiesRequest, ImportIdentitiesResponse, ListIdentitiesRequest, ListIdentitiesResponse, ListMessagesRequest, ListMessagesResponse, ListSchemasRequest, ListSchemasResponse, ListSessionsRequest, ListSessionsResponse, RevokeSessionsRequest, RevokeSessionsResponse, SetAddressVerifiedRequest, SetAddressVerifiedResponse, TryFlowRequest, TryFlowResponse, UpdateIdentityRequest, UpdateIdentityResponse } from "./admin_pb";
 export interface CallOptions {
     /** Request metadata sent as headers on the opening frame. */
     headers?: Record<string, string>;
@@ -39,6 +39,20 @@ export declare class AdminServiceClient {
      * @generated from rpc kratos.console.v1.AdminService.GetOverlay
      */
     getOverlay(req: GetOverlayRequest, options?: CallOptions): Promise<GetOverlayResponse>;
+    /**
+     * GetFlows is every self-service flow: its settings, hook points, event
+     * and the findings of settings that do not work together.
+     *
+     * @generated from rpc kratos.console.v1.AdminService.GetFlows
+     */
+    getFlows(req: GetFlowsRequest, options?: CallOptions): Promise<GetFlowsResponse>;
+    /**
+     * TryFlow starts a flow as a native app would and answers the form Kratos
+     * hands the UI; nothing is submitted.
+     *
+     * @generated from rpc kratos.console.v1.AdminService.TryFlow
+     */
+    tryFlow(req: TryFlowRequest, options?: CallOptions): Promise<TryFlowResponse>;
     /**
      * @generated from rpc kratos.console.v1.AdminService.ListIdentities
      */
