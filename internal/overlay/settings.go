@@ -26,6 +26,8 @@ type Settings struct {
 	Session      Session      `json:"session,omitempty"`
 	Identity     Identity     `json:"identity,omitempty"`
 
+	Features Features `json:"features,omitempty"`
+
 	OAuth2Provider OAuth2Provider `json:"oauth2_provider,omitempty"`
 
 	// Overrides is raw Kratos YAML merged last, for what Settings does not
@@ -186,6 +188,17 @@ type Identity struct {
 	DefaultSchemaID string `json:"default_schema_id,omitempty"`
 	// Schemas by id: JSON Schema documents.
 	Schemas map[string]string `json:"schemas,omitempty"`
+}
+
+// Features are Kratos's feature flags.
+type Features struct {
+	// ContinueWith lets API flows (native apps) finish with continue_with
+	// steps — a session token, the next flow — instead of a browser
+	// redirect; recovery from a native app needs it.
+	ContinueWith bool `json:"continue_with,omitempty" schemapb:"default=false;description=Let native apps finish flows (recovery included) without a browser"`
+	// ChooseRecoveryAddress lets a user pick the address (email or phone) a
+	// recovery code goes to.
+	ChooseRecoveryAddress bool `json:"choose_recovery_address,omitempty" schemapb:"default=false"`
 }
 
 // Secrets the overlay needs, kept apart from Settings (their own Live

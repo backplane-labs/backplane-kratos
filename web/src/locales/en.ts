@@ -23,6 +23,8 @@ export default {
   mapperHint: 'Jsonnet: claims → identity traits', addProvider: 'Add a provider', providerSecrets: 'Client secrets',
   providerSecretsHint: 'Secrets are stored apart and never shown. Changing them replaces all of them: enter every provider\'s secret, stage them, then save.',
   stageSecrets: 'Use these secrets', enterAllSecrets: 'Enter a secret for every provider',
+  featuresSection: 'Kratos features', continueWith: 'Native app flows', continueWithHint: 'API flows finish with a session token and the next flow instead of a browser redirect; recovery from a native app needs it',
+  chooseRecovery: 'Choose the recovery address', chooseRecoveryHint: 'The user picks which address (email or phone) gets the code',
   sessionsSection: 'Sessions', earliestExtend: 'Extendable after', earliestExtendHint: '0s: any time', whoamiAal: 'Whoami requires', cookieDomain: 'Cookie domain', cookiePersistent: 'Persistent cookie', cookieSameSite: 'SameSite',
   schemasSection: 'Identity schemas', schemasHint: 'The JSON Schemas of traits. Kratos validates every identity against its schema; changing a schema used by identities can make them invalid.',
   defaultSchema: 'Default schema', schemaId: 'New schema ID', addSchema: 'Add a schema', schemasFromBase: 'No schemas here: Kratos uses those of its own configuration file.',

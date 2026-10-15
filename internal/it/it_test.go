@@ -64,6 +64,7 @@ func defaults() overlay.Settings {
 			Code:     overlay.Code{Enabled: true, Lifespan: time.Hour},
 			Profile:  overlay.ToggleOn{Enabled: true},
 		},
+		Features: overlay.Features{ContinueWith: true},
 		Session: overlay.Session{
 			Lifespan: 24 * time.Hour, WhoamiRequiredAAL: "highest_available", CookiePersistent: true, CookieSameSite: "Lax",
 		},
@@ -153,6 +154,13 @@ func waitFor(t *testing.T, what string, cond func() bool) {
 func call(t *testing.T, method, path string, body any) (int, map[string]any) {
 	t.Helper()
 
+	return callAs(t, "", method, path, body)
+}
+
+// callAs is call with a session token.
+func callAs(t *testing.T, token, method, path string, body any) (int, map[string]any) {
+	t.Helper()
+
 	var in io.Reader
 
 	if body != nil {
@@ -171,6 +179,10 @@ func call(t *testing.T, method, path string, body any) (int, map[string]any) {
 
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/json")
+
+	if token != "" {
+		req.Header.Set("X-Session-Token", token)
+	}
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -461,4 +473,132 @@ func TestImport(t *testing.T) {
 	if err != nil || got.Identity == nil || got.Identity.ID != ident.ID {
 		t.Fatalf("session: %+v %v", got, err)
 	}
+}
+
+// newUser creates an identity with a password through the activity.
+func (e env) newUser(t *testing.T, email string) string {
+	t.Helper()
+
+	ident, err := backplanetest.Activity[activities.IdentityIn, ory.Identity](t.Context(), e.h, "CreateIdentity", activities.IdentityIn{
+		SchemaID: "default", Traits: json.RawMessage(fmt.Sprintf(`{"email":%q}`, email)), Password: password,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return ident.ID
+}
+
+// finishRecovery submits a recovery code to its flow, sets a new password
+// with the session the recovery grants and proves it signs in.
+func finishRecovery(t *testing.T, flowID, code, email string) {
+	t.Helper()
+
+	status, body := call(t, http.MethodPost, "/self-service/recovery?flow="+flowID, map[string]any{"method": "code", "code": code})
+	if status != http.StatusOK {
+		t.Fatalf("recovery code: %d %v", status, body)
+	}
+
+	var token, settings string
+
+	steps, _ := body["continue_with"].([]any)
+	for _, step := range steps {
+		m, _ := step.(map[string]any)
+
+		switch m["action"] {
+		case "set_ory_session_token":
+			token, _ = m["ory_session_token"].(string)
+		case "show_settings_ui":
+			f, _ := m["flow"].(map[string]any)
+			settings, _ = f["id"].(string)
+		}
+	}
+
+	if token == "" || settings == "" {
+		t.Fatalf("recovery granted no session and settings flow: %v", body)
+	}
+
+	const newPassword = "Another-Long-Pass-456!y"
+
+	status, body = callAs(t, token, http.MethodPost, "/self-service/settings?flow="+settings,
+		map[string]any{"method": "password", "password": newPassword})
+	if status != http.StatusOK {
+		t.Fatalf("new password: %d %v", status, body)
+	}
+
+	_, flow := call(t, http.MethodGet, "/self-service/login/api", nil)
+
+	status, body = call(t, http.MethodPost, fmt.Sprintf("/self-service/login?flow=%v", flow["id"]),
+		map[string]any{"method": "password", "identifier": email, "password": newPassword})
+	if status != http.StatusOK {
+		t.Fatalf("login with the new password: %d %v", status, body)
+	}
+}
+
+// A user who forgot the password: the recovery code travels through
+// kratos.Deliver, redeeming it lets the user set a new password.
+func TestRecoveryByEmail(t *testing.T) {
+	t.Parallel()
+
+	codes := make(chan flows.DeliverIn, 4)
+
+	e := start(t, func(h *backplanetest.Harness, f *flows.Flows) {
+		backplanetest.Answer(h, f.DeliverRef(), func(_ context.Context, in flows.DeliverIn) (flows.DeliverOut, error) {
+			codes <- in
+
+			return flows.DeliverOut{}, nil
+		})
+	})
+
+	email := unique("forgot")
+	e.newUser(t, email)
+
+	status, flow := call(t, http.MethodGet, "/self-service/recovery/api", nil)
+	if status != http.StatusOK {
+		t.Fatalf("recovery flow: %d %v", status, flow)
+	}
+
+	flowID := fmt.Sprint(flow["id"])
+
+	status, body := call(t, http.MethodPost, "/self-service/recovery?flow="+flowID, map[string]any{"method": "code", "email": email})
+	if status != http.StatusOK {
+		t.Fatalf("recovery email: %d %v", status, body)
+	}
+
+	var msg flows.DeliverIn
+
+	select {
+	case msg = <-codes:
+	case <-time.After(30 * time.Second):
+		t.Fatal("no recovery message reached Deliver")
+	}
+
+	if msg.TemplateType != "recovery_code_valid" || msg.Recipient != email || msg.Code == "" {
+		t.Fatalf("message: %+v", msg)
+	}
+
+	finishRecovery(t, flowID, msg.Code, email)
+}
+
+// An operator's recovery code (the console's, the activity's) lets the
+// user in to set a new password; nothing is mailed.
+func TestRecoveryByOperator(t *testing.T) {
+	t.Parallel()
+
+	e := start(t, nil)
+
+	email := unique("operator")
+	id := e.newUser(t, email)
+
+	recovery, err := e.kratos.CreateRecoveryCode(t.Context(), id, "", "api")
+	if err != nil || recovery.Code == "" || recovery.Link == "" {
+		t.Fatalf("recovery code: %+v %v", recovery, err)
+	}
+
+	link, err := url.Parse(recovery.Link)
+	if err != nil || link.Query().Get("flow") == "" {
+		t.Fatalf("link: %q %v", recovery.Link, err)
+	}
+
+	finishRecovery(t, link.Query().Get("flow"), recovery.Code, email)
 }

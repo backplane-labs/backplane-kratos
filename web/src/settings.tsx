@@ -44,6 +44,7 @@ export function Settings() {
         <Methods cfg={cfg} />
         <Oidc cfg={cfg} />
         <Sessions cfg={cfg} />
+        <Features cfg={cfg} />
         <Schemas cfg={cfg} />
         <Hydra cfg={cfg} />
         <Hooks cfg={cfg} />
@@ -147,6 +148,14 @@ function Oidc({ cfg }: { cfg: LiveConfig }) {
       <Row label=""><Button size="sm" variant="outline" disabled={!complete} onClick={() => cfg.set('oidc_secrets', undefined, Object.fromEntries(ids.map((id) => [id, entered[id]!])))}>{t('stageSecrets')}</Button>
         {!complete && <span style={{ ...muted, marginLeft: 8 }}>{t('enterAllSecrets')}</span>}</Row>
     </Panel>}
+  </Panel>;
+}
+
+function Features({ cfg }: { cfg: LiveConfig }) {
+  const t = useText();
+  return <Panel title={t('featuresSection')}>
+    <Toggle cfg={cfg} path={S} field="features.continue_with" label={t('continueWith')} hint={t('continueWithHint')} />
+    <Toggle cfg={cfg} path={S} field="features.choose_recovery_address" label={t('chooseRecovery')} hint={t('chooseRecoveryHint')} />
   </Panel>;
 }
 
