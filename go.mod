@@ -3,7 +3,7 @@ module github.com/backplane-labs/backplane-kratos
 go 1.26.0
 
 require (
-	github.com/backplane-labs/backplane v0.6.9
+	github.com/backplane-labs/backplane v0.6.10
 	github.com/google/uuid v1.6.0
 	github.com/gopherex/xlog v1.2.1
 	github.com/gopherex/xprobe v1.2.0

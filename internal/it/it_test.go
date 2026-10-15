@@ -213,11 +213,31 @@ func unique(prefix string) string {
 	return fmt.Sprintf("%s-%d@example.com", prefix, time.Now().UnixNano())
 }
 
+// awaitMessage waits for the message of kind to recipient. Kratos's
+// courier queue is shared by the tests: a message queued by another one
+// may reach this test's Deliver first, and is skipped.
+func awaitMessage(t *testing.T, messages <-chan flows.DeliverIn, recipient, kind string) flows.DeliverIn {
+	t.Helper()
+
+	deadline := time.After(30 * time.Second)
+
+	for {
+		select {
+		case msg := <-messages:
+			if msg.Recipient == recipient && msg.TemplateType == kind {
+				return msg
+			}
+		case <-deadline:
+			t.Fatalf("no %s message to %s reached Deliver", kind, recipient)
+		}
+	}
+}
+
 // Kratos's verification mail reaches Deliver; its code verifies the address.
 func TestDeliverVerifies(t *testing.T) {
 	t.Parallel()
 
-	codes := make(chan flows.DeliverIn, 4)
+	codes := make(chan flows.DeliverIn, 64)
 
 	e := start(t, func(h *backplanetest.Harness, f *flows.Flows) {
 		backplanetest.Answer(h, f.DeliverRef(), func(_ context.Context, in flows.DeliverIn) (flows.DeliverOut, error) {
@@ -234,13 +254,7 @@ func TestDeliverVerifies(t *testing.T) {
 		t.Fatalf("registration: %d %v", status, reg)
 	}
 
-	var msg flows.DeliverIn
-
-	select {
-	case msg = <-codes:
-	case <-time.After(30 * time.Second):
-		t.Fatal("no message reached Deliver")
-	}
+	msg := awaitMessage(t, codes, email, "verification_code_valid")
 
 	if msg.Recipient != email || msg.TemplateType != "verification_code_valid" || msg.Code == "" ||
 		msg.Channel != "email" {
@@ -540,7 +554,7 @@ func finishRecovery(t *testing.T, flowID, code, email string) {
 func TestRecoveryByEmail(t *testing.T) {
 	t.Parallel()
 
-	codes := make(chan flows.DeliverIn, 4)
+	codes := make(chan flows.DeliverIn, 64)
 
 	e := start(t, func(h *backplanetest.Harness, f *flows.Flows) {
 		backplanetest.Answer(h, f.DeliverRef(), func(_ context.Context, in flows.DeliverIn) (flows.DeliverOut, error) {
@@ -565,13 +579,7 @@ func TestRecoveryByEmail(t *testing.T) {
 		t.Fatalf("recovery email: %d %v", status, body)
 	}
 
-	var msg flows.DeliverIn
-
-	select {
-	case msg = <-codes:
-	case <-time.After(30 * time.Second):
-		t.Fatal("no recovery message reached Deliver")
-	}
+	msg := awaitMessage(t, codes, email, "recovery_code_valid")
 
 	if msg.TemplateType != "recovery_code_valid" || msg.Recipient != email || msg.Code == "" {
 		t.Fatalf("message: %+v", msg)
