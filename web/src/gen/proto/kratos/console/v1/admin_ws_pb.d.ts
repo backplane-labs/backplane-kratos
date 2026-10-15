@@ -3,7 +3,7 @@
 /* eslint-disable */
 
 import { WsTransport } from "@gopherex/ws-proto-transport";
-import type { CreateIdentityRequest, CreateIdentityResponse, CreateRecoveryCodeRequest, CreateRecoveryCodeResponse, DeleteCredentialsRequest, DeleteCredentialsResponse, DeleteIdentityRequest, DeleteIdentityResponse, GetIdentityRequest, GetIdentityResponse, GetMessageRequest, GetMessageResponse, GetOverlayRequest, GetOverlayResponse, GetStatusRequest, GetStatusResponse, ListIdentitiesRequest, ListIdentitiesResponse, ListMessagesRequest, ListMessagesResponse, ListSchemasRequest, ListSchemasResponse, ListSessionsRequest, ListSessionsResponse, RevokeSessionsRequest, RevokeSessionsResponse, UpdateIdentityRequest, UpdateIdentityResponse } from "./admin_pb";
+import type { CreateIdentityRequest, CreateIdentityResponse, CreateRecoveryCodeRequest, CreateRecoveryCodeResponse, DeleteCredentialsRequest, DeleteCredentialsResponse, DeleteIdentityRequest, DeleteIdentityResponse, ExtendSessionRequest, ExtendSessionResponse, GetIdentityRequest, GetIdentityResponse, GetMessageRequest, GetMessageResponse, GetOverlayRequest, GetOverlayResponse, GetStatusRequest, GetStatusResponse, ImportIdentitiesRequest, ImportIdentitiesResponse, ListIdentitiesRequest, ListIdentitiesResponse, ListMessagesRequest, ListMessagesResponse, ListSchemasRequest, ListSchemasResponse, ListSessionsRequest, ListSessionsResponse, RevokeSessionsRequest, RevokeSessionsResponse, SetAddressVerifiedRequest, SetAddressVerifiedResponse, UpdateIdentityRequest, UpdateIdentityResponse } from "./admin_pb";
 export interface CallOptions {
     /** Request metadata sent as headers on the opening frame. */
     headers?: Record<string, string>;
@@ -70,6 +70,18 @@ export declare class AdminServiceClient {
      */
     createRecoveryCode(req: CreateRecoveryCodeRequest, options?: CallOptions): Promise<CreateRecoveryCodeResponse>;
     /**
+     * SetAddressVerified marks a verifiable address verified or not.
+     *
+     * @generated from rpc kratos.console.v1.AdminService.SetAddressVerified
+     */
+    setAddressVerified(req: SetAddressVerifiedRequest, options?: CallOptions): Promise<SetAddressVerifiedResponse>;
+    /**
+     * ImportIdentities creates identities in one batch.
+     *
+     * @generated from rpc kratos.console.v1.AdminService.ImportIdentities
+     */
+    importIdentities(req: ImportIdentitiesRequest, options?: CallOptions): Promise<ImportIdentitiesResponse>;
+    /**
      * @generated from rpc kratos.console.v1.AdminService.ListSessions
      */
     listSessions(req: ListSessionsRequest, options?: CallOptions): Promise<ListSessionsResponse>;
@@ -79,6 +91,12 @@ export declare class AdminServiceClient {
      * @generated from rpc kratos.console.v1.AdminService.RevokeSessions
      */
     revokeSessions(req: RevokeSessionsRequest, options?: CallOptions): Promise<RevokeSessionsResponse>;
+    /**
+     * ExtendSession extends a session by the configured lifespan.
+     *
+     * @generated from rpc kratos.console.v1.AdminService.ExtendSession
+     */
+    extendSession(req: ExtendSessionRequest, options?: CallOptions): Promise<ExtendSessionResponse>;
     /**
      * @generated from rpc kratos.console.v1.AdminService.ListMessages
      */

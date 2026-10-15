@@ -10,6 +10,7 @@ import (
 	"math"
 	"net/http"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -280,6 +281,13 @@ func (a *Admin) ListIdentities(ctx context.Context, r *v1.ListIdentitiesRequest)
 		return nil, grpcErr(err)
 	}
 
+	// Neither an identifier nor an id: maybe an external id.
+	if len(page.Items) == 0 && f.CredentialsIdentifier != "" && f.PageToken == "" {
+		if ident, err := a.kratos.GetIdentityByExternalID(ctx, q); err == nil {
+			page.Items = []ory.Identity{ident}
+		}
+	}
+
 	out := &v1.ListIdentitiesResponse{NextPageToken: page.Next}
 	for i := range page.Items {
 		out.Identities = append(out.Identities, identity(page.Items[i]))
@@ -365,6 +373,7 @@ func (a *Admin) CreateIdentity(ctx context.Context, r *v1.CreateIdentityRequest)
 
 	ident, err := activities.CreateIdentity(ctx, a.kratos, activities.IdentityIn{
 		SchemaID: r.GetSchemaId(), Traits: rawOrNil(r.GetTraitsJson()), State: r.GetState(), Password: r.GetPassword(),
+		ExternalID:     r.GetExternalId(),
 		MetadataPublic: rawOrNil(r.GetMetadataPublicJson()), MetadataAdmin: rawOrNil(r.GetMetadataAdminJson()),
 	})
 	a.audit(ctx, "kratos.identity.created", "identity/"+ident.ID, err)
@@ -429,7 +438,7 @@ func (a *Admin) CreateRecoveryCode(
 	if r.GetLink() {
 		recovery, err = a.kratos.CreateRecoveryLink(ctx, r.GetId(), r.GetExpiresIn())
 	} else {
-		recovery, err = a.kratos.CreateRecoveryCode(ctx, r.GetId(), r.GetExpiresIn(), "")
+		recovery, err = a.kratos.CreateRecoveryCode(ctx, r.GetId(), r.GetExpiresIn(), r.GetFlowType())
 	}
 
 	a.audit(ctx, "kratos.recovery.created", "identity/"+r.GetId(), err)
@@ -438,7 +447,11 @@ func (a *Admin) CreateRecoveryCode(
 		return nil, grpcErr(err)
 	}
 
-	return &v1.CreateRecoveryCodeResponse{Code: recovery.Code, Link: recovery.Link, ExpiresAt: ts(recovery.ExpiresAt)}, nil
+	return &v1.CreateRecoveryCodeResponse{
+		Code:      recovery.Code,
+		Link:      recovery.Link,
+		ExpiresAt: ts(recovery.ExpiresAt),
+	}, nil
 }
 
 // ListSessions implements AdminService.
@@ -551,4 +564,94 @@ func (a *Admin) ListSchemas(ctx context.Context, _ *v1.ListSchemasRequest) (*v1.
 	}
 
 	return out, nil
+}
+
+// SetAddressVerified implements AdminService.
+func (a *Admin) SetAddressVerified(
+	ctx context.Context,
+	r *v1.SetAddressVerifiedRequest,
+) (*v1.SetAddressVerifiedResponse, error) {
+	ident, err := a.kratos.GetIdentity(ctx, r.GetId())
+	if err != nil {
+		return nil, grpcErr(err)
+	}
+
+	index := slices.IndexFunc(
+		ident.VerifiableAddresses,
+		func(v ory.VerifiableAddress) bool { return v.Value == r.GetValue() },
+	)
+	if index < 0 {
+		return nil, status.Errorf(codes.NotFound, "the identity has no address %q", r.GetValue())
+	}
+
+	state := "pending"
+	if r.GetVerified() {
+		state = "completed"
+	}
+
+	type op struct {
+		Op    string `json:"op"`
+		Path  string `json:"path"`
+		Value any    `json:"value"`
+	}
+
+	base := "/verifiable_addresses/" + strconv.Itoa(index)
+
+	patch, err := json.Marshal([]op{
+		{Op: "replace", Path: base + "/verified", Value: r.GetVerified()},
+		{Op: "replace", Path: base + "/status", Value: state},
+	})
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	ident, err = a.kratos.PatchIdentity(ctx, r.GetId(), patch)
+	a.audit(ctx, "kratos.address.verified", "identity/"+r.GetId(), err,
+		xlog.String("address", r.GetValue()), xlog.Bool("verified", r.GetVerified()))
+
+	if err != nil {
+		return nil, grpcErr(err)
+	}
+
+	return &v1.SetAddressVerifiedResponse{Identity: identity(ident)}, nil
+}
+
+// ImportIdentities implements AdminService.
+func (a *Admin) ImportIdentities(
+	ctx context.Context,
+	r *v1.ImportIdentitiesRequest,
+) (*v1.ImportIdentitiesResponse, error) {
+	var bodies []json.RawMessage
+	if err := json.Unmarshal([]byte(r.GetIdentitiesJson()), &bodies); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "identities must be a JSON array: %v", err)
+	}
+
+	results, err := a.kratos.ImportIdentities(ctx, bodies)
+	a.audit(ctx, "kratos.identities.imported", "identities", err, xlog.Int("count", len(bodies)))
+
+	if err != nil {
+		return nil, grpcErr(err)
+	}
+
+	out := &v1.ImportIdentitiesResponse{}
+	for _, res := range results {
+		out.Results = append(
+			out.Results,
+			&v1.ImportResult{Action: res.Action, IdentityId: res.Identity, Error: jsonText(res.Error)},
+		)
+	}
+
+	return out, nil
+}
+
+// ExtendSession implements AdminService.
+func (a *Admin) ExtendSession(ctx context.Context, r *v1.ExtendSessionRequest) (*v1.ExtendSessionResponse, error) {
+	s, err := a.kratos.ExtendSession(ctx, r.GetId())
+	a.audit(ctx, "kratos.session.extended", "session/"+r.GetId(), err)
+
+	if err != nil {
+		return nil, grpcErr(err)
+	}
+
+	return &v1.ExtendSessionResponse{Session: session(s, ory.Identity{})}, nil
 }

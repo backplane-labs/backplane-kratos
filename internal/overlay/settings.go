@@ -7,8 +7,6 @@ package overlay
 
 import (
 	"time"
-
-	"github.com/backplane-labs/backplane/pkg/backplane/config"
 )
 
 // Settings are the Kratos settings the overlay owns. Flags and durations
@@ -161,13 +159,12 @@ type OIDC struct {
 
 // OIDCProvider is one upstream provider.
 type OIDCProvider struct {
-	ID           string        `json:"id,omitempty"            schemapb:"description=Stable id: part of the callback URL and of credentials"`
-	Provider     string        `json:"provider,omitempty"      schemapb:"description=generic, google, github, apple, microsoft, …"`
-	Label        string        `json:"label,omitempty"`
-	ClientID     string        `json:"client_id,omitempty"`
-	ClientSecret config.Secret `json:"client_secret,omitempty"`
-	IssuerURL    string        `json:"issuer_url,omitempty"`
-	Scope        []string      `json:"scope,omitempty"`
+	ID        string   `json:"id,omitempty"         schemapb:"description=Stable id: part of the callback URL and of credentials"`
+	Provider  string   `json:"provider,omitempty"   schemapb:"description=generic, google, github, apple, microsoft, …"`
+	Label     string   `json:"label,omitempty"`
+	ClientID  string   `json:"client_id,omitempty"`
+	IssuerURL string   `json:"issuer_url,omitempty"`
+	Scope     []string `json:"scope,omitempty"`
 	// Mapper is the Jsonnet mapping the provider's claims to traits.
 	Mapper string `json:"mapper,omitempty" schemapb:"description=Jsonnet from claims to traits"`
 	// Tenant, Team and similar provider-specific keys.
@@ -191,11 +188,20 @@ type Identity struct {
 	Schemas map[string]string `json:"schemas,omitempty"`
 }
 
+// Secrets the overlay needs, kept apart from Settings (their own Live
+// paths): the console shows Settings in full and writes a secret only when
+// the operator enters a new one.
+type Secrets struct {
+	// OIDC are the client secrets of the OIDC providers, by provider id.
+	OIDC map[string]string
+	// OAuth2ProviderHeaders go with Kratos's requests to Hydra.
+	OAuth2ProviderHeaders map[string]string
+}
+
 // OAuth2Provider makes login and registration serve Ory Hydra's
 // login_challenge (Kratos as Hydra's login provider).
 type OAuth2Provider struct {
 	// URL of Hydra's admin API; empty: off.
-	URL              string                   `json:"url,omitempty"`
-	Headers          map[string]config.Secret `json:"headers,omitempty"`
-	OverrideReturnTo bool                     `json:"override_return_to,omitempty" schemapb:"default=false"`
+	URL              string `json:"url,omitempty"`
+	OverrideReturnTo bool   `json:"override_return_to,omitempty" schemapb:"default=false"`
 }

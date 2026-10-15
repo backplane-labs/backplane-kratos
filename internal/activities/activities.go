@@ -120,6 +120,12 @@ func New(parent deps.Scope, kratos ory.Client) *Activities {
 		a.createRecoveryCode,
 		opts("Create a recovery code (and its link) for an identity")...)
 	activity.Handle(a, "ListMessages", a.listMessages, opts("List the courier's messages")...)
+	activity.Handle(
+		a,
+		"ImportIdentities",
+		a.importIdentities,
+		opts("Create identities in one batch (imports, migrations)")...)
+	activity.Handle(a, "GetSession", a.getSession, opts("Read a session with its identity and devices")...)
 
 	return a
 }
@@ -520,4 +526,36 @@ func (a *Activities) IdentityEvent(name string) event.Ref[IdentityEvent] {
 	default:
 		return a.deleted
 	}
+}
+
+// ImportIn are identities to create, each Kratos's createIdentityBody
+// (traits, schema_id, credentials with hashed passwords, verified addresses).
+type ImportIn struct {
+	Identities []json.RawMessage `json:"identities" schemapb:"secret=true"`
+}
+
+// ImportOut is one result per identity, in order.
+type ImportOut struct {
+	Results []ory.ImportResult `json:"results"`
+}
+
+func (a *Activities) importIdentities(ctx context.Context, in ImportIn) (ImportOut, error) {
+	results, err := a.kratos.ImportIdentities(ctx, in.Identities)
+	if err != nil {
+		return ImportOut{}, failure(err)
+	}
+
+	for _, r := range results {
+		if r.Action == "create" && r.Identity != "" {
+			a.publish(ctx, a.created, IdentityEvent{IdentityID: r.Identity, By: "wiring"})
+		}
+	}
+
+	return ImportOut{Results: results}, nil
+}
+
+func (a *Activities) getSession(ctx context.Context, in IDIn) (ory.Session, error) {
+	out, err := a.kratos.GetSession(ctx, in.ID)
+
+	return out, failure(err)
 }

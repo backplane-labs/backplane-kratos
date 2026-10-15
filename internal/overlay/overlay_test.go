@@ -6,8 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/backplane-labs/backplane/pkg/backplane/config"
-
 	"github.com/backplane-labs/backplane-kratos/internal/overlay"
 )
 
@@ -84,7 +82,7 @@ func TestRenderValid(t *testing.T) {
 	}
 	s.Methods.Passkey = overlay.Passkey{Enabled: true, RP: overlay.RelyingParty{ID: "example.com", DisplayName: "Shop"}}
 	s.Methods.OIDC = overlay.OIDC{Enabled: true, Providers: []overlay.OIDCProvider{{
-		ID: "google", Provider: "google", ClientID: "id", ClientSecret: config.Secret("secret"),
+		ID: "google", Provider: "google", ClientID: "id",
 		Scope: []string{
 			"email",
 		}, Mapper: "local claims = std.extVar('claims'); {identity: {traits: {email: claims.email}}}",
@@ -92,14 +90,16 @@ func TestRenderValid(t *testing.T) {
 	s.Session.EarliestPossibleExtend = time.Hour
 	s.Session.CookieDomain = "example.com"
 	s.Identity = overlay.Identity{Schemas: map[string]string{"person": `{"type":"object"}`}}
-	s.OAuth2Provider = overlay.OAuth2Provider{
-		URL:     "http://hydra:4445",
-		Headers: map[string]config.Secret{"Authorization": "Bearer x"},
-	}
+	s.OAuth2Provider = overlay.OAuth2Provider{URL: "http://hydra:4445"}
 	s.DefaultReturnURL, s.ErrorUIURL = "https://example.com/", "https://example.com/error"
 	s.AllowedReturnURLs = []string{"https://example.com"}
 
-	doc, err := overlay.Render(s, overlay.Wiring{URL: "http://127.0.0.1:8090", Key: "k", Bound: all, Events: true})
+	sec := overlay.Secrets{
+		OIDC:                  map[string]string{"google": "secret"},
+		OAuth2ProviderHeaders: map[string]string{"Authorization": "Bearer x"},
+	}
+
+	doc, err := overlay.Render(s, sec, overlay.Wiring{URL: "http://127.0.0.1:8090", Key: "k", Bound: all, Events: true})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -127,7 +127,7 @@ func TestRenderValid(t *testing.T) {
 func TestRenderUnbound(t *testing.T) {
 	t.Parallel()
 
-	doc, err := overlay.Render(defaults(), overlay.Wiring{URL: "http://x", Key: "k"})
+	doc, err := overlay.Render(defaults(), overlay.Secrets{}, overlay.Wiring{URL: "http://x", Key: "k"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -151,13 +151,13 @@ func TestRenderErrors(t *testing.T) {
 	s := defaults()
 	s.Overrides = "selfservice:\n  flows:\n    registration:\n      enabled: false\n"
 
-	if _, err := overlay.Render(s, overlay.Wiring{}); !errors.Is(err, overlay.ErrConflict) {
+	if _, err := overlay.Render(s, overlay.Secrets{}, overlay.Wiring{}); !errors.Is(err, overlay.ErrConflict) {
 		t.Fatalf("override of an owned key: %v", err)
 	}
 
 	s.Overrides = "hashers:\n  algorithm: bcrypt\n"
 
-	doc, err := overlay.Render(s, overlay.Wiring{})
+	doc, err := overlay.Render(s, overlay.Secrets{}, overlay.Wiring{})
 	if err != nil || at(t, doc, "hashers.algorithm") != "bcrypt" {
 		t.Fatalf("override merged: %v", err)
 	}
@@ -165,14 +165,14 @@ func TestRenderErrors(t *testing.T) {
 	s = defaults()
 	s.Identity = overlay.Identity{Schemas: map[string]string{"a": "{}", "b": "{}"}}
 
-	if _, err := overlay.Render(s, overlay.Wiring{}); !errors.Is(err, overlay.ErrSchema) {
+	if _, err := overlay.Render(s, overlay.Secrets{}, overlay.Wiring{}); !errors.Is(err, overlay.ErrSchema) {
 		t.Fatalf("two schemas without a default: %v", err)
 	}
 
 	s = defaults()
 	s.Recovery.Use = "sms"
 
-	doc, err = overlay.Render(s, overlay.Wiring{})
+	doc, err = overlay.Render(s, overlay.Secrets{}, overlay.Wiring{})
 	if err != nil {
 		t.Fatal(err)
 	}

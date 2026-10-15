@@ -7,17 +7,18 @@ import { definePlugin, usePluginContext, usePluginNavigate } from '@backplane-la
 import { ConnectionNotice, usePlatformAction, usePlatformQuery } from '@backplane-labs/backplane-platform-ui';
 import { CodeEditor, type EditorDiagnostic } from '@backplane-labs/backplane-editors';
 import {
-  Badge, Button, ClipboardButton, ConfirmAction, DetailDrawer, EmptyState, KeyValueList, NativeSelect, PageHeader, Panel, SearchInput,
+  Badge, Button, ClipboardButton, ConfirmAction, DetailDrawer, EmptyState, Input, KeyValueList, NativeSelect, PageHeader, Panel, SearchInput,
   SecretInput, Skeleton, Stack, StatRow, StatTile, StatusBadge, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Timestamp,
 } from '@backplane-labs/backplane-ui';
 import { AdminServiceClient } from './gen/proto/kratos/console/v1/admin_ws_pb';
 import {
-  CreateIdentityRequestSchema, CreateRecoveryCodeRequestSchema, DeleteCredentialsRequestSchema, DeleteIdentityRequestSchema, GetIdentityRequestSchema,
+  CreateIdentityRequestSchema, CreateRecoveryCodeRequestSchema, ExtendSessionRequestSchema, ImportIdentitiesRequestSchema, SetAddressVerifiedRequestSchema, DeleteCredentialsRequestSchema, DeleteIdentityRequestSchema, GetIdentityRequestSchema,
   GetMessageRequestSchema, GetOverlayRequestSchema, GetStatusRequestSchema, ListIdentitiesRequestSchema, ListMessagesRequestSchema, ListSchemasRequestSchema,
   ListSessionsRequestSchema, RevokeSessionsRequestSchema, UpdateIdentityRequestSchema,
-  type CreateRecoveryCodeResponse, type Identity, type Message, type Schema, type Session,
+  type CreateRecoveryCodeResponse, type Identity, type ImportResult, type Message, type Schema, type Session,
 } from './gen/proto/kratos/console/v1/admin_pb';
 import navigation from './navigation';
+import { Settings } from './settings';
 
 const mono = { fontFamily: 'var(--font-mono)' } as const;
 const muted = { color: 'var(--muted-foreground)', fontSize: 12 } as const;
@@ -181,6 +182,7 @@ function IdentityCard({ id, onClose, onChanged }: { id: string; onClose: () => v
     setTraits(pretty(identity.traitsJson)); setMetaPublic(pretty(identity.metadataPublicJson)); setMetaAdmin(pretty(identity.metadataAdminJson));
   }, [identity]);
   const save = usePlatformAction<void>(), state = usePlatformAction<void>(), recovery = usePlatformAction<CreateRecoveryCodeResponse>();
+  const [expiresIn, setExpiresIn] = useState(''), [flowType, setFlowType] = useState('browser');
   const schema = schemas.value?.schemas.find((s) => s.id === identity?.schemaId);
   const update = (patch: { state?: string }) => async (signal: AbortSignal) => {
     if (!identity) return;
@@ -213,7 +215,10 @@ function IdentityCard({ id, onClose, onChanged }: { id: string; onClose: () => v
       <Panel title={t('addresses')} flush>
         {!identity.verifiableAddresses.length ? <EmptyState title={t('noAddresses')} /> : <Table><TableBody>{identity.verifiableAddresses.map((a) => <TableRow key={a.value}>
           <TableCell style={mono}>{a.value}</TableCell><TableCell><Badge variant="outline">{a.via}</Badge></TableCell>
-          <TableCell>{a.verified ? <StatusBadge tone="success">{t('verified')}</StatusBadge> : <Badge variant="outline">{a.status}</Badge>}</TableCell></TableRow>)}</TableBody></Table>}
+          <TableCell>{a.verified ? <StatusBadge tone="success">{t('verified')}</StatusBadge> : <Badge variant="outline">{a.status}</Badge>}</TableCell>
+          <TableCell style={{ textAlign: 'right' }}><ConfirmAction trigger={<Button size="sm" variant="outline">{a.verified ? t('markUnverified') : t('markVerified')}</Button>}
+            title={a.verified ? t('markUnverifiedTitle') : t('markVerifiedTitle')} description={t('markDescription', { address: a.value })} confirmLabel={a.verified ? t('markUnverified') : t('markVerified')}
+            onConfirm={async (signal) => { await client.setAddressVerified(create(SetAddressVerifiedRequestSchema, { id, value: a.value, verified: !a.verified }), { signal }); card.refresh(); }} /></TableCell></TableRow>)}</TableBody></Table>}
       </Panel>
       <Panel title={t('credentials')} flush footer={<span style={muted}>{t('credentialsHint')}</span>}>
         {!identity.credentials.length ? <EmptyState title={t('noCredentials')} /> : <Table><TableBody>{identity.credentials.map((c) => <TableRow key={c.type}>
@@ -231,8 +236,10 @@ function IdentityCard({ id, onClose, onChanged }: { id: string; onClose: () => v
       <Panel title={t('recovery')} description={t('recoveryHint')}>
         <Stack gap={8}>
           <Stack direction="row" gap={8}>
-            <Button size="sm" variant="outline" disabled={recovery.pending} onClick={() => void recovery.run((signal) => client.createRecoveryCode(create(CreateRecoveryCodeRequestSchema, { id }), { signal }))}>{t('recoveryCode')}</Button>
-            <Button size="sm" variant="outline" disabled={recovery.pending} onClick={() => void recovery.run((signal) => client.createRecoveryCode(create(CreateRecoveryCodeRequestSchema, { id, link: true }), { signal }))}>{t('recoveryLink')}</Button>
+            <Input aria-label={t('expiresIn')} placeholder={t('expiresInHint')} value={expiresIn} onChange={(e) => setExpiresIn(e.target.value)} style={{ width: 160 }} />
+            <NativeSelect aria-label={t('flowType')} value={flowType} onChange={(e) => setFlowType(e.target.value)}><option value="browser">{t('flowBrowser')}</option><option value="api">{t('flowApi')}</option></NativeSelect>
+            <Button size="sm" variant="outline" disabled={recovery.pending} onClick={() => void recovery.run((signal) => client.createRecoveryCode(create(CreateRecoveryCodeRequestSchema, { id, expiresIn, flowType }), { signal }))}>{t('recoveryCode')}</Button>
+            <Button size="sm" variant="outline" disabled={recovery.pending} onClick={() => void recovery.run((signal) => client.createRecoveryCode(create(CreateRecoveryCodeRequestSchema, { id, link: true, expiresIn }), { signal }))}>{t('recoveryLink')}</Button>
             <ActionError error={recovery.error} />
           </Stack>
           {recovery.value && <KeyValueList items={[
@@ -249,6 +256,8 @@ function IdentityCard({ id, onClose, onChanged }: { id: string; onClose: () => v
 function CreateIdentity({ onClose, onCreated }: { onClose: () => void; onCreated: (id: string) => void }) {
   const t = useText(), client = useClient(AdminServiceClient), schemas = useSchemas(), create_ = usePlatformAction<string>();
   const [schemaId, setSchemaId] = useState(''), [traits, setTraits] = useState(''), [password, setPassword] = useState('');
+  const [externalId, setExternalId] = useState(''), [inactive, setInactive] = useState(false), [metaPublic, setMetaPublic] = useState('{}'), [metaAdmin, setMetaAdmin] = useState('{}');
+  const { mode } = usePluginContext();
   const list = schemas.value?.schemas ?? [], schema = list.find((s) => s.id === schemaId) ?? list[0];
   useEffect(() => { if (schema && !schemaId) { setSchemaId(schema.id); setTraits(traitsOf(schema).scaffold); } }, [schema, schemaId]);
   return <DetailDrawer open onOpenChange={(o) => !o && onClose()} title={t('newIdentity')} description={t('newIdentityHint')}>
@@ -259,9 +268,15 @@ function CreateIdentity({ onClose, onCreated }: { onClose: () => void; onCreated
       </NativeSelect>
       <TraitsEditor label={t('traits')} value={traits} onChange={setTraits} schema={schema} />
       <SecretInput label={t('passwordOptional')} value={password} onValueChange={setPassword} />
+      <Input aria-label={t('externalId')} placeholder={t('externalIdHint')} value={externalId} onChange={(e) => setExternalId(e.target.value)} />
+      <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13 }}><input type="checkbox" checked={inactive} onChange={(e) => setInactive(e.target.checked)} />{t('createInactive')}</label>
+      <CodeEditor label={t('metadataPublic')} value={metaPublic} onChange={setMetaPublic} language="json" mode={mode} height={90} />
+      <CodeEditor label={t('metadataAdmin')} value={metaAdmin} onChange={setMetaAdmin} language="json" mode={mode} height={90} />
       <Stack direction="row" gap={8} style={{ alignItems: 'center' }}>
         <Button size="sm" disabled={create_.pending || !schemaId} onClick={() => void create_.run(async (signal) => {
-          const res = await client.createIdentity(create(CreateIdentityRequestSchema, { schemaId, traitsJson: traits, password }), { signal });
+          const res = await client.createIdentity(create(CreateIdentityRequestSchema, {
+            schemaId, traitsJson: traits, password, externalId, state: inactive ? 'inactive' : 'active', metadataPublicJson: unset(metaPublic), metadataAdminJson: unset(metaAdmin),
+          }), { signal });
           onCreated(res.identity?.id ?? ''); return res.identity?.id ?? '';
         })}>{create_.pending ? t('creating') : t('create')}</Button>
         <ActionError error={create_.error} />
@@ -280,7 +295,8 @@ function SessionTable({ sessions, onChanged, owner }: { sessions: Session[]; onC
       <TableCell><Stack direction="row" gap={4}>{s.methods.map((m) => <Badge key={m} variant="outline">{m}</Badge>)}<span style={muted}>{s.aal}</span></Stack></TableCell>
       <TableCell style={muted}>{s.devices.map((d) => [d.ipAddress, d.location, d.userAgent].filter(Boolean).join(' · ')).join('; ') || '—'}</TableCell>
       <TableCell><Timestamp value={date(s.expiresAt)} /></TableCell>
-      <TableCell style={{ textAlign: 'right' }}>{s.active && <ConfirmAction trigger={<Button size="sm" variant="outline">{t('revoke')}</Button>} title={t('revokeTitle')} description={t('revokeDescription')}
+      <TableCell style={{ textAlign: 'right' }}>{s.active && <Button size="sm" variant="ghost" title={t('extendHint')} onClick={() => void client.extendSession(create(ExtendSessionRequestSchema, { id: s.id })).then(onChanged)}>{t('extend')}</Button>}
+        {s.active && <ConfirmAction trigger={<Button size="sm" variant="outline">{t('revoke')}</Button>} title={t('revokeTitle')} description={t('revokeDescription')}
         confirmLabel={t('revoke')} onConfirm={async (signal) => { await client.revokeSessions(create(RevokeSessionsRequestSchema, { sessionId: s.id }), { signal }); onChanged(); }} />}</TableCell>
     </TableRow>)}</TableBody></Table>;
 }
@@ -365,6 +381,30 @@ function MessageCard({ message, onClose }: { message: Message; onClose: () => vo
   </DetailDrawer>;
 }
 
+const importScaffold = JSON.stringify([
+  { schema_id: 'default', traits: { email: 'ada@example.com' }, verifiable_addresses: [{ value: 'ada@example.com', via: 'email', verified: true, status: 'completed' }],
+    credentials: { password: { config: { hashed_password: '$2a$10$…' } } } },
+], null, 2);
+
+/** Creates identities in one batch: imports and migrations. */
+function Import() {
+  const t = useText(), client = useClient(AdminServiceClient), { mode } = usePluginContext();
+  const [json, setJson] = useState(importScaffold), run = usePlatformAction<ImportResult[]>();
+  return <Stack gap={16}><ConnectionNotice />
+    <Header title={t('importTitle')} description={t('importDescription')} />
+    <Panel title={t('identities')} actions={<Stack direction="row" gap={8} style={{ alignItems: 'center' }}><ActionError error={run.error} />
+      <Button size="sm" disabled={run.pending} onClick={() => void run.run(async (signal) => (await client.importIdentities(create(ImportIdentitiesRequestSchema, { identitiesJson: json }), { signal })).results)}>{run.pending ? t('importing') : t('import')}</Button></Stack>}>
+      <CodeEditor label={t('identities')} value={json} onChange={setJson} language="json" mode={mode} height={360}
+        validate={async (text) => { try { const v = JSON.parse(text); return Array.isArray(v) ? [] : [{ from: 0, to: text.length, severity: 'error', message: t('importArray') }]; } catch (e) { return [{ from: 0, to: text.length, severity: 'error', message: e instanceof Error ? e.message : String(e) }]; } }} />
+    </Panel>
+    {run.value && <Panel title={t('results')} count={run.value.length} flush>
+      <Table><TableBody>{run.value.map((r, i) => <TableRow key={i}><TableCell>{i + 1}</TableCell>
+        <TableCell>{r.action === 'create' ? <StatusBadge tone="success">{t('created')}</StatusBadge> : <StatusBadge tone="danger">{r.action}</StatusBadge>}</TableCell>
+        <TableCell style={mono}>{r.identityId}</TableCell><TableCell style={{ ...muted, color: r.error ? 'var(--destructive)' : undefined }}>{r.error}</TableCell></TableRow>)}</TableBody></Table>
+    </Panel>}
+  </Stack>;
+}
+
 function Schemas() {
   const t = useText(), schemas = useSchemas(), { mode } = usePluginContext();
   return <Stack gap={16}><ConnectionNotice />
@@ -385,7 +425,7 @@ export const definition = definePlugin({
   ...navigation,
   routes: [
     { index: true, element: <Overview /> }, { path: 'identities', element: <Identities /> }, { path: 'sessions', element: <Sessions /> },
-    { path: 'courier', element: <Courier /> }, { path: 'schemas', element: <Schemas /> }, { path: '*', element: <Missing /> },
+    { path: 'import', element: <Import /> }, { path: 'courier', element: <Courier /> }, { path: 'schemas', element: <Schemas /> }, { path: 'settings', element: <Settings /> }, { path: '*', element: <Missing /> },
   ],
 });
 

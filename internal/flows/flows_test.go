@@ -154,7 +154,9 @@ func TestFlowVerdicts(t *testing.T) {
 		{
 			name: "change", status: http.StatusOK,
 			answer: func(flows.FlowIn) (flows.FlowOut, error) {
-				return flows.FlowOut{Identity: &flows.IdentityPatch{MetadataPublic: json.RawMessage(`{"tier":"gold"}`)}}, nil
+				return flows.FlowOut{
+					Identity: &flows.IdentityPatch{MetadataPublic: json.RawMessage(`{"tier":"gold"}`)},
+				}, nil
 			},
 			check: func(t *testing.T, body map[string]any) {
 				t.Helper()
@@ -255,7 +257,12 @@ func TestKeyRequired(t *testing.T) {
 
 	_, _, srv := harness(t)
 
-	req, _ := http.NewRequestWithContext(t.Context(), http.MethodPost, srv.URL+"/courier/email", strings.NewReader("{}"))
+	req, _ := http.NewRequestWithContext(
+		t.Context(),
+		http.MethodPost,
+		srv.URL+"/courier/email",
+		strings.NewReader("{}"),
+	)
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {

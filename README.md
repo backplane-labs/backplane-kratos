@@ -17,11 +17,14 @@ service sits next to it and turns it into parts of Wiring:
 - **Admin API → activities**: `GetIdentity`, `FindIdentities`,
   `CreateIdentity`, `UpdateIdentity`, `PatchIdentity`, `DeleteIdentity`,
   `DeleteCredentials`, `ListSessions`, `RevokeSessions`, `ExtendSession`,
-  `CheckSession`, `CreateRecoveryCode`, `ListMessages`; changes publish
+  `CheckSession`, `GetSession`, `CreateRecoveryCode`, `ListMessages`,
+  `ImportIdentities`; changes publish
   `IdentityCreated/Updated/Deleted` and `SessionsRevoked`.
 - **Console module**: Kratos's state and every hook point, identities (traits
-  editor checked against the identity schema, credentials, sessions, recovery
-  codes), sessions, the courier's queue, identity schemas. Every operator
+  editor checked against the identity schema, credentials, verified addresses,
+  sessions with extend and revoke, recovery codes and links), a batch import,
+  sessions, the courier's queue, identity schemas, and a Settings page that
+  saves revisions of this service's configuration. Every operator
   change is application audit.
 - **Settings from the console**: flows on/off (registration included), UI
   URLs, lifespans, methods (password, codes, passkeys, WebAuthn, TOTP, social
@@ -66,7 +69,8 @@ cannot read leaves it on the previous configuration.
 | `callbacks.listen`, `callbacks.url` | Where Kratos calls this service (default `:8090`, `http://127.0.0.1:8090`) |
 | `callbacks.key` | Authenticates Kratos; default: derived from the internal secret |
 | `overlay`, `overlay_mode` | The overlay file and its permissions |
-| `settings` | Live: the Kratos settings above |
+| `settings` | Live: the Kratos settings above, edited on the module's Settings page |
+| `oidc_secrets`, `oauth2_provider_headers` | Live secrets kept apart from the settings: the console writes them only when an operator enters new ones |
 | `fail_open` | Live: flow hooks whose failure lets the flow continue (default: none — a failing hook stops the flow) |
 
 ## Example wiring

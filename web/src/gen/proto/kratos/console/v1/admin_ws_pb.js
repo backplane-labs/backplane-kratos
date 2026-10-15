@@ -3,7 +3,7 @@
 /* eslint-disable */
 
 import { applyUnaryCallbacks } from "@gopherex/ws-proto-transport";
-import { CreateIdentityRequestSchema, CreateIdentityResponseSchema, CreateRecoveryCodeRequestSchema, CreateRecoveryCodeResponseSchema, DeleteCredentialsRequestSchema, DeleteCredentialsResponseSchema, DeleteIdentityRequestSchema, DeleteIdentityResponseSchema, GetIdentityRequestSchema, GetIdentityResponseSchema, GetMessageRequestSchema, GetMessageResponseSchema, GetOverlayRequestSchema, GetOverlayResponseSchema, GetStatusRequestSchema, GetStatusResponseSchema, ListIdentitiesRequestSchema, ListIdentitiesResponseSchema, ListMessagesRequestSchema, ListMessagesResponseSchema, ListSchemasRequestSchema, ListSchemasResponseSchema, ListSessionsRequestSchema, ListSessionsResponseSchema, RevokeSessionsRequestSchema, RevokeSessionsResponseSchema, UpdateIdentityRequestSchema, UpdateIdentityResponseSchema } from "./admin_pb";
+import { CreateIdentityRequestSchema, CreateIdentityResponseSchema, CreateRecoveryCodeRequestSchema, CreateRecoveryCodeResponseSchema, DeleteCredentialsRequestSchema, DeleteCredentialsResponseSchema, DeleteIdentityRequestSchema, DeleteIdentityResponseSchema, ExtendSessionRequestSchema, ExtendSessionResponseSchema, GetIdentityRequestSchema, GetIdentityResponseSchema, GetMessageRequestSchema, GetMessageResponseSchema, GetOverlayRequestSchema, GetOverlayResponseSchema, GetStatusRequestSchema, GetStatusResponseSchema, ImportIdentitiesRequestSchema, ImportIdentitiesResponseSchema, ListIdentitiesRequestSchema, ListIdentitiesResponseSchema, ListMessagesRequestSchema, ListMessagesResponseSchema, ListSchemasRequestSchema, ListSchemasResponseSchema, ListSessionsRequestSchema, ListSessionsResponseSchema, RevokeSessionsRequestSchema, RevokeSessionsResponseSchema, SetAddressVerifiedRequestSchema, SetAddressVerifiedResponseSchema, UpdateIdentityRequestSchema, UpdateIdentityResponseSchema } from "./admin_pb";
 const AdminService_GetStatus = {
     typeName: "kratos.console.v1.AdminService",
     name: "GetStatus",
@@ -67,6 +67,20 @@ const AdminService_CreateRecoveryCode = {
     input: CreateRecoveryCodeRequestSchema,
     output: CreateRecoveryCodeResponseSchema,
 };
+const AdminService_SetAddressVerified = {
+    typeName: "kratos.console.v1.AdminService",
+    name: "SetAddressVerified",
+    kind: "unary",
+    input: SetAddressVerifiedRequestSchema,
+    output: SetAddressVerifiedResponseSchema,
+};
+const AdminService_ImportIdentities = {
+    typeName: "kratos.console.v1.AdminService",
+    name: "ImportIdentities",
+    kind: "unary",
+    input: ImportIdentitiesRequestSchema,
+    output: ImportIdentitiesResponseSchema,
+};
 const AdminService_ListSessions = {
     typeName: "kratos.console.v1.AdminService",
     name: "ListSessions",
@@ -80,6 +94,13 @@ const AdminService_RevokeSessions = {
     kind: "unary",
     input: RevokeSessionsRequestSchema,
     output: RevokeSessionsResponseSchema,
+};
+const AdminService_ExtendSession = {
+    typeName: "kratos.console.v1.AdminService",
+    name: "ExtendSession",
+    kind: "unary",
+    input: ExtendSessionRequestSchema,
+    output: ExtendSessionResponseSchema,
 };
 const AdminService_ListMessages = {
     typeName: "kratos.console.v1.AdminService",
@@ -184,6 +205,24 @@ export class AdminServiceClient {
         return applyUnaryCallbacks(res, options);
     }
     /**
+     * SetAddressVerified marks a verifiable address verified or not.
+     *
+     * @generated from rpc kratos.console.v1.AdminService.SetAddressVerified
+     */
+    async setAddressVerified(req, options) {
+        const res = await this.transport.unary(AdminService_SetAddressVerified, req, { headers: options === null || options === void 0 ? void 0 : options.headers, signal: options === null || options === void 0 ? void 0 : options.signal, timeoutMs: options === null || options === void 0 ? void 0 : options.timeoutMs });
+        return applyUnaryCallbacks(res, options);
+    }
+    /**
+     * ImportIdentities creates identities in one batch.
+     *
+     * @generated from rpc kratos.console.v1.AdminService.ImportIdentities
+     */
+    async importIdentities(req, options) {
+        const res = await this.transport.unary(AdminService_ImportIdentities, req, { headers: options === null || options === void 0 ? void 0 : options.headers, signal: options === null || options === void 0 ? void 0 : options.signal, timeoutMs: options === null || options === void 0 ? void 0 : options.timeoutMs });
+        return applyUnaryCallbacks(res, options);
+    }
+    /**
      * @generated from rpc kratos.console.v1.AdminService.ListSessions
      */
     async listSessions(req, options) {
@@ -197,6 +236,15 @@ export class AdminServiceClient {
      */
     async revokeSessions(req, options) {
         const res = await this.transport.unary(AdminService_RevokeSessions, req, { headers: options === null || options === void 0 ? void 0 : options.headers, signal: options === null || options === void 0 ? void 0 : options.signal, timeoutMs: options === null || options === void 0 ? void 0 : options.timeoutMs });
+        return applyUnaryCallbacks(res, options);
+    }
+    /**
+     * ExtendSession extends a session by the configured lifespan.
+     *
+     * @generated from rpc kratos.console.v1.AdminService.ExtendSession
+     */
+    async extendSession(req, options) {
+        const res = await this.transport.unary(AdminService_ExtendSession, req, { headers: options === null || options === void 0 ? void 0 : options.headers, signal: options === null || options === void 0 ? void 0 : options.signal, timeoutMs: options === null || options === void 0 ? void 0 : options.timeoutMs });
         return applyUnaryCallbacks(res, options);
     }
     /**

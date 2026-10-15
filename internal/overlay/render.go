@@ -88,9 +88,9 @@ var (
 	ErrConflict  = errors.New("is set by the settings or the callbacks; change it there")
 )
 
-// Render is the overlay document for s and w.
-func Render(s Settings, w Wiring) (map[string]any, error) {
-	r := renderer{s: s, w: w, doc: map[string]any{}}
+// Render is the overlay document for s, its secrets and w.
+func Render(s Settings, sec Secrets, w Wiring) (map[string]any, error) {
+	r := renderer{s: s, sec: sec, w: w, doc: map[string]any{}}
 	r.selfservice()
 	r.courier()
 	r.session()
@@ -110,6 +110,7 @@ func Render(s Settings, w Wiring) (map[string]any, error) {
 
 type renderer struct {
 	s   Settings
+	sec Secrets
 	w   Wiring
 	doc map[string]any
 }
@@ -299,7 +300,7 @@ func (r renderer) methods() {
 	if len(m.OIDC.Providers) > 0 {
 		providers := make([]any, 0, len(m.OIDC.Providers))
 		for i := range m.OIDC.Providers {
-			providers = append(providers, provider(m.OIDC.Providers[i]))
+			providers = append(providers, provider(m.OIDC.Providers[i], r.sec.OIDC[m.OIDC.Providers[i].ID]))
 		}
 
 		r.set(p+"oidc.config.providers", providers)
@@ -315,9 +316,9 @@ func rp(r RelyingParty) map[string]any {
 	return out
 }
 
-func provider(p OIDCProvider) map[string]any {
+func provider(p OIDCProvider, secret string) map[string]any {
 	out := map[string]any{
-		"id": p.ID, "provider": p.Provider, "client_id": p.ClientID, "client_secret": p.ClientSecret.Reveal(),
+		"id": p.ID, "provider": p.Provider, "client_id": p.ClientID, "client_secret": secret,
 		"mapper_url": "base64://" + base64.StdEncoding.EncodeToString([]byte(p.Mapper)),
 	}
 
@@ -429,10 +430,10 @@ func (r renderer) oauth2() {
 	r.set("oauth2_provider.url", o.URL)
 	r.set("oauth2_provider.override_return_to", o.OverrideReturnTo)
 
-	if len(o.Headers) > 0 {
+	if len(r.sec.OAuth2ProviderHeaders) > 0 {
 		h := map[string]any{}
-		for k, v := range o.Headers {
-			h[k] = v.Reveal()
+		for k, v := range r.sec.OAuth2ProviderHeaders {
+			h[k] = v
 		}
 
 		r.set("oauth2_provider.headers", h)

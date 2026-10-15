@@ -224,3 +224,36 @@ func nextToken(h http.Header) string {
 
 	return ""
 }
+
+// ImportResult is the outcome of one identity of a batch.
+type ImportResult struct {
+	// Action is "create" or "error".
+	Action   string          `json:"action"`
+	Identity string          `json:"identity,omitempty"`
+	PatchID  string          `json:"patch_id,omitempty"`
+	Error    json.RawMessage `json:"error,omitempty"`
+}
+
+// ImportIdentities creates identities in one batch (Kratos's
+// batchPatchIdentities): each body is a createIdentityBody; a failure
+// stays with its identity.
+func (c Client) ImportIdentities(ctx context.Context, bodies []json.RawMessage) ([]ImportResult, error) {
+	type patch struct {
+		Create json.RawMessage `json:"create"`
+	}
+
+	in := struct {
+		Identities []patch `json:"identities"`
+	}{}
+	for _, b := range bodies {
+		in.Identities = append(in.Identities, patch{Create: b})
+	}
+
+	var out struct {
+		Identities []ImportResult `json:"identities"`
+	}
+
+	_, err := c.do(ctx, request{method: http.MethodPatch, base: c.admin, path: "/admin/identities", body: in}, &out)
+
+	return out.Identities, err
+}

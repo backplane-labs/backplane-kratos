@@ -28,8 +28,11 @@ const (
 	AdminService_DeleteIdentity_FullMethodName     = "/kratos.console.v1.AdminService/DeleteIdentity"
 	AdminService_DeleteCredentials_FullMethodName  = "/kratos.console.v1.AdminService/DeleteCredentials"
 	AdminService_CreateRecoveryCode_FullMethodName = "/kratos.console.v1.AdminService/CreateRecoveryCode"
+	AdminService_SetAddressVerified_FullMethodName = "/kratos.console.v1.AdminService/SetAddressVerified"
+	AdminService_ImportIdentities_FullMethodName   = "/kratos.console.v1.AdminService/ImportIdentities"
 	AdminService_ListSessions_FullMethodName       = "/kratos.console.v1.AdminService/ListSessions"
 	AdminService_RevokeSessions_FullMethodName     = "/kratos.console.v1.AdminService/RevokeSessions"
+	AdminService_ExtendSession_FullMethodName      = "/kratos.console.v1.AdminService/ExtendSession"
 	AdminService_ListMessages_FullMethodName       = "/kratos.console.v1.AdminService/ListMessages"
 	AdminService_GetMessage_FullMethodName         = "/kratos.console.v1.AdminService/GetMessage"
 	AdminService_ListSchemas_FullMethodName        = "/kratos.console.v1.AdminService/ListSchemas"
@@ -56,9 +59,15 @@ type AdminServiceClient interface {
 	// DeleteCredentials removes a credential type (a second factor, a social sign-in).
 	DeleteCredentials(ctx context.Context, in *DeleteCredentialsRequest, opts ...grpc.CallOption) (*DeleteCredentialsResponse, error)
 	CreateRecoveryCode(ctx context.Context, in *CreateRecoveryCodeRequest, opts ...grpc.CallOption) (*CreateRecoveryCodeResponse, error)
+	// SetAddressVerified marks a verifiable address verified or not.
+	SetAddressVerified(ctx context.Context, in *SetAddressVerifiedRequest, opts ...grpc.CallOption) (*SetAddressVerifiedResponse, error)
+	// ImportIdentities creates identities in one batch.
+	ImportIdentities(ctx context.Context, in *ImportIdentitiesRequest, opts ...grpc.CallOption) (*ImportIdentitiesResponse, error)
 	ListSessions(ctx context.Context, in *ListSessionsRequest, opts ...grpc.CallOption) (*ListSessionsResponse, error)
 	// RevokeSessions revokes one session or every session of an identity.
 	RevokeSessions(ctx context.Context, in *RevokeSessionsRequest, opts ...grpc.CallOption) (*RevokeSessionsResponse, error)
+	// ExtendSession extends a session by the configured lifespan.
+	ExtendSession(ctx context.Context, in *ExtendSessionRequest, opts ...grpc.CallOption) (*ExtendSessionResponse, error)
 	ListMessages(ctx context.Context, in *ListMessagesRequest, opts ...grpc.CallOption) (*ListMessagesResponse, error)
 	// GetMessage reads a courier message; its body (it holds codes) only on reveal, audited.
 	GetMessage(ctx context.Context, in *GetMessageRequest, opts ...grpc.CallOption) (*GetMessageResponse, error)
@@ -163,6 +172,26 @@ func (c *adminServiceClient) CreateRecoveryCode(ctx context.Context, in *CreateR
 	return out, nil
 }
 
+func (c *adminServiceClient) SetAddressVerified(ctx context.Context, in *SetAddressVerifiedRequest, opts ...grpc.CallOption) (*SetAddressVerifiedResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetAddressVerifiedResponse)
+	err := c.cc.Invoke(ctx, AdminService_SetAddressVerified_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) ImportIdentities(ctx context.Context, in *ImportIdentitiesRequest, opts ...grpc.CallOption) (*ImportIdentitiesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ImportIdentitiesResponse)
+	err := c.cc.Invoke(ctx, AdminService_ImportIdentities_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *adminServiceClient) ListSessions(ctx context.Context, in *ListSessionsRequest, opts ...grpc.CallOption) (*ListSessionsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListSessionsResponse)
@@ -177,6 +206,16 @@ func (c *adminServiceClient) RevokeSessions(ctx context.Context, in *RevokeSessi
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(RevokeSessionsResponse)
 	err := c.cc.Invoke(ctx, AdminService_RevokeSessions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) ExtendSession(ctx context.Context, in *ExtendSessionRequest, opts ...grpc.CallOption) (*ExtendSessionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ExtendSessionResponse)
+	err := c.cc.Invoke(ctx, AdminService_ExtendSession_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -234,9 +273,15 @@ type AdminServiceServer interface {
 	// DeleteCredentials removes a credential type (a second factor, a social sign-in).
 	DeleteCredentials(context.Context, *DeleteCredentialsRequest) (*DeleteCredentialsResponse, error)
 	CreateRecoveryCode(context.Context, *CreateRecoveryCodeRequest) (*CreateRecoveryCodeResponse, error)
+	// SetAddressVerified marks a verifiable address verified or not.
+	SetAddressVerified(context.Context, *SetAddressVerifiedRequest) (*SetAddressVerifiedResponse, error)
+	// ImportIdentities creates identities in one batch.
+	ImportIdentities(context.Context, *ImportIdentitiesRequest) (*ImportIdentitiesResponse, error)
 	ListSessions(context.Context, *ListSessionsRequest) (*ListSessionsResponse, error)
 	// RevokeSessions revokes one session or every session of an identity.
 	RevokeSessions(context.Context, *RevokeSessionsRequest) (*RevokeSessionsResponse, error)
+	// ExtendSession extends a session by the configured lifespan.
+	ExtendSession(context.Context, *ExtendSessionRequest) (*ExtendSessionResponse, error)
 	ListMessages(context.Context, *ListMessagesRequest) (*ListMessagesResponse, error)
 	// GetMessage reads a courier message; its body (it holds codes) only on reveal, audited.
 	GetMessage(context.Context, *GetMessageRequest) (*GetMessageResponse, error)
@@ -278,11 +323,20 @@ func (UnimplementedAdminServiceServer) DeleteCredentials(context.Context, *Delet
 func (UnimplementedAdminServiceServer) CreateRecoveryCode(context.Context, *CreateRecoveryCodeRequest) (*CreateRecoveryCodeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateRecoveryCode not implemented")
 }
+func (UnimplementedAdminServiceServer) SetAddressVerified(context.Context, *SetAddressVerifiedRequest) (*SetAddressVerifiedResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetAddressVerified not implemented")
+}
+func (UnimplementedAdminServiceServer) ImportIdentities(context.Context, *ImportIdentitiesRequest) (*ImportIdentitiesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ImportIdentities not implemented")
+}
 func (UnimplementedAdminServiceServer) ListSessions(context.Context, *ListSessionsRequest) (*ListSessionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListSessions not implemented")
 }
 func (UnimplementedAdminServiceServer) RevokeSessions(context.Context, *RevokeSessionsRequest) (*RevokeSessionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RevokeSessions not implemented")
+}
+func (UnimplementedAdminServiceServer) ExtendSession(context.Context, *ExtendSessionRequest) (*ExtendSessionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ExtendSession not implemented")
 }
 func (UnimplementedAdminServiceServer) ListMessages(context.Context, *ListMessagesRequest) (*ListMessagesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListMessages not implemented")
@@ -476,6 +530,42 @@ func _AdminService_CreateRecoveryCode_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_SetAddressVerified_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetAddressVerifiedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).SetAddressVerified(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_SetAddressVerified_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).SetAddressVerified(ctx, req.(*SetAddressVerifiedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_ImportIdentities_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ImportIdentitiesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).ImportIdentities(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_ImportIdentities_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).ImportIdentities(ctx, req.(*ImportIdentitiesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AdminService_ListSessions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListSessionsRequest)
 	if err := dec(in); err != nil {
@@ -508,6 +598,24 @@ func _AdminService_RevokeSessions_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AdminServiceServer).RevokeSessions(ctx, req.(*RevokeSessionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_ExtendSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExtendSessionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).ExtendSession(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_ExtendSession_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).ExtendSession(ctx, req.(*ExtendSessionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -610,12 +718,24 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AdminService_CreateRecoveryCode_Handler,
 		},
 		{
+			MethodName: "SetAddressVerified",
+			Handler:    _AdminService_SetAddressVerified_Handler,
+		},
+		{
+			MethodName: "ImportIdentities",
+			Handler:    _AdminService_ImportIdentities_Handler,
+		},
+		{
 			MethodName: "ListSessions",
 			Handler:    _AdminService_ListSessions_Handler,
 		},
 		{
 			MethodName: "RevokeSessions",
 			Handler:    _AdminService_RevokeSessions_Handler,
+		},
+		{
+			MethodName: "ExtendSession",
+			Handler:    _AdminService_ExtendSession_Handler,
 		},
 		{
 			MethodName: "ListMessages",

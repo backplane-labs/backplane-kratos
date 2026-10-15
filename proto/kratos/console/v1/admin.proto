@@ -24,10 +24,16 @@ service AdminService {
   // DeleteCredentials removes a credential type (a second factor, a social sign-in).
   rpc DeleteCredentials(DeleteCredentialsRequest) returns (DeleteCredentialsResponse);
   rpc CreateRecoveryCode(CreateRecoveryCodeRequest) returns (CreateRecoveryCodeResponse);
+  // SetAddressVerified marks a verifiable address verified or not.
+  rpc SetAddressVerified(SetAddressVerifiedRequest) returns (SetAddressVerifiedResponse);
+  // ImportIdentities creates identities in one batch.
+  rpc ImportIdentities(ImportIdentitiesRequest) returns (ImportIdentitiesResponse);
 
   rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse);
   // RevokeSessions revokes one session or every session of an identity.
   rpc RevokeSessions(RevokeSessionsRequest) returns (RevokeSessionsResponse);
+  // ExtendSession extends a session by the configured lifespan.
+  rpc ExtendSession(ExtendSessionRequest) returns (ExtendSessionResponse);
 
   rpc ListMessages(ListMessagesRequest) returns (ListMessagesResponse);
   // GetMessage reads a courier message; its body (it holds codes) only on reveal, audited.
@@ -150,6 +156,7 @@ message CreateIdentityRequest {
   string password = 4;
   string metadata_public_json = 5;
   string metadata_admin_json = 6;
+  string external_id = 7;
 }
 
 message CreateIdentityResponse {
@@ -189,6 +196,8 @@ message CreateRecoveryCodeRequest {
   string expires_in = 2;
   // link: a link alone instead of a code.
   bool link = 3;
+  // flow_type: browser (default) or api.
+  string flow_type = 4;
 }
 
 message CreateRecoveryCodeResponse {
@@ -283,4 +292,37 @@ message ListSchemasResponse {
 message Schema {
   string id = 1;
   string schema_json = 2;
+}
+
+message SetAddressVerifiedRequest {
+  string id = 1;
+  string value = 2;
+  bool verified = 3;
+}
+
+message SetAddressVerifiedResponse {
+  Identity identity = 1;
+}
+
+message ImportIdentitiesRequest {
+  // identities_json is a JSON array of Kratos's createIdentityBody.
+  string identities_json = 1;
+}
+
+message ImportIdentitiesResponse {
+  repeated ImportResult results = 1;
+}
+
+message ImportResult {
+  string action = 1;
+  string identity_id = 2;
+  string error = 3;
+}
+
+message ExtendSessionRequest {
+  string id = 1;
+}
+
+message ExtendSessionResponse {
+  Session session = 1;
 }

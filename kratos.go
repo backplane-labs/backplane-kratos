@@ -53,6 +53,11 @@ type Config struct {
 	OverlayMode string `json:"overlay_mode,omitempty" schemapb:"default=0644"`
 	// Settings are Kratos's settings rendered into the overlay; live.
 	Settings config.Live[overlay.Settings] `json:"settings"`
+	// OIDCSecrets are the OIDC providers' client secrets by provider id;
+	// live, kept apart from the settings.
+	OIDCSecrets config.Live[map[string]config.Secret] `json:"oidc_secrets,omitempty" schemapb:"description=Client secrets of the OIDC providers by provider id"`
+	// OAuth2ProviderHeaders go with Kratos's requests to Hydra; live.
+	OAuth2ProviderHeaders config.Live[map[string]config.Secret] `json:"oauth2_provider_headers,omitempty" schemapb:"description=Headers of Kratos's requests to Hydra's admin API"`
 	// FailOpen names flow hooks whose failure lets the flow continue.
 	FailOpen config.Live[[]string] `json:"fail_open,omitempty" schemapb:"description=Flow hooks (e.g. AfterLogin) whose failure lets the flow continue"`
 }
@@ -81,7 +86,7 @@ func (c *Config) Validate() error {
 	every := func(string) bool { return true }
 
 	doc, err := overlay.Render(
-		c.Settings.Get(),
+		c.Settings.Get(), overlay.Secrets{},
 		overlay.Wiring{URL: c.Callbacks.URL, Key: "k", Bound: every, Events: true},
 	)
 	if err != nil {
@@ -194,9 +199,20 @@ func newState(root backplane.Root[Config]) (*State, error) {
 		return nil, fmt.Errorf("%w: %q", ErrOverlayMode, cfg.OverlayMode)
 	}
 
-	st.Applier = apply.New(root, cfg.Overlay, os.FileMode(mode), cfg.Settings, st.Flows, overlay.Wiring{
-		URL: cfg.Callbacks.URL, Key: key, Events: cfg.NATS.Enabled(),
-	})
+	st.Applier = apply.New(
+		root,
+		cfg.Overlay,
+		os.FileMode(mode),
+		cfg.Settings,
+		apply.Secrets{
+			OIDC:                  cfg.OIDCSecrets,
+			OAuth2ProviderHeaders: cfg.OAuth2ProviderHeaders,
+		},
+		st.Flows,
+		overlay.Wiring{
+			URL: cfg.Callbacks.URL, Key: key, Events: cfg.NATS.Enabled(),
+		},
+	)
 	st.Activities = activities.New(root, client)
 	st.Admin = admin.New(root, client, st.Flows, st.Applier, cfg.FailOpen, cfg.NATS.Enabled())
 

@@ -979,6 +979,7 @@ type CreateIdentityRequest struct {
 	Password           string                 `protobuf:"bytes,4,opt,name=password,proto3" json:"password,omitempty"`
 	MetadataPublicJson string                 `protobuf:"bytes,5,opt,name=metadata_public_json,json=metadataPublicJson,proto3" json:"metadata_public_json,omitempty"`
 	MetadataAdminJson  string                 `protobuf:"bytes,6,opt,name=metadata_admin_json,json=metadataAdminJson,proto3" json:"metadata_admin_json,omitempty"`
+	ExternalId         string                 `protobuf:"bytes,7,opt,name=external_id,json=externalId,proto3" json:"external_id,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -1051,6 +1052,13 @@ func (x *CreateIdentityRequest) GetMetadataPublicJson() string {
 func (x *CreateIdentityRequest) GetMetadataAdminJson() string {
 	if x != nil {
 		return x.MetadataAdminJson
+	}
+	return ""
+}
+
+func (x *CreateIdentityRequest) GetExternalId() string {
+	if x != nil {
+		return x.ExternalId
 	}
 	return ""
 }
@@ -1409,7 +1417,9 @@ type CreateRecoveryCodeRequest struct {
 	// expires_in is a duration like "1h"; empty: Kratos's setting.
 	ExpiresIn string `protobuf:"bytes,2,opt,name=expires_in,json=expiresIn,proto3" json:"expires_in,omitempty"`
 	// link: a link alone instead of a code.
-	Link          bool `protobuf:"varint,3,opt,name=link,proto3" json:"link,omitempty"`
+	Link bool `protobuf:"varint,3,opt,name=link,proto3" json:"link,omitempty"`
+	// flow_type: browser (default) or api.
+	FlowType      string `protobuf:"bytes,4,opt,name=flow_type,json=flowType,proto3" json:"flow_type,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1463,6 +1473,13 @@ func (x *CreateRecoveryCodeRequest) GetLink() bool {
 		return x.Link
 	}
 	return false
+}
+
+func (x *CreateRecoveryCodeRequest) GetFlowType() string {
+	if x != nil {
+		return x.FlowType
+	}
+	return ""
 }
 
 type CreateRecoveryCodeResponse struct {
@@ -2425,6 +2442,347 @@ func (x *Schema) GetSchemaJson() string {
 	return ""
 }
 
+type SetAddressVerifiedRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Value         string                 `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	Verified      bool                   `protobuf:"varint,3,opt,name=verified,proto3" json:"verified,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetAddressVerifiedRequest) Reset() {
+	*x = SetAddressVerifiedRequest{}
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[39]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetAddressVerifiedRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetAddressVerifiedRequest) ProtoMessage() {}
+
+func (x *SetAddressVerifiedRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[39]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetAddressVerifiedRequest.ProtoReflect.Descriptor instead.
+func (*SetAddressVerifiedRequest) Descriptor() ([]byte, []int) {
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{39}
+}
+
+func (x *SetAddressVerifiedRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *SetAddressVerifiedRequest) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
+func (x *SetAddressVerifiedRequest) GetVerified() bool {
+	if x != nil {
+		return x.Verified
+	}
+	return false
+}
+
+type SetAddressVerifiedResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Identity      *Identity              `protobuf:"bytes,1,opt,name=identity,proto3" json:"identity,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetAddressVerifiedResponse) Reset() {
+	*x = SetAddressVerifiedResponse{}
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[40]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetAddressVerifiedResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetAddressVerifiedResponse) ProtoMessage() {}
+
+func (x *SetAddressVerifiedResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[40]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetAddressVerifiedResponse.ProtoReflect.Descriptor instead.
+func (*SetAddressVerifiedResponse) Descriptor() ([]byte, []int) {
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{40}
+}
+
+func (x *SetAddressVerifiedResponse) GetIdentity() *Identity {
+	if x != nil {
+		return x.Identity
+	}
+	return nil
+}
+
+type ImportIdentitiesRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// identities_json is a JSON array of Kratos's createIdentityBody.
+	IdentitiesJson string `protobuf:"bytes,1,opt,name=identities_json,json=identitiesJson,proto3" json:"identities_json,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ImportIdentitiesRequest) Reset() {
+	*x = ImportIdentitiesRequest{}
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[41]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportIdentitiesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportIdentitiesRequest) ProtoMessage() {}
+
+func (x *ImportIdentitiesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[41]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportIdentitiesRequest.ProtoReflect.Descriptor instead.
+func (*ImportIdentitiesRequest) Descriptor() ([]byte, []int) {
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{41}
+}
+
+func (x *ImportIdentitiesRequest) GetIdentitiesJson() string {
+	if x != nil {
+		return x.IdentitiesJson
+	}
+	return ""
+}
+
+type ImportIdentitiesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Results       []*ImportResult        `protobuf:"bytes,1,rep,name=results,proto3" json:"results,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ImportIdentitiesResponse) Reset() {
+	*x = ImportIdentitiesResponse{}
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[42]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportIdentitiesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportIdentitiesResponse) ProtoMessage() {}
+
+func (x *ImportIdentitiesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[42]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportIdentitiesResponse.ProtoReflect.Descriptor instead.
+func (*ImportIdentitiesResponse) Descriptor() ([]byte, []int) {
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{42}
+}
+
+func (x *ImportIdentitiesResponse) GetResults() []*ImportResult {
+	if x != nil {
+		return x.Results
+	}
+	return nil
+}
+
+type ImportResult struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Action        string                 `protobuf:"bytes,1,opt,name=action,proto3" json:"action,omitempty"`
+	IdentityId    string                 `protobuf:"bytes,2,opt,name=identity_id,json=identityId,proto3" json:"identity_id,omitempty"`
+	Error         string                 `protobuf:"bytes,3,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ImportResult) Reset() {
+	*x = ImportResult{}
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[43]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportResult) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportResult) ProtoMessage() {}
+
+func (x *ImportResult) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[43]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportResult.ProtoReflect.Descriptor instead.
+func (*ImportResult) Descriptor() ([]byte, []int) {
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{43}
+}
+
+func (x *ImportResult) GetAction() string {
+	if x != nil {
+		return x.Action
+	}
+	return ""
+}
+
+func (x *ImportResult) GetIdentityId() string {
+	if x != nil {
+		return x.IdentityId
+	}
+	return ""
+}
+
+func (x *ImportResult) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+type ExtendSessionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExtendSessionRequest) Reset() {
+	*x = ExtendSessionRequest{}
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[44]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExtendSessionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExtendSessionRequest) ProtoMessage() {}
+
+func (x *ExtendSessionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[44]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExtendSessionRequest.ProtoReflect.Descriptor instead.
+func (*ExtendSessionRequest) Descriptor() ([]byte, []int) {
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{44}
+}
+
+func (x *ExtendSessionRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type ExtendSessionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Session       *Session               `protobuf:"bytes,1,opt,name=session,proto3" json:"session,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ExtendSessionResponse) Reset() {
+	*x = ExtendSessionResponse{}
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[45]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ExtendSessionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ExtendSessionResponse) ProtoMessage() {}
+
+func (x *ExtendSessionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[45]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ExtendSessionResponse.ProtoReflect.Descriptor instead.
+func (*ExtendSessionResponse) Descriptor() ([]byte, []int) {
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{45}
+}
+
+func (x *ExtendSessionResponse) GetSession() *Session {
+	if x != nil {
+		return x.Session
+	}
+	return nil
+}
+
 var File_proto_kratos_console_v1_admin_proto protoreflect.FileDescriptor
 
 const file_proto_kratos_console_v1_admin_proto_rawDesc = "" +
@@ -2510,7 +2868,7 @@ const file_proto_kratos_console_v1_admin_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x86\x01\n" +
 	"\x13GetIdentityResponse\x127\n" +
 	"\bidentity\x18\x01 \x01(\v2\x1b.kratos.console.v1.IdentityR\bidentity\x126\n" +
-	"\bsessions\x18\x02 \x03(\v2\x1a.kratos.console.v1.SessionR\bsessions\"\xe9\x01\n" +
+	"\bsessions\x18\x02 \x03(\v2\x1a.kratos.console.v1.SessionR\bsessions\"\x8a\x02\n" +
 	"\x15CreateIdentityRequest\x12\x1b\n" +
 	"\tschema_id\x18\x01 \x01(\tR\bschemaId\x12\x1f\n" +
 	"\vtraits_json\x18\x02 \x01(\tR\n" +
@@ -2518,7 +2876,9 @@ const file_proto_kratos_console_v1_admin_proto_rawDesc = "" +
 	"\x05state\x18\x03 \x01(\tR\x05state\x12\x1a\n" +
 	"\bpassword\x18\x04 \x01(\tR\bpassword\x120\n" +
 	"\x14metadata_public_json\x18\x05 \x01(\tR\x12metadataPublicJson\x12.\n" +
-	"\x13metadata_admin_json\x18\x06 \x01(\tR\x11metadataAdminJson\"Q\n" +
+	"\x13metadata_admin_json\x18\x06 \x01(\tR\x11metadataAdminJson\x12\x1f\n" +
+	"\vexternal_id\x18\a \x01(\tR\n" +
+	"externalId\"Q\n" +
 	"\x16CreateIdentityResponse\x127\n" +
 	"\bidentity\x18\x01 \x01(\v2\x1b.kratos.console.v1.IdentityR\bidentity\"\xdd\x01\n" +
 	"\x15UpdateIdentityRequest\x12\x0e\n" +
@@ -2540,12 +2900,13 @@ const file_proto_kratos_console_v1_admin_proto_rawDesc = "" +
 	"\n" +
 	"identifier\x18\x03 \x01(\tR\n" +
 	"identifier\"\x1b\n" +
-	"\x19DeleteCredentialsResponse\"^\n" +
+	"\x19DeleteCredentialsResponse\"{\n" +
 	"\x19CreateRecoveryCodeRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +
 	"expires_in\x18\x02 \x01(\tR\texpiresIn\x12\x12\n" +
-	"\x04link\x18\x03 \x01(\bR\x04link\"\x7f\n" +
+	"\x04link\x18\x03 \x01(\bR\x04link\x12\x1b\n" +
+	"\tflow_type\x18\x04 \x01(\tR\bflowType\"\x7f\n" +
 	"\x1aCreateRecoveryCodeResponse\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\tR\x04code\x12\x12\n" +
 	"\x04link\x18\x02 \x01(\tR\x04link\x129\n" +
@@ -2626,7 +2987,26 @@ const file_proto_kratos_console_v1_admin_proto_rawDesc = "" +
 	"\x06Schema\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1f\n" +
 	"\vschema_json\x18\x02 \x01(\tR\n" +
-	"schemaJson2\x80\v\n" +
+	"schemaJson\"]\n" +
+	"\x19SetAddressVerifiedRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value\x12\x1a\n" +
+	"\bverified\x18\x03 \x01(\bR\bverified\"U\n" +
+	"\x1aSetAddressVerifiedResponse\x127\n" +
+	"\bidentity\x18\x01 \x01(\v2\x1b.kratos.console.v1.IdentityR\bidentity\"B\n" +
+	"\x17ImportIdentitiesRequest\x12'\n" +
+	"\x0fidentities_json\x18\x01 \x01(\tR\x0eidentitiesJson\"U\n" +
+	"\x18ImportIdentitiesResponse\x129\n" +
+	"\aresults\x18\x01 \x03(\v2\x1f.kratos.console.v1.ImportResultR\aresults\"]\n" +
+	"\fImportResult\x12\x16\n" +
+	"\x06action\x18\x01 \x01(\tR\x06action\x12\x1f\n" +
+	"\videntity_id\x18\x02 \x01(\tR\n" +
+	"identityId\x12\x14\n" +
+	"\x05error\x18\x03 \x01(\tR\x05error\"&\n" +
+	"\x14ExtendSessionRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"M\n" +
+	"\x15ExtendSessionResponse\x124\n" +
+	"\asession\x18\x01 \x01(\v2\x1a.kratos.console.v1.SessionR\asession2\xc4\r\n" +
 	"\fAdminService\x12V\n" +
 	"\tGetStatus\x12#.kratos.console.v1.GetStatusRequest\x1a$.kratos.console.v1.GetStatusResponse\x12Y\n" +
 	"\n" +
@@ -2637,9 +3017,12 @@ const file_proto_kratos_console_v1_admin_proto_rawDesc = "" +
 	"\x0eUpdateIdentity\x12(.kratos.console.v1.UpdateIdentityRequest\x1a).kratos.console.v1.UpdateIdentityResponse\x12e\n" +
 	"\x0eDeleteIdentity\x12(.kratos.console.v1.DeleteIdentityRequest\x1a).kratos.console.v1.DeleteIdentityResponse\x12n\n" +
 	"\x11DeleteCredentials\x12+.kratos.console.v1.DeleteCredentialsRequest\x1a,.kratos.console.v1.DeleteCredentialsResponse\x12q\n" +
-	"\x12CreateRecoveryCode\x12,.kratos.console.v1.CreateRecoveryCodeRequest\x1a-.kratos.console.v1.CreateRecoveryCodeResponse\x12_\n" +
+	"\x12CreateRecoveryCode\x12,.kratos.console.v1.CreateRecoveryCodeRequest\x1a-.kratos.console.v1.CreateRecoveryCodeResponse\x12q\n" +
+	"\x12SetAddressVerified\x12,.kratos.console.v1.SetAddressVerifiedRequest\x1a-.kratos.console.v1.SetAddressVerifiedResponse\x12k\n" +
+	"\x10ImportIdentities\x12*.kratos.console.v1.ImportIdentitiesRequest\x1a+.kratos.console.v1.ImportIdentitiesResponse\x12_\n" +
 	"\fListSessions\x12&.kratos.console.v1.ListSessionsRequest\x1a'.kratos.console.v1.ListSessionsResponse\x12e\n" +
-	"\x0eRevokeSessions\x12(.kratos.console.v1.RevokeSessionsRequest\x1a).kratos.console.v1.RevokeSessionsResponse\x12_\n" +
+	"\x0eRevokeSessions\x12(.kratos.console.v1.RevokeSessionsRequest\x1a).kratos.console.v1.RevokeSessionsResponse\x12b\n" +
+	"\rExtendSession\x12'.kratos.console.v1.ExtendSessionRequest\x1a(.kratos.console.v1.ExtendSessionResponse\x12_\n" +
 	"\fListMessages\x12&.kratos.console.v1.ListMessagesRequest\x1a'.kratos.console.v1.ListMessagesResponse\x12Y\n" +
 	"\n" +
 	"GetMessage\x12$.kratos.console.v1.GetMessageRequest\x1a%.kratos.console.v1.GetMessageResponse\x12\\\n" +
@@ -2657,7 +3040,7 @@ func file_proto_kratos_console_v1_admin_proto_rawDescGZIP() []byte {
 	return file_proto_kratos_console_v1_admin_proto_rawDescData
 }
 
-var file_proto_kratos_console_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 39)
+var file_proto_kratos_console_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 46)
 var file_proto_kratos_console_v1_admin_proto_goTypes = []any{
 	(*GetStatusRequest)(nil),           // 0: kratos.console.v1.GetStatusRequest
 	(*GetStatusResponse)(nil),          // 1: kratos.console.v1.GetStatusResponse
@@ -2698,70 +3081,86 @@ var file_proto_kratos_console_v1_admin_proto_goTypes = []any{
 	(*ListSchemasRequest)(nil),         // 36: kratos.console.v1.ListSchemasRequest
 	(*ListSchemasResponse)(nil),        // 37: kratos.console.v1.ListSchemasResponse
 	(*Schema)(nil),                     // 38: kratos.console.v1.Schema
-	(*timestamppb.Timestamp)(nil),      // 39: google.protobuf.Timestamp
+	(*SetAddressVerifiedRequest)(nil),  // 39: kratos.console.v1.SetAddressVerifiedRequest
+	(*SetAddressVerifiedResponse)(nil), // 40: kratos.console.v1.SetAddressVerifiedResponse
+	(*ImportIdentitiesRequest)(nil),    // 41: kratos.console.v1.ImportIdentitiesRequest
+	(*ImportIdentitiesResponse)(nil),   // 42: kratos.console.v1.ImportIdentitiesResponse
+	(*ImportResult)(nil),               // 43: kratos.console.v1.ImportResult
+	(*ExtendSessionRequest)(nil),       // 44: kratos.console.v1.ExtendSessionRequest
+	(*ExtendSessionResponse)(nil),      // 45: kratos.console.v1.ExtendSessionResponse
+	(*timestamppb.Timestamp)(nil),      // 46: google.protobuf.Timestamp
 }
 var file_proto_kratos_console_v1_admin_proto_depIdxs = []int32{
 	2,  // 0: kratos.console.v1.GetStatusResponse.overlay:type_name -> kratos.console.v1.Overlay
 	3,  // 1: kratos.console.v1.GetStatusResponse.hooks:type_name -> kratos.console.v1.HookPoint
 	4,  // 2: kratos.console.v1.GetStatusResponse.callbacks:type_name -> kratos.console.v1.CallbackStat
-	39, // 3: kratos.console.v1.Overlay.written_at:type_name -> google.protobuf.Timestamp
-	39, // 4: kratos.console.v1.CallbackStat.last_at:type_name -> google.protobuf.Timestamp
+	46, // 3: kratos.console.v1.Overlay.written_at:type_name -> google.protobuf.Timestamp
+	46, // 4: kratos.console.v1.CallbackStat.last_at:type_name -> google.protobuf.Timestamp
 	8,  // 5: kratos.console.v1.Identity.verifiable_addresses:type_name -> kratos.console.v1.Address
 	8,  // 6: kratos.console.v1.Identity.recovery_addresses:type_name -> kratos.console.v1.Address
 	9,  // 7: kratos.console.v1.Identity.credentials:type_name -> kratos.console.v1.Credential
-	39, // 8: kratos.console.v1.Identity.created_at:type_name -> google.protobuf.Timestamp
-	39, // 9: kratos.console.v1.Identity.updated_at:type_name -> google.protobuf.Timestamp
-	39, // 10: kratos.console.v1.Credential.created_at:type_name -> google.protobuf.Timestamp
+	46, // 8: kratos.console.v1.Identity.created_at:type_name -> google.protobuf.Timestamp
+	46, // 9: kratos.console.v1.Identity.updated_at:type_name -> google.protobuf.Timestamp
+	46, // 10: kratos.console.v1.Credential.created_at:type_name -> google.protobuf.Timestamp
 	7,  // 11: kratos.console.v1.ListIdentitiesResponse.identities:type_name -> kratos.console.v1.Identity
 	7,  // 12: kratos.console.v1.GetIdentityResponse.identity:type_name -> kratos.console.v1.Identity
 	24, // 13: kratos.console.v1.GetIdentityResponse.sessions:type_name -> kratos.console.v1.Session
 	7,  // 14: kratos.console.v1.CreateIdentityResponse.identity:type_name -> kratos.console.v1.Identity
 	7,  // 15: kratos.console.v1.UpdateIdentityResponse.identity:type_name -> kratos.console.v1.Identity
-	39, // 16: kratos.console.v1.CreateRecoveryCodeResponse.expires_at:type_name -> google.protobuf.Timestamp
-	39, // 17: kratos.console.v1.Session.authenticated_at:type_name -> google.protobuf.Timestamp
-	39, // 18: kratos.console.v1.Session.expires_at:type_name -> google.protobuf.Timestamp
+	46, // 16: kratos.console.v1.CreateRecoveryCodeResponse.expires_at:type_name -> google.protobuf.Timestamp
+	46, // 17: kratos.console.v1.Session.authenticated_at:type_name -> google.protobuf.Timestamp
+	46, // 18: kratos.console.v1.Session.expires_at:type_name -> google.protobuf.Timestamp
 	25, // 19: kratos.console.v1.Session.devices:type_name -> kratos.console.v1.Device
 	24, // 20: kratos.console.v1.ListSessionsResponse.sessions:type_name -> kratos.console.v1.Session
-	39, // 21: kratos.console.v1.Message.created_at:type_name -> google.protobuf.Timestamp
-	39, // 22: kratos.console.v1.Message.updated_at:type_name -> google.protobuf.Timestamp
+	46, // 21: kratos.console.v1.Message.created_at:type_name -> google.protobuf.Timestamp
+	46, // 22: kratos.console.v1.Message.updated_at:type_name -> google.protobuf.Timestamp
 	31, // 23: kratos.console.v1.Message.dispatches:type_name -> kratos.console.v1.Dispatch
-	39, // 24: kratos.console.v1.Dispatch.created_at:type_name -> google.protobuf.Timestamp
+	46, // 24: kratos.console.v1.Dispatch.created_at:type_name -> google.protobuf.Timestamp
 	30, // 25: kratos.console.v1.ListMessagesResponse.messages:type_name -> kratos.console.v1.Message
 	30, // 26: kratos.console.v1.GetMessageResponse.message:type_name -> kratos.console.v1.Message
 	38, // 27: kratos.console.v1.ListSchemasResponse.schemas:type_name -> kratos.console.v1.Schema
-	0,  // 28: kratos.console.v1.AdminService.GetStatus:input_type -> kratos.console.v1.GetStatusRequest
-	5,  // 29: kratos.console.v1.AdminService.GetOverlay:input_type -> kratos.console.v1.GetOverlayRequest
-	10, // 30: kratos.console.v1.AdminService.ListIdentities:input_type -> kratos.console.v1.ListIdentitiesRequest
-	12, // 31: kratos.console.v1.AdminService.GetIdentity:input_type -> kratos.console.v1.GetIdentityRequest
-	14, // 32: kratos.console.v1.AdminService.CreateIdentity:input_type -> kratos.console.v1.CreateIdentityRequest
-	16, // 33: kratos.console.v1.AdminService.UpdateIdentity:input_type -> kratos.console.v1.UpdateIdentityRequest
-	18, // 34: kratos.console.v1.AdminService.DeleteIdentity:input_type -> kratos.console.v1.DeleteIdentityRequest
-	20, // 35: kratos.console.v1.AdminService.DeleteCredentials:input_type -> kratos.console.v1.DeleteCredentialsRequest
-	22, // 36: kratos.console.v1.AdminService.CreateRecoveryCode:input_type -> kratos.console.v1.CreateRecoveryCodeRequest
-	26, // 37: kratos.console.v1.AdminService.ListSessions:input_type -> kratos.console.v1.ListSessionsRequest
-	28, // 38: kratos.console.v1.AdminService.RevokeSessions:input_type -> kratos.console.v1.RevokeSessionsRequest
-	32, // 39: kratos.console.v1.AdminService.ListMessages:input_type -> kratos.console.v1.ListMessagesRequest
-	34, // 40: kratos.console.v1.AdminService.GetMessage:input_type -> kratos.console.v1.GetMessageRequest
-	36, // 41: kratos.console.v1.AdminService.ListSchemas:input_type -> kratos.console.v1.ListSchemasRequest
-	1,  // 42: kratos.console.v1.AdminService.GetStatus:output_type -> kratos.console.v1.GetStatusResponse
-	6,  // 43: kratos.console.v1.AdminService.GetOverlay:output_type -> kratos.console.v1.GetOverlayResponse
-	11, // 44: kratos.console.v1.AdminService.ListIdentities:output_type -> kratos.console.v1.ListIdentitiesResponse
-	13, // 45: kratos.console.v1.AdminService.GetIdentity:output_type -> kratos.console.v1.GetIdentityResponse
-	15, // 46: kratos.console.v1.AdminService.CreateIdentity:output_type -> kratos.console.v1.CreateIdentityResponse
-	17, // 47: kratos.console.v1.AdminService.UpdateIdentity:output_type -> kratos.console.v1.UpdateIdentityResponse
-	19, // 48: kratos.console.v1.AdminService.DeleteIdentity:output_type -> kratos.console.v1.DeleteIdentityResponse
-	21, // 49: kratos.console.v1.AdminService.DeleteCredentials:output_type -> kratos.console.v1.DeleteCredentialsResponse
-	23, // 50: kratos.console.v1.AdminService.CreateRecoveryCode:output_type -> kratos.console.v1.CreateRecoveryCodeResponse
-	27, // 51: kratos.console.v1.AdminService.ListSessions:output_type -> kratos.console.v1.ListSessionsResponse
-	29, // 52: kratos.console.v1.AdminService.RevokeSessions:output_type -> kratos.console.v1.RevokeSessionsResponse
-	33, // 53: kratos.console.v1.AdminService.ListMessages:output_type -> kratos.console.v1.ListMessagesResponse
-	35, // 54: kratos.console.v1.AdminService.GetMessage:output_type -> kratos.console.v1.GetMessageResponse
-	37, // 55: kratos.console.v1.AdminService.ListSchemas:output_type -> kratos.console.v1.ListSchemasResponse
-	42, // [42:56] is the sub-list for method output_type
-	28, // [28:42] is the sub-list for method input_type
-	28, // [28:28] is the sub-list for extension type_name
-	28, // [28:28] is the sub-list for extension extendee
-	0,  // [0:28] is the sub-list for field type_name
+	7,  // 28: kratos.console.v1.SetAddressVerifiedResponse.identity:type_name -> kratos.console.v1.Identity
+	43, // 29: kratos.console.v1.ImportIdentitiesResponse.results:type_name -> kratos.console.v1.ImportResult
+	24, // 30: kratos.console.v1.ExtendSessionResponse.session:type_name -> kratos.console.v1.Session
+	0,  // 31: kratos.console.v1.AdminService.GetStatus:input_type -> kratos.console.v1.GetStatusRequest
+	5,  // 32: kratos.console.v1.AdminService.GetOverlay:input_type -> kratos.console.v1.GetOverlayRequest
+	10, // 33: kratos.console.v1.AdminService.ListIdentities:input_type -> kratos.console.v1.ListIdentitiesRequest
+	12, // 34: kratos.console.v1.AdminService.GetIdentity:input_type -> kratos.console.v1.GetIdentityRequest
+	14, // 35: kratos.console.v1.AdminService.CreateIdentity:input_type -> kratos.console.v1.CreateIdentityRequest
+	16, // 36: kratos.console.v1.AdminService.UpdateIdentity:input_type -> kratos.console.v1.UpdateIdentityRequest
+	18, // 37: kratos.console.v1.AdminService.DeleteIdentity:input_type -> kratos.console.v1.DeleteIdentityRequest
+	20, // 38: kratos.console.v1.AdminService.DeleteCredentials:input_type -> kratos.console.v1.DeleteCredentialsRequest
+	22, // 39: kratos.console.v1.AdminService.CreateRecoveryCode:input_type -> kratos.console.v1.CreateRecoveryCodeRequest
+	39, // 40: kratos.console.v1.AdminService.SetAddressVerified:input_type -> kratos.console.v1.SetAddressVerifiedRequest
+	41, // 41: kratos.console.v1.AdminService.ImportIdentities:input_type -> kratos.console.v1.ImportIdentitiesRequest
+	26, // 42: kratos.console.v1.AdminService.ListSessions:input_type -> kratos.console.v1.ListSessionsRequest
+	28, // 43: kratos.console.v1.AdminService.RevokeSessions:input_type -> kratos.console.v1.RevokeSessionsRequest
+	44, // 44: kratos.console.v1.AdminService.ExtendSession:input_type -> kratos.console.v1.ExtendSessionRequest
+	32, // 45: kratos.console.v1.AdminService.ListMessages:input_type -> kratos.console.v1.ListMessagesRequest
+	34, // 46: kratos.console.v1.AdminService.GetMessage:input_type -> kratos.console.v1.GetMessageRequest
+	36, // 47: kratos.console.v1.AdminService.ListSchemas:input_type -> kratos.console.v1.ListSchemasRequest
+	1,  // 48: kratos.console.v1.AdminService.GetStatus:output_type -> kratos.console.v1.GetStatusResponse
+	6,  // 49: kratos.console.v1.AdminService.GetOverlay:output_type -> kratos.console.v1.GetOverlayResponse
+	11, // 50: kratos.console.v1.AdminService.ListIdentities:output_type -> kratos.console.v1.ListIdentitiesResponse
+	13, // 51: kratos.console.v1.AdminService.GetIdentity:output_type -> kratos.console.v1.GetIdentityResponse
+	15, // 52: kratos.console.v1.AdminService.CreateIdentity:output_type -> kratos.console.v1.CreateIdentityResponse
+	17, // 53: kratos.console.v1.AdminService.UpdateIdentity:output_type -> kratos.console.v1.UpdateIdentityResponse
+	19, // 54: kratos.console.v1.AdminService.DeleteIdentity:output_type -> kratos.console.v1.DeleteIdentityResponse
+	21, // 55: kratos.console.v1.AdminService.DeleteCredentials:output_type -> kratos.console.v1.DeleteCredentialsResponse
+	23, // 56: kratos.console.v1.AdminService.CreateRecoveryCode:output_type -> kratos.console.v1.CreateRecoveryCodeResponse
+	40, // 57: kratos.console.v1.AdminService.SetAddressVerified:output_type -> kratos.console.v1.SetAddressVerifiedResponse
+	42, // 58: kratos.console.v1.AdminService.ImportIdentities:output_type -> kratos.console.v1.ImportIdentitiesResponse
+	27, // 59: kratos.console.v1.AdminService.ListSessions:output_type -> kratos.console.v1.ListSessionsResponse
+	29, // 60: kratos.console.v1.AdminService.RevokeSessions:output_type -> kratos.console.v1.RevokeSessionsResponse
+	45, // 61: kratos.console.v1.AdminService.ExtendSession:output_type -> kratos.console.v1.ExtendSessionResponse
+	33, // 62: kratos.console.v1.AdminService.ListMessages:output_type -> kratos.console.v1.ListMessagesResponse
+	35, // 63: kratos.console.v1.AdminService.GetMessage:output_type -> kratos.console.v1.GetMessageResponse
+	37, // 64: kratos.console.v1.AdminService.ListSchemas:output_type -> kratos.console.v1.ListSchemasResponse
+	48, // [48:65] is the sub-list for method output_type
+	31, // [31:48] is the sub-list for method input_type
+	31, // [31:31] is the sub-list for extension type_name
+	31, // [31:31] is the sub-list for extension extendee
+	0,  // [0:31] is the sub-list for field type_name
 }
 
 func init() { file_proto_kratos_console_v1_admin_proto_init() }
@@ -2775,7 +3174,7 @@ func file_proto_kratos_console_v1_admin_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_kratos_console_v1_admin_proto_rawDesc), len(file_proto_kratos_console_v1_admin_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   39,
+			NumMessages:   46,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

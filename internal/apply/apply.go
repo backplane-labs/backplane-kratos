@@ -34,6 +34,7 @@ type Applier struct {
 	path     string
 	mode     os.FileMode
 	settings config.Live[overlay.Settings]
+	secrets  Secrets
 	flows    *flows.Flows
 	wiring   overlay.Wiring
 
@@ -57,25 +58,43 @@ type State struct {
 	Err error
 }
 
+// Secrets are the live secret paths the overlay needs.
+type Secrets struct {
+	OIDC                  config.Live[map[string]config.Secret]
+	OAuth2ProviderHeaders config.Live[map[string]config.Secret]
+}
+
+// reveal is the secrets as the overlay renders them; mask replaces each.
+func (s Secrets) reveal(mask string) overlay.Secrets {
+	out := func(m map[string]config.Secret) map[string]string {
+		r := make(map[string]string, len(m))
+		for k, v := range m {
+			r[k] = v.Reveal()
+			if mask != "" {
+				r[k] = mask
+			}
+		}
+
+		return r
+	}
+
+	return overlay.Secrets{OIDC: out(s.OIDC.Get()), OAuth2ProviderHeaders: out(s.OAuth2ProviderHeaders.Get())}
+}
+
 // New creates the applier; an empty path renders without writing.
 func New(
-	parent deps.Scope,
-	path string,
-	mode os.FileMode,
-	settings config.Live[overlay.Settings],
-	f *flows.Flows,
-	w overlay.Wiring,
+	parent deps.Scope, path string, mode os.FileMode, settings config.Live[overlay.Settings], secrets Secrets,
+	f *flows.Flows, w overlay.Wiring,
 ) *Applier {
 	a := &Applier{
-		Component: deps.NewComponent(
-			parent,
-			"overlay",
-		), path: path, mode: mode, settings: settings, flows: f, wiring: w,
-		kick: make(chan struct{}, 1), state: State{Path: path},
+		Component: deps.NewComponent(parent, "overlay"), path: path, mode: mode, settings: settings, secrets: secrets,
+		flows: f, wiring: w, kick: make(chan struct{}, 1), state: State{Path: path},
 	}
 	a.wiring.Bound = f.Bound
 
 	settings.Watch(func(overlay.Settings) { a.Kick() })
+	secrets.OIDC.Watch(func(map[string]config.Secret) { a.Kick() })
+	secrets.OAuth2ProviderHeaders.Watch(func(map[string]config.Secret) { a.Kick() })
 	a.Go(a.loop)
 
 	return a
@@ -113,7 +132,7 @@ func (a *Applier) Ready(context.Context) error {
 
 // Render is the overlay for the current settings, validated.
 func (a *Applier) Render() ([]byte, error) {
-	doc, err := overlay.Render(a.settings.Get(), a.wiring)
+	doc, err := overlay.Render(a.settings.Get(), a.secrets.reveal(""), a.wiring)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +146,7 @@ func (a *Applier) Render() ([]byte, error) {
 
 // Validate checks candidate settings as the applier would render them.
 func (a *Applier) Validate(s overlay.Settings) error {
-	doc, err := overlay.Render(s, a.wiring)
+	doc, err := overlay.Render(s, a.secrets.reveal(""), a.wiring)
 	if err != nil {
 		return err
 	}
@@ -212,29 +231,10 @@ const mask = "••••••"
 // Masked is the overlay for the current settings with every secret
 // (client secrets, headers, the callbacks key) masked.
 func (a *Applier) Masked() ([]byte, error) {
-	s := a.settings.Get()
-
-	providers := make([]overlay.OIDCProvider, len(s.Methods.OIDC.Providers))
-	for i := range s.Methods.OIDC.Providers {
-		providers[i] = s.Methods.OIDC.Providers[i]
-		if providers[i].ClientSecret.Reveal() != "" {
-			providers[i].ClientSecret = mask
-		}
-	}
-
-	s.Methods.OIDC.Providers = providers
-
-	headers := make(map[string]config.Secret, len(s.OAuth2Provider.Headers))
-	for k := range s.OAuth2Provider.Headers {
-		headers[k] = mask
-	}
-
-	s.OAuth2Provider.Headers = headers
-
 	w := a.wiring
 	w.Key = mask
 
-	doc, err := overlay.Render(s, w)
+	doc, err := overlay.Render(a.settings.Get(), a.secrets.reveal(mask), w)
 	if err != nil {
 		return nil, err
 	}

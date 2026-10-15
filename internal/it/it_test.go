@@ -47,8 +47,13 @@ type env struct {
 // defaults are Settings's schema defaults (Kratos's own).
 func defaults() overlay.Settings {
 	return overlay.Settings{
-		Registration: overlay.Registration{Enabled: true, Lifespan: time.Hour, LoginAfter: true, Style: "profile_first"},
-		Login:        overlay.Login{Lifespan: time.Hour, Style: "unified"},
+		Registration: overlay.Registration{
+			Enabled:    true,
+			Lifespan:   time.Hour,
+			LoginAfter: true,
+			Style:      "profile_first",
+		},
+		Login: overlay.Login{Lifespan: time.Hour, Style: "unified"},
 		Settings: overlay.SettingsFlow{
 			Lifespan: time.Hour, PrivilegedSessionMaxAge: time.Hour, RequiredAAL: "highest_available",
 		},
@@ -93,7 +98,11 @@ func start(t *testing.T, bind func(*backplanetest.Harness, *flows.Flows)) env {
 	e := env{h: h, kratos: client, settings: config.LiveOf(defaults())}
 	e.flows = flows.New(h.Root(), key, config.LiveOf([]string(nil)))
 	e.activities = activities.New(h.Root(), client)
-	apply.New(h.Root(), path, 0o644, e.settings, e.flows, overlay.Wiring{
+	apply.New(h.Root(), path, 0o644, e.settings, apply.Secrets{
+		OIDC: config.LiveOf(
+			map[string]config.Secret{},
+		), OAuth2ProviderHeaders: config.LiveOf(map[string]config.Secret{}),
+	}, e.flows, overlay.Wiring{
 		URL: "http://" + lis.Addr().String(), Key: key, Events: true,
 	})
 
@@ -221,7 +230,8 @@ func TestDeliverVerifies(t *testing.T) {
 		t.Fatal("no message reached Deliver")
 	}
 
-	if msg.Recipient != email || msg.TemplateType != "verification_code_valid" || msg.Code == "" || msg.Channel != "email" {
+	if msg.Recipient != email || msg.TemplateType != "verification_code_valid" || msg.Code == "" ||
+		msg.Channel != "email" {
 		t.Fatalf("message: %+v", msg)
 	}
 
@@ -269,7 +279,9 @@ func TestAfterRegistrationDenies(t *testing.T) {
 					}}}, nil
 				}
 
-				return flows.FlowOut{Identity: &flows.IdentityPatch{MetadataPublic: json.RawMessage(`{"tier":"gold"}`)}}, nil
+				return flows.FlowOut{
+					Identity: &flows.IdentityPatch{MetadataPublic: json.RawMessage(`{"tier":"gold"}`)},
+				}, nil
 			})
 	})
 
@@ -346,9 +358,14 @@ func TestActivities(t *testing.T) {
 
 	email := unique("admin")
 
-	created, err := backplanetest.Activity[activities.IdentityIn, ory.Identity](ctx, e.h, "CreateIdentity", activities.IdentityIn{
-		SchemaID: "default", Traits: json.RawMessage(fmt.Sprintf(`{"email":%q}`, email)), Password: password,
-	})
+	created, err := backplanetest.Activity[activities.IdentityIn, ory.Identity](
+		ctx,
+		e.h,
+		"CreateIdentity",
+		activities.IdentityIn{
+			SchemaID: "default", Traits: json.RawMessage(fmt.Sprintf(`{"email":%q}`, email)), Password: password,
+		},
+	)
 	if err != nil || created.ID == "" {
 		t.Fatalf("create: %+v %v", created, err)
 	}
@@ -359,9 +376,14 @@ func TestActivities(t *testing.T) {
 		t.Fatalf("find: %+v %v", found, err)
 	}
 
-	patched, err := backplanetest.Activity[activities.PatchIn, ory.Identity](ctx, e.h, "PatchIdentity", activities.PatchIn{
-		ID: created.ID, Patch: json.RawMessage(`[{"op":"replace","path":"/state","value":"inactive"}]`),
-	})
+	patched, err := backplanetest.Activity[activities.PatchIn, ory.Identity](
+		ctx,
+		e.h,
+		"PatchIdentity",
+		activities.PatchIn{
+			ID: created.ID, Patch: json.RawMessage(`[{"op":"replace","path":"/state","value":"inactive"}]`),
+		},
+	)
 	if err != nil || patched.State != "inactive" {
 		t.Fatalf("patch: %+v %v", patched, err)
 	}
@@ -384,5 +406,59 @@ func TestActivities(t *testing.T) {
 	deleted := backplanetest.Events(e.h, e.activities.IdentityEvent("IdentityDeleted"))
 	if len(deleted) != 1 || deleted[0].IdentityID != created.ID {
 		t.Fatalf("deleted event: %+v", deleted)
+	}
+}
+
+// A batch import creates identities with verified addresses and their
+// hashed passwords; a bad entry fails alone.
+func TestImport(t *testing.T) {
+	t.Parallel()
+
+	e := start(t, nil)
+	ctx := t.Context()
+
+	email := unique("import")
+	good := json.RawMessage(fmt.Sprintf(`{"schema_id":"default","traits":{"email":%q},
+		"verifiable_addresses":[{"value":%q,"via":"email","verified":true,"status":"completed"}],
+		"credentials":{"password":{"config":{"password":%q}}}}`, email, email, password))
+	bad := json.RawMessage(`{"schema_id":"default","traits":{"email":"not an email"}}`)
+
+	out, err := backplanetest.Activity[activities.ImportIn, activities.ImportOut](ctx, e.h, "ImportIdentities",
+		activities.ImportIn{Identities: []json.RawMessage{good, bad}})
+	if err != nil || len(out.Results) != 2 {
+		t.Fatalf("import: %+v %v", out, err)
+	}
+
+	if out.Results[0].Action != "create" || out.Results[1].Action != "error" {
+		t.Fatalf("results: %+v", out.Results)
+	}
+
+	ident, err := e.kratos.GetIdentity(ctx, out.Results[0].Identity)
+	if err != nil || len(ident.VerifiableAddresses) != 1 || !ident.VerifiableAddresses[0].Verified {
+		t.Fatalf("imported identity: %+v %v", ident, err)
+	}
+
+	// The imported password signs in.
+	code, flow := call(t, http.MethodGet, "/self-service/login/api", nil)
+	if code != http.StatusOK {
+		t.Fatalf("login flow: %d", code)
+	}
+
+	code, body := call(t, http.MethodPost, fmt.Sprintf("/self-service/login?flow=%v", flow["id"]),
+		map[string]any{"method": "password", "identifier": email, "password": password})
+	if code != http.StatusOK {
+		t.Fatalf("login: %d %v", code, body)
+	}
+
+	session, _ := body["session"].(map[string]any)
+
+	got, err := backplanetest.Activity[activities.IDIn, ory.Session](
+		ctx,
+		e.h,
+		"GetSession",
+		activities.IDIn{ID: fmt.Sprint(session["id"])},
+	)
+	if err != nil || got.Identity == nil || got.Identity.ID != ident.ID {
+		t.Fatalf("session: %+v %v", got, err)
 	}
 }

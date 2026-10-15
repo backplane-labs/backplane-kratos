@@ -3,8 +3,10 @@
   "nav": [
     { "path": "", "labelKey": "overview" },
     { "path": "identities", "labelKey": "identities" },
+    { "path": "import", "labelKey": "importNav" },
     { "path": "sessions", "labelKey": "sessions" },
     { "path": "courier", "labelKey": "courier" },
-    { "path": "schemas", "labelKey": "schemas" }
+    { "path": "schemas", "labelKey": "schemas" },
+    { "path": "settings", "labelKey": "settingsNav" }
   ]
 }
