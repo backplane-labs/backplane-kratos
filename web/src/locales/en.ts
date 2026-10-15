@@ -6,6 +6,11 @@ export default {
 
   settingsNav: 'Settings', flowsNav: 'Flows', generalSection: 'Return and error pages', generalHint: 'Where browsers go after a flow and on an error. The flows themselves are on the Flows page.',
   flowsTitle: 'Self-service flows', flowsDescription: 'What users go through: registering, signing in, changing their account, recovering access, verifying addresses. Kratos runs each as a flow; your UI renders the form Kratos describes. Edit a flow here, bind its hooks in Wiring.',
+  deliveryTitle: 'Delivery', deliveryKratos: "Kratos's SMTP", deliveryBind: 'Bind with templates and courier', deliveryBindTitle: 'Bind kratos.Deliver',
+  deliveryBound: 'Codes and links leave through kratos.Deliver: its binding in Wiring decides how they are rendered and sent.',
+  deliveryUnbound: "Codes and links are mailed by the SMTP of Kratos's own configuration file, in Kratos's templates. Bind kratos.Deliver to send them through the installation's templates and courier.",
+  deliverySaves: 'The binding it saves',
+  deliveryBindDescription: 'This saves the starter binding shown on the page: each message renders from the template kratos.<template type> (create kratos.verification_code_valid, kratos.recovery_code_valid and the others in Templates), then email leaves through courier.SendMail. Change it in Wiring afterwards.',
   openWiring: 'Open Wiring', installationFindings: 'Installation', findingsCount: '{{count}} to look at', registrationFlow: 'Registration', loginFlow: 'Login',
   registrationAbout: 'A new identity: traits from the form, credentials from a method; optionally signed in and sent to verification.',
   loginAbout: 'Proves who the user is; a second factor raises the session to AAL2.',

@@ -50,7 +50,7 @@ func (a *Admin) GetFlows(context.Context, *v1.GetFlowsRequest) (*v1.GetFlowsResp
 	}
 
 	open := a.failOpen.Get()
-	out := &v1.GetFlowsResponse{}
+	out := &v1.GetFlowsResponse{DeliverBound: a.flows.Bound(overlay.DeliverHook)}
 
 	for _, flow := range overlay.Flows() {
 		card := &v1.FlowCard{Flow: flow, Event: eventOf(flow)}

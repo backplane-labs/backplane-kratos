@@ -66,11 +66,6 @@ func (f *findings) installation() {
 			"No method signs anyone in: enable passwords, passwordless codes, passkeys or social sign-in.")
 	}
 
-	if sendsCodes(s) && !f.bound(overlay.DeliverHook) {
-		f.add("", Warning, "", "Codes and links are mailed by the SMTP of Kratos's own configuration file: "+
-			"bind kratos.Deliver to send them through the installation's templates and courier.")
-	}
-
 	if usesSMS(s) && !f.bound(overlay.DeliverHook) {
 		f.add("", Error, "",
 			"An identity schema sends codes by SMS, but SMS reaches nowhere until kratos.Deliver is bound.")
@@ -98,11 +93,6 @@ func canRegister(m overlay.Methods) bool {
 }
 
 func social(m overlay.Methods) bool { return m.OIDC.Enabled && len(m.OIDC.Providers) > 0 }
-
-// sendsCodes reports whether Kratos sends codes or links.
-func sendsCodes(s overlay.Settings) bool {
-	return s.Recovery.Enabled || s.Verification.Enabled || s.Methods.Code.Passwordless || s.Methods.Code.MFA
-}
 
 func (f *findings) uiPages() {
 	s := f.Settings

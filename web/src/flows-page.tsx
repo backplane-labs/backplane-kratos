@@ -4,10 +4,11 @@ import { create } from '@bufbuild/protobuf';
 import { timestampDate } from '@bufbuild/protobuf/wkt';
 import { useClient } from '@backplane-labs/backplane-react';
 import { usePluginContext } from '@backplane-labs/backplane-plugin-sdk';
-import { ConnectionNotice, usePlatformAction, usePlatformQuery } from '@backplane-labs/backplane-platform-ui';
+import { ConnectionNotice, parseDraft, usePlatformAction, usePlatformQuery } from '@backplane-labs/backplane-platform-ui';
+import { BindingServiceClient, SaveBindingRequestSchema } from '@backplane-labs/backplane-api';
 import { CodeEditor } from '@backplane-labs/backplane-editors';
 import {
-  Badge, Button, DetailDrawer, EmptyState, PageHeader, Panel, Skeleton, Stack, StatusBadge, Table, TableBody, TableCell, TableHead,
+  Badge, Button, ConfirmAction, DetailDrawer, EmptyState, PageHeader, Panel, Skeleton, Stack, StatusBadge, Table, TableBody, TableCell, TableHead,
   TableHeader, TableRow, Timestamp,
 } from '@backplane-labs/backplane-ui';
 import { AdminServiceClient } from './gen/proto/kratos/console/v1/admin_ws_pb';
@@ -26,6 +27,56 @@ function useText() { return useTranslation('module.kratos').t; }
 export function wiringHref() {
   const at = window.location.pathname.indexOf('/s/');
   return (at >= 0 ? window.location.pathname.slice(0, at) : '') + '/wiring';
+}
+
+/**
+ * deliverYAML is the starter kratos.Deliver binding: each Kratos template
+ * renders from the installation template kratos.<template type>, then email
+ * leaves through courier. The binding is the product's to change.
+ */
+const deliverYAML = `hook: kratos.Deliver
+description: Kratos's codes and links through the installation's templates and courier.
+steps:
+  rendered:
+    activity: templates.Render
+    input:
+      template: "'kratos.' + req.template_type"
+      data:
+        code: req.code
+        link: req.link
+        minutes: req.expires_in_minutes
+  mail:
+    activity: courier.SendMail
+    when: req.channel == 'email'
+    input:
+      to: [req.recipient]
+      subject: rendered.parts.subject
+      text: rendered.parts.text
+      html: rendered.parts.html
+result: {}
+runtime: RUNTIME_DIRECT
+`;
+
+/** Delivery says where codes and links go, and binds kratos.Deliver in one step. */
+function Delivery({ bound, onBound }: { bound: boolean; onBound: () => void }) {
+  const t = useText(), bindings = useClient(BindingServiceClient), { mode } = usePluginContext();
+  const bind = async (signal: AbortSignal) => {
+    const draft = parseDraft('binding', deliverYAML);
+    const definition = draft.definition;
+    if (definition?.$typeName !== 'backplane.console.v1.BindingDefinition') throw new Error(draft.problems.map((p) => p.message).join('; '));
+    await bindings.saveBinding(create(SaveBindingRequestSchema, { definition, comment: 'kratos console: starter binding' }), { signal });
+    onBound();
+  };
+  return <Panel title={<Stack direction="row" gap={8} style={{ alignItems: 'center' }}><span>{t('deliveryTitle')}</span>
+    {bound ? <StatusBadge tone="success">{t('isBound')}</StatusBadge> : <StatusBadge tone="warning">{t('deliveryKratos')}</StatusBadge>}</Stack>}
+    actions={bound ? <Button size="sm" variant="outline" asChild><a href={wiringHref()}>{t('openWiring')}</a></Button>
+      : <ConfirmAction trigger={<Button size="sm">{t('deliveryBind')}</Button>} title={t('deliveryBindTitle')} description={t('deliveryBindDescription')} confirmLabel={t('deliveryBind')} onConfirm={bind} />}>
+    <Stack gap={8}>
+      <span style={{ fontSize: 13 }}>{t(bound ? 'deliveryBound' : 'deliveryUnbound')}</span>
+      {!bound && <details><summary style={{ cursor: 'pointer', fontSize: 13 }}>{t('deliverySaves')}</summary>
+        <div style={{ marginTop: 8 }}><CodeEditor label={t('deliverySaves')} value={deliverYAML} language="yaml" mode={mode} readOnly /></div></details>}
+    </Stack>
+  </Panel>;
 }
 
 const tone = (level: string) => (level === 'error' ? 'danger' : level === 'warning' ? 'warning' : 'info');
@@ -62,6 +113,7 @@ export function Flows() {
     {flows.error !== undefined || cfg.error !== undefined ? <EmptyState role="alert" title={t('error')} />
       : !flows.value || cfg.loading ? <Stack gap={8} role="status" aria-label={t('loading')}><Skeleton style={{ height: 160 }} /><Skeleton style={{ height: 160 }} /></Stack>
       : <>
+        <Delivery bound={flows.value.deliverBound} onBound={() => setTimeout(refresh, 1500)} />
         {flows.value.findings.length > 0 && <Panel title={t('installationFindings')}><Findings findings={flows.value.findings} /></Panel>}
         {cfg.dirty && <SaveBar cfg={cfg} labels={labels} />}
         {flows.value.flows.map((card) => <Card key={card.flow} card={card} cfg={cfg} onTry={() => setTrying(card.flow)} />)}

@@ -2833,7 +2833,10 @@ type GetFlowsResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Flows []*FlowCard            `protobuf:"bytes,1,rep,name=flows,proto3" json:"flows,omitempty"`
 	// findings of the whole installation.
-	Findings      []*Finding `protobuf:"bytes,2,rep,name=findings,proto3" json:"findings,omitempty"`
+	Findings []*Finding `protobuf:"bytes,2,rep,name=findings,proto3" json:"findings,omitempty"`
+	// deliver_bound: kratos.Deliver is bound, so codes and links leave
+	// through the installation's wiring instead of Kratos's own SMTP.
+	DeliverBound  bool `protobuf:"varint,3,opt,name=deliver_bound,json=deliverBound,proto3" json:"deliver_bound,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2880,6 +2883,13 @@ func (x *GetFlowsResponse) GetFindings() []*Finding {
 		return x.Findings
 	}
 	return nil
+}
+
+func (x *GetFlowsResponse) GetDeliverBound() bool {
+	if x != nil {
+		return x.DeliverBound
+	}
+	return false
 }
 
 type FlowCard struct {
@@ -3550,10 +3560,11 @@ const file_proto_kratos_console_v1_admin_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"M\n" +
 	"\x15ExtendSessionResponse\x124\n" +
 	"\asession\x18\x01 \x01(\v2\x1a.kratos.console.v1.SessionR\asession\"\x11\n" +
-	"\x0fGetFlowsRequest\"}\n" +
+	"\x0fGetFlowsRequest\"\xa2\x01\n" +
 	"\x10GetFlowsResponse\x121\n" +
 	"\x05flows\x18\x01 \x03(\v2\x1b.kratos.console.v1.FlowCardR\x05flows\x126\n" +
-	"\bfindings\x18\x02 \x03(\v2\x1a.kratos.console.v1.FindingR\bfindings\"\x9f\x01\n" +
+	"\bfindings\x18\x02 \x03(\v2\x1a.kratos.console.v1.FindingR\bfindings\x12#\n" +
+	"\rdeliver_bound\x18\x03 \x01(\bR\fdeliverBound\"\x9f\x01\n" +
 	"\bFlowCard\x12\x12\n" +
 	"\x04flow\x18\x01 \x01(\tR\x04flow\x121\n" +
 	"\x05hooks\x18\x02 \x03(\v2\x1b.kratos.console.v1.FlowHookR\x05hooks\x12\x14\n" +

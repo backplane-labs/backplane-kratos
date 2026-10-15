@@ -342,6 +342,9 @@ message GetFlowsResponse {
   repeated FlowCard flows = 1;
   // findings of the whole installation.
   repeated Finding findings = 2;
+  // deliver_bound: kratos.Deliver is bound, so codes and links leave
+  // through the installation's wiring instead of Kratos's own SMTP.
+  bool deliver_bound = 3;
 }
 
 message FlowCard {

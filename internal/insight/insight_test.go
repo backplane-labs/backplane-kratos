@@ -52,7 +52,6 @@ func TestFindings(t *testing.T) {
 		want  string
 	}{
 		{"nobody signs in", func(s *overlay.Settings) { s.Methods.Password.Enabled = false }, []string{"Deliver"}, "error::methods"},
-		{"mail without Deliver", func(*overlay.Settings) {}, nil, "warning::"},
 		{"sms without Deliver", func(s *overlay.Settings) {
 			s.Identity.Schemas = map[string]string{"p": `{"ory.sh/kratos": {"verification": {"via": "sms"}}}`}
 		}, nil, "error::"},
