@@ -61,7 +61,8 @@ export default {
   noMatch: 'No identity matches.', noIdentities: 'No identities yet.', identity: 'Identity', schema: 'Schema', verified: 'Verified', created: 'Created', updated: 'Updated',
   yes: 'yes', no: 'no', active: 'active', inactive: 'inactive', activate: 'Activate', deactivate: 'Deactivate', externalId: 'External id',
   delete: 'Delete', deleteTitle: 'Delete this identity?', deleteDescription: '{{label}} loses its credentials and sessions. This cannot be undone.',
-  traits: 'Traits', metadataPublic: 'Public metadata', metadataAdmin: 'Admin metadata', save: 'Save', saving: 'Saving…',
+  traits: 'Traits', metadataPublic: 'Public metadata', metadataAdmin: 'Admin metadata',
+  identityData: 'Traits and metadata', traitsHint: 'what the identity schema asks of the person', metadataPublicHint: 'the person reads it in their session, cannot change it', metadataAdminHint: 'only the admin API sees it', save: 'Save', saving: 'Saving…',
   required: 'required', traitsObject: 'Traits must be a JSON object.', traitsMissing: 'Missing required trait "{{key}}".', traitsUnknown: 'The schema has no trait "{{key}}".',
   addresses: 'Addresses', noAddresses: 'No verifiable address.', credentials: 'Credentials', noCredentials: 'No credentials.',
   credentialsHint: 'Removing a second factor or a social sign-in lets the user set it up again.', remove: 'Remove',
@@ -83,6 +84,7 @@ export default {
   status: 'Status', anyStatus: 'Any status', recipient: 'Recipient', messages: 'Messages', noMessages: 'No messages.', template: 'Template', attempts: 'Attempts', channel: 'Channel',
   status_queued: 'queued', status_processing: 'processing', status_sent: 'sent', status_abandoned: 'abandoned',
   dispatches: 'Delivery attempts', noDispatches: 'No attempt yet.', content: 'Content', contentHint: 'The message holds a code: revealing it is audited.', reveal: 'Reveal',
+  contentRedacted: 'Kratos keeps message content out of its admin API outside dev mode. With kratos.Deliver bound, what was sent is what the binding rendered: its runs in Wiring show it.',
 
   schemasTitle: 'Identity schemas', schemasDescription: 'The schemas Kratos serves. Edit them in the settings (identity.schemas) or the deployment\'s file.', noSchemas: 'No schemas.',
 };

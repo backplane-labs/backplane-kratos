@@ -2251,10 +2251,13 @@ func (x *GetMessageRequest) GetReveal() bool {
 }
 
 type GetMessageResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Message       *Message               `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
-	Subject       string                 `protobuf:"bytes,2,opt,name=subject,proto3" json:"subject,omitempty"`
-	Body          string                 `protobuf:"bytes,3,opt,name=body,proto3" json:"body,omitempty"`
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Message *Message               `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
+	Subject string                 `protobuf:"bytes,2,opt,name=subject,proto3" json:"subject,omitempty"`
+	Body    string                 `protobuf:"bytes,3,opt,name=body,proto3" json:"body,omitempty"`
+	// redacted: Kratos keeps the content out of its admin API (it does
+	// outside dev mode); subject and body are then empty.
+	Redacted      bool `protobuf:"varint,4,opt,name=redacted,proto3" json:"redacted,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2308,6 +2311,13 @@ func (x *GetMessageResponse) GetBody() string {
 		return x.Body
 	}
 	return ""
+}
+
+func (x *GetMessageResponse) GetRedacted() bool {
+	if x != nil {
+		return x.Redacted
+	}
+	return false
 }
 
 type ListSchemasRequest struct {
@@ -3508,11 +3518,12 @@ const file_proto_kratos_console_v1_admin_proto_rawDesc = "" +
 	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\";\n" +
 	"\x11GetMessageRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
-	"\x06reveal\x18\x02 \x01(\bR\x06reveal\"x\n" +
+	"\x06reveal\x18\x02 \x01(\bR\x06reveal\"\x94\x01\n" +
 	"\x12GetMessageResponse\x124\n" +
 	"\amessage\x18\x01 \x01(\v2\x1a.kratos.console.v1.MessageR\amessage\x12\x18\n" +
 	"\asubject\x18\x02 \x01(\tR\asubject\x12\x12\n" +
-	"\x04body\x18\x03 \x01(\tR\x04body\"\x14\n" +
+	"\x04body\x18\x03 \x01(\tR\x04body\x12\x1a\n" +
+	"\bredacted\x18\x04 \x01(\bR\bredacted\"\x14\n" +
 	"\x12ListSchemasRequest\"J\n" +
 	"\x13ListSchemasResponse\x123\n" +
 	"\aschemas\x18\x01 \x03(\v2\x19.kratos.console.v1.SchemaR\aschemas\"9\n" +

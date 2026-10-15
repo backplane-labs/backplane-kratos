@@ -19,7 +19,7 @@ import {
 } from './gen/proto/kratos/console/v1/admin_pb';
 import navigation from './navigation';
 import { Settings } from './settings';
-import { Flows } from './flows-page';
+import { Flows, wiringHref } from './flows-page';
 
 const mono = { fontFamily: 'var(--font-mono)' } as const;
 const muted = { color: 'var(--muted-foreground)', fontSize: 12 } as const;
@@ -102,10 +102,15 @@ function traitsOf(schema?: Schema): { keys: string[]; required: string[]; scaffo
   } catch { return { keys: [], required: [], scaffold: '{}' }; }
 }
 
+/** Labeled puts a visible name (and what it is for) over a field. */
+function Labeled({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+  return <Stack gap={4}><span style={{ fontSize: 13, fontWeight: 500 }}>{label}{hint && <span style={{ ...muted, fontWeight: 400 }}> · {hint}</span>}</span>{children}</Stack>;
+}
+
 /** A JSON editor of traits: scaffolded, completed and checked from the identity schema. */
 function TraitsEditor({ label, value, onChange, schema, readOnly }: { label: string; value: string; onChange?: (v: string) => void; schema?: Schema; readOnly?: boolean }) {
   const t = useText(), { mode } = usePluginContext(), traits = useMemo(() => traitsOf(schema), [schema]);
-  return <CodeEditor label={label} value={value} onChange={onChange} language="json" mode={mode} height={200} readOnly={readOnly}
+  return <CodeEditor label={label} value={value} onChange={onChange} language="json" mode={mode} height={120} readOnly={readOnly}
     complete={async ({ value: text, position }) => {
       const before = text.slice(0, position), quote = before.lastIndexOf('"');
       if (quote < 0 || /[:,]\s*"[^"]*$/.test(before) === false && !/[{,]\s*"[^"]*$/.test(before)) return null;
@@ -205,12 +210,12 @@ function IdentityCard({ id, onClose, onChanged }: { id: string; onClose: () => v
         { label: t('created'), value: <Timestamp value={date(identity.createdAt)} absolute /> },
         { label: t('updated'), value: <Timestamp value={date(identity.updatedAt)} absolute /> },
       ]} />
-      <Panel title={t('traits')} actions={<Stack direction="row" gap={8} style={{ alignItems: 'center' }}><ActionError error={save.error} />
+      <Panel title={t('identityData')} actions={<Stack direction="row" gap={8} style={{ alignItems: 'center' }}><ActionError error={save.error} />
         <Button size="sm" disabled={save.pending} onClick={() => void save.run(update({}))}>{save.pending ? t('saving') : t('save')}</Button></Stack>}>
         <Stack gap={12}>
-          <TraitsEditor label={t('traits')} value={traits} onChange={setTraits} schema={schema} />
-          <CodeEditor label={t('metadataPublic')} value={metaPublic} onChange={setMetaPublic} language="json" mode={mode} height={100} />
-          <CodeEditor label={t('metadataAdmin')} value={metaAdmin} onChange={setMetaAdmin} language="json" mode={mode} height={100} />
+          <Labeled label={t('traits')} hint={t('traitsHint')}><TraitsEditor label={t('traits')} value={traits} onChange={setTraits} schema={schema} /></Labeled>
+          <Labeled label={t('metadataPublic')} hint={t('metadataPublicHint')}><CodeEditor label={t('metadataPublic')} value={metaPublic} onChange={setMetaPublic} language="json" mode={mode} height={64} /></Labeled>
+          <Labeled label={t('metadataAdmin')} hint={t('metadataAdminHint')}><CodeEditor label={t('metadataAdmin')} value={metaAdmin} onChange={setMetaAdmin} language="json" mode={mode} height={64} /></Labeled>
         </Stack>
       </Panel>
       <Panel title={t('addresses')} flush>
@@ -267,12 +272,12 @@ function CreateIdentity({ onClose, onCreated }: { onClose: () => void; onCreated
       <NativeSelect aria-label={t('schema')} value={schemaId} onChange={(e) => { setSchemaId(e.target.value); setTraits(traitsOf(list.find((s) => s.id === e.target.value)).scaffold); }}>
         {list.map((s) => <option key={s.id} value={s.id}>{s.id}</option>)}
       </NativeSelect>
-      <TraitsEditor label={t('traits')} value={traits} onChange={setTraits} schema={schema} />
+      <Labeled label={t('traits')} hint={t('traitsHint')}><TraitsEditor label={t('traits')} value={traits} onChange={setTraits} schema={schema} /></Labeled>
       <SecretInput label={t('passwordOptional')} value={password} onValueChange={setPassword} />
       <Input aria-label={t('externalId')} placeholder={t('externalIdHint')} value={externalId} onChange={(e) => setExternalId(e.target.value)} />
       <label style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13 }}><input type="checkbox" checked={inactive} onChange={(e) => setInactive(e.target.checked)} />{t('createInactive')}</label>
-      <CodeEditor label={t('metadataPublic')} value={metaPublic} onChange={setMetaPublic} language="json" mode={mode} height={90} />
-      <CodeEditor label={t('metadataAdmin')} value={metaAdmin} onChange={setMetaAdmin} language="json" mode={mode} height={90} />
+      <Labeled label={t('metadataPublic')} hint={t('metadataPublicHint')}><CodeEditor label={t('metadataPublic')} value={metaPublic} onChange={setMetaPublic} language="json" mode={mode} height={64} /></Labeled>
+      <Labeled label={t('metadataAdmin')} hint={t('metadataAdminHint')}><CodeEditor label={t('metadataAdmin')} value={metaAdmin} onChange={setMetaAdmin} language="json" mode={mode} height={64} /></Labeled>
       <Stack direction="row" gap={8} style={{ alignItems: 'center' }}>
         <Button size="sm" disabled={create_.pending || !schemaId} onClick={() => void create_.run(async (signal) => {
           const res = await client.createIdentity(create(CreateIdentityRequestSchema, {
@@ -358,7 +363,7 @@ function MessageStatus({ status }: { status: string }) {
 }
 
 function MessageCard({ message, onClose }: { message: Message; onClose: () => void }) {
-  const t = useText(), client = useClient(AdminServiceClient), reveal = usePlatformAction<{ subject: string; body: string }>();
+  const t = useText(), client = useClient(AdminServiceClient), reveal = usePlatformAction<{ subject: string; body: string; redacted: boolean }>();
   const full = usePlatformQuery(`kratos:message:${message.id}`, (signal) => client.getMessage(create(GetMessageRequestSchema, { id: message.id }), { signal }));
   const m = full.value?.message ?? message;
   return <DetailDrawer open onOpenChange={(o) => !o && onClose()} size="lg" title={m.templateType} description={<span style={mono}>{m.recipient}</span>}>
@@ -373,9 +378,11 @@ function MessageCard({ message, onClose }: { message: Message; onClose: () => vo
           <TableCell style={{ ...muted, ...mono, wordBreak: 'break-all' }}>{d.error}</TableCell></TableRow>)}</TableBody></Table>}
       </Panel>
       <Panel title={t('content')} description={t('contentHint')}>
-        {reveal.value ? <Stack gap={8}><strong>{reveal.value.subject}</strong><pre style={{ ...mono, whiteSpace: 'pre-wrap', margin: 0, fontSize: 12 }}>{reveal.value.body}</pre></Stack>
+        {reveal.value?.redacted ? <Stack gap={8}><span style={{ fontSize: 13 }}>{t('contentRedacted')}</span>
+          <div><Button size="sm" variant="outline" asChild><a href={wiringHref()}>{t('openWiring')}</a></Button></div></Stack>
+          : reveal.value ? <Stack gap={8}><strong>{reveal.value.subject}</strong><pre style={{ ...mono, whiteSpace: 'pre-wrap', margin: 0, fontSize: 12 }}>{reveal.value.body}</pre></Stack>
           : <Stack direction="row" gap={8} style={{ alignItems: 'center' }}><Button size="sm" variant="outline" disabled={reveal.pending} onClick={() => void reveal.run(async (signal) => {
-            const res = await client.getMessage(create(GetMessageRequestSchema, { id: message.id, reveal: true }), { signal }); return { subject: res.subject, body: res.body };
+            const res = await client.getMessage(create(GetMessageRequestSchema, { id: message.id, reveal: true }), { signal }); return { subject: res.subject, body: res.body, redacted: res.redacted };
           })}>{t('reveal')}</Button><ActionError error={reveal.error} /></Stack>}
       </Panel>
     </Stack>

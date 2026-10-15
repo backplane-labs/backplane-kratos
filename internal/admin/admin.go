@@ -536,6 +536,10 @@ func (a *Admin) ListMessages(ctx context.Context, r *v1.ListMessagesRequest) (*v
 	return out, nil
 }
 
+// kratosRedacted is what Kratos's admin API returns for message content
+// outside dev mode.
+const kratosRedacted = "<redacted-unless-dev-mode>"
+
 // GetMessage implements AdminService.
 func (a *Admin) GetMessage(ctx context.Context, r *v1.GetMessageRequest) (*v1.GetMessageResponse, error) {
 	m, err := a.kratos.GetMessage(ctx, r.GetId())
@@ -546,6 +550,11 @@ func (a *Admin) GetMessage(ctx context.Context, r *v1.GetMessageRequest) (*v1.Ge
 	out := &v1.GetMessageResponse{Message: message(m)}
 
 	if r.GetReveal() {
+		if m.Subject == kratosRedacted || m.Body == kratosRedacted {
+			out.Redacted = true
+			return out, nil
+		}
+
 		out.Subject, out.Body = m.Subject, m.Body
 		a.audit(ctx, "kratos.message.revealed", "message/"+m.ID, nil, xlog.String("recipient", m.Recipient))
 	}

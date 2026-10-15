@@ -23,7 +23,7 @@ const durationFields = ['registration.lifespan', 'login.lifespan', 'settings.lif
 function useText() { return useTranslation('module.kratos').t; }
 
 /** The console's Wiring page, next to this module's route. */
-function wiringHref() {
+export function wiringHref() {
   const at = window.location.pathname.indexOf('/s/');
   return (at >= 0 ? window.location.pathname.slice(0, at) : '') + '/wiring';
 }

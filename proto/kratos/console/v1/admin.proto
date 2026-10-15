@@ -287,6 +287,9 @@ message GetMessageResponse {
   Message message = 1;
   string subject = 2;
   string body = 3;
+  // redacted: Kratos keeps the content out of its admin API (it does
+  // outside dev mode); subject and body are then empty.
+  bool redacted = 4;
 }
 
 message ListSchemasRequest {}
