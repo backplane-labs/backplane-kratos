@@ -1,0 +1,18 @@
+# Local development: the Kratos of `make it-up` (34433/34434), the overlay
+# it loads, the local Backplane stack (`make run`).
+kratos:
+  admin_url: http://127.0.0.1:34434
+  public_url: http://127.0.0.1:34433
+callbacks:
+  listen: ":8090"
+  url: http://127.0.0.1:8090
+overlay: /tmp/backplane-kratos-it/overlay.yml
+settings:
+  registration:
+    ui_url: http://127.0.0.1:4455/registration
+  login:
+    ui_url: http://127.0.0.1:4455/login
+  verification:
+    enabled: true
+  recovery:
+    enabled: true

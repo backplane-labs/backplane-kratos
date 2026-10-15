@@ -1,0 +1,52 @@
+# Values of the official Ory Kratos chart (https://k8s.ory.sh/helm/kratos)
+# running backplane-kratos as a native sidecar: it starts first, writes the
+# overlay, and Kratos loads the overlay after its own configuration.
+kratos:
+  automigration:
+    enabled: true
+  config:
+    # The deployment's part: database, listeners, secrets, logs.
+    dsn: postgres://kratos:…@postgres:5432/kratos?sslmode=require
+    serve:
+      public: {base_url: https://auth.example.com/}
+      admin: {base_url: http://kratos-admin:4434/}
+    secrets:
+      cookie: [change-me-cookie-secret]
+      cipher: [32-characters-change-me-cipher!]
+    identity:
+      default_schema_id: default
+      schemas: [{id: default, url: "base64://e30="}]  # replaced from the console (identity.schemas)
+    selfservice:
+      default_browser_return_url: https://app.example.com/
+    courier:
+      smtp: {connection_uri: "smtp://localhost:25/"}  # unused while kratos.Deliver is bound
+
+deployment:
+  extraArgs: ["--config", "/etc/backplane/kratos.yml"]
+  extraVolumes:
+    - name: backplane-overlay
+      emptyDir: {medium: Memory}
+  extraVolumeMounts:
+    - name: backplane-overlay
+      mountPath: /etc/backplane
+      readOnly: true
+  # A native sidecar (Kubernetes 1.29+): an init container that keeps
+  # running; Kratos starts once its startup probe passes (overlay written).
+  extraInitContainers: |
+    - name: backplane-kratos
+      image: ghcr.io/backplane-labs/backplane-kratos:latest
+      restartPolicy: Always
+      env:
+        - {name: BACKPLANE_CONSUL_ADDR, value: consul:8500}
+        - {name: BACKPLANE_NATS_URL, value: nats://nats:4222}
+        - {name: BACKPLANE_INTERNAL_SECRET, valueFrom: {secretKeyRef: {name: backplane, key: internal-secret}}}
+        - {name: BACKPLANE_ADVERTISE, valueFrom: {fieldRef: {fieldPath: status.podIP}}}
+        - {name: KRATOS_KRATOS_ADMIN_URL, value: http://127.0.0.1:4434}
+        - {name: KRATOS_KRATOS_PUBLIC_URL, value: http://127.0.0.1:4433}
+        - {name: KRATOS_OVERLAY, value: /etc/backplane/kratos.yml}
+      volumeMounts:
+        - {name: backplane-overlay, mountPath: /etc/backplane}
+      startupProbe:
+        httpGet: {path: /healthz/startup, port: 9400}
+        periodSeconds: 1
+        failureThreshold: 120

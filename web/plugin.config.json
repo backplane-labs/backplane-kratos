@@ -1,0 +1,10 @@
+{
+  "service": "kratos",
+  "nav": [
+    { "path": "", "labelKey": "overview" },
+    { "path": "identities", "labelKey": "identities" },
+    { "path": "sessions", "labelKey": "sessions" },
+    { "path": "courier", "labelKey": "courier" },
+    { "path": "schemas", "labelKey": "schemas" }
+  ]
+}

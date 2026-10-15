@@ -1,0 +1,51 @@
+{
+  "body": "Verify your account with the following code:\n\n998072\n\nor clicking the following link:\n\nhttp://127.0.0.1:24433/self-service/verification?code=998072&flow=9e031649-eb3f-480e-a487-b903caec30ef\n\nIf this was not you, do nothing. This code / link expires in 60 minutes.\n",
+  "html_body": "Verify your account with the following code:\n\n998072\n\nor clicking the following link:\n\n<a href=\"http://127.0.0.1:24433/self-service/verification?code=998072&amp;flow=9e031649-eb3f-480e-a487-b903caec30ef\">http://127.0.0.1:24433/self-service/verification?code=998072&amp;flow=9e031649-eb3f-480e-a487-b903caec30ef</a>\n\nIf this was not you, do nothing. This code / link expires in 60 minutes.\n",
+  "message_type": "email",
+  "recipient": "a@example.com",
+  "request_headers": {},
+  "subject": "Use code 998072 to verify your account",
+  "template_data": {
+    "expires_in_minutes": 60,
+    "identity": {
+      "created_at": "2026-10-15T11:14:15.775874Z",
+      "id": "fc6c471f-739e-40ec-b3fa-8bb98e7587f8",
+      "metadata_public": null,
+      "organization_id": null,
+      "recovery_addresses": [
+        {
+          "created_at": "2026-10-15T11:14:15.77615Z",
+          "id": "4b2243b0-46c8-4cfc-9dd7-a0e4184c79f1",
+          "updated_at": "2026-10-15T11:14:15.77615Z",
+          "value": "a@example.com",
+          "via": "email"
+        }
+      ],
+      "schema_id": "default",
+      "schema_url": "http://127.0.0.1:24433/schemas/ZGVmYXVsdA",
+      "state": "active",
+      "state_changed_at": "2026-10-15T11:14:15.774412517Z",
+      "traits": {
+        "email": "a@example.com"
+      },
+      "updated_at": "2026-10-15T11:14:15.775874Z",
+      "verifiable_addresses": [
+        {
+          "created_at": "2026-10-15T11:14:15.776061Z",
+          "id": "68e52435-7d8d-4020-ba2a-a895bb4aa2c7",
+          "status": "pending",
+          "updated_at": "2026-10-15T11:14:15.776061Z",
+          "value": "a@example.com",
+          "verified": false,
+          "via": "email"
+        }
+      ]
+    },
+    "request_url": "http://127.0.0.1:24433/self-service/registration/api",
+    "to": "a@example.com",
+    "transient_payload": {},
+    "verification_code": "998072",
+    "verification_url": "http://127.0.0.1:24433/self-service/verification?code=998072&flow=9e031649-eb3f-480e-a487-b903caec30ef"
+  },
+  "template_type": "verification_code_valid"
+}

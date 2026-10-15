@@ -1,0 +1,286 @@
+syntax = "proto3";
+
+package kratos.console.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/backplane-labs/backplane-kratos/proto/kratos/console/v1;kratosconsolev1";
+
+// AdminService is the console module's API: the Kratos installation's
+// state, its identities, sessions and courier, and the overlay. Payloads
+// Kratos owns the shape of (traits, metadata) travel as JSON text.
+service AdminService {
+  // GetStatus is the installation, the overlay and every hook point.
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+  // GetOverlay is the rendered overlay (secrets masked) and the snippet
+  // a deployment without the shared file pastes.
+  rpc GetOverlay(GetOverlayRequest) returns (GetOverlayResponse);
+
+  rpc ListIdentities(ListIdentitiesRequest) returns (ListIdentitiesResponse);
+  rpc GetIdentity(GetIdentityRequest) returns (GetIdentityResponse);
+  rpc CreateIdentity(CreateIdentityRequest) returns (CreateIdentityResponse);
+  rpc UpdateIdentity(UpdateIdentityRequest) returns (UpdateIdentityResponse);
+  rpc DeleteIdentity(DeleteIdentityRequest) returns (DeleteIdentityResponse);
+  // DeleteCredentials removes a credential type (a second factor, a social sign-in).
+  rpc DeleteCredentials(DeleteCredentialsRequest) returns (DeleteCredentialsResponse);
+  rpc CreateRecoveryCode(CreateRecoveryCodeRequest) returns (CreateRecoveryCodeResponse);
+
+  rpc ListSessions(ListSessionsRequest) returns (ListSessionsResponse);
+  // RevokeSessions revokes one session or every session of an identity.
+  rpc RevokeSessions(RevokeSessionsRequest) returns (RevokeSessionsResponse);
+
+  rpc ListMessages(ListMessagesRequest) returns (ListMessagesResponse);
+  // GetMessage reads a courier message; its body (it holds codes) only on reveal, audited.
+  rpc GetMessage(GetMessageRequest) returns (GetMessageResponse);
+
+  rpc ListSchemas(ListSchemasRequest) returns (ListSchemasResponse);
+}
+
+message GetStatusRequest {}
+
+message GetStatusResponse {
+  string admin_url = 1;
+  string public_url = 2;
+  // version of Kratos; empty when it does not answer.
+  string version = 3;
+  // problem is why Kratos is not ready; empty when it is.
+  string problem = 4;
+  Overlay overlay = 5;
+  repeated HookPoint hooks = 6;
+  repeated CallbackStat callbacks = 7;
+  // events are published for completed flows (an event transport is configured).
+  bool events = 8;
+  string callbacks_url = 9;
+}
+
+message Overlay {
+  // path of the file; empty: snippets mode.
+  string path = 1;
+  string hash = 2;
+  google.protobuf.Timestamp written_at = 3;
+  // error is why the last rendering was not written.
+  string error = 4;
+}
+
+message HookPoint {
+  // name is the hook's short name, e.g. AfterRegistration.
+  string name = 1;
+  string description = 2;
+  bool bound = 3;
+  bool fail_open = 4;
+}
+
+message CallbackStat {
+  // point, e.g. hooks/after/registration, courier/email, events/login.
+  string point = 1;
+  uint64 calls = 2;
+  uint64 failures = 3;
+  google.protobuf.Timestamp last_at = 4;
+  string last_outcome = 5;
+  string last_error = 6;
+  double last_latency_ms = 7;
+}
+
+message GetOverlayRequest {}
+
+message GetOverlayResponse {
+  // content is the overlay YAML with secrets masked.
+  string content = 1;
+  // error is why the settings do not render.
+  string error = 2;
+}
+
+message Identity {
+  string id = 1;
+  string schema_id = 2;
+  string state = 3;
+  // traits_json is the identity's traits.
+  string traits_json = 4;
+  string metadata_public_json = 5;
+  string metadata_admin_json = 6;
+  string external_id = 7;
+  repeated Address verifiable_addresses = 8;
+  repeated Address recovery_addresses = 9;
+  // credentials: type and identifiers, never their configuration.
+  repeated Credential credentials = 10;
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp updated_at = 12;
+  // label is the best human handle: an identifier or traits' email/phone/username.
+  string label = 13;
+}
+
+message Address {
+  string value = 1;
+  string via = 2;
+  bool verified = 3;
+  string status = 4;
+}
+
+message Credential {
+  string type = 1;
+  repeated string identifiers = 2;
+  google.protobuf.Timestamp created_at = 3;
+}
+
+message ListIdentitiesRequest {
+  // query is a credentials identifier (email, username) or an identity id.
+  string query = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+}
+
+message ListIdentitiesResponse {
+  repeated Identity identities = 1;
+  string next_page_token = 2;
+}
+
+message GetIdentityRequest {
+  string id = 1;
+}
+
+message GetIdentityResponse {
+  Identity identity = 1;
+  repeated Session sessions = 2;
+}
+
+message CreateIdentityRequest {
+  string schema_id = 1;
+  string traits_json = 2;
+  string state = 3;
+  string password = 4;
+  string metadata_public_json = 5;
+  string metadata_admin_json = 6;
+}
+
+message CreateIdentityResponse {
+  Identity identity = 1;
+}
+
+message UpdateIdentityRequest {
+  string id = 1;
+  string schema_id = 2;
+  string traits_json = 3;
+  string state = 4;
+  string metadata_public_json = 5;
+  string metadata_admin_json = 6;
+}
+
+message UpdateIdentityResponse {
+  Identity identity = 1;
+}
+
+message DeleteIdentityRequest {
+  string id = 1;
+}
+
+message DeleteIdentityResponse {}
+
+message DeleteCredentialsRequest {
+  string id = 1;
+  string type = 2;
+  string identifier = 3;
+}
+
+message DeleteCredentialsResponse {}
+
+message CreateRecoveryCodeRequest {
+  string id = 1;
+  // expires_in is a duration like "1h"; empty: Kratos's setting.
+  string expires_in = 2;
+  // link: a link alone instead of a code.
+  bool link = 3;
+}
+
+message CreateRecoveryCodeResponse {
+  string code = 1;
+  string link = 2;
+  google.protobuf.Timestamp expires_at = 3;
+}
+
+message Session {
+  string id = 1;
+  bool active = 2;
+  string identity_id = 3;
+  string identity_label = 4;
+  string aal = 5;
+  repeated string methods = 6;
+  google.protobuf.Timestamp authenticated_at = 7;
+  google.protobuf.Timestamp expires_at = 8;
+  repeated Device devices = 9;
+}
+
+message Device {
+  string ip_address = 1;
+  string user_agent = 2;
+  string location = 3;
+}
+
+message ListSessionsRequest {
+  bool active_only = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+}
+
+message ListSessionsResponse {
+  repeated Session sessions = 1;
+  string next_page_token = 2;
+}
+
+message RevokeSessionsRequest {
+  string session_id = 1;
+  string identity_id = 2;
+}
+
+message RevokeSessionsResponse {}
+
+message Message {
+  string id = 1;
+  string status = 2;
+  string channel = 3;
+  string recipient = 4;
+  string template_type = 5;
+  int32 send_count = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+  repeated Dispatch dispatches = 9;
+}
+
+message Dispatch {
+  string status = 1;
+  string error = 2;
+  google.protobuf.Timestamp created_at = 3;
+}
+
+message ListMessagesRequest {
+  string status = 1;
+  string recipient = 2;
+  int32 page_size = 3;
+  string page_token = 4;
+}
+
+message ListMessagesResponse {
+  repeated Message messages = 1;
+  string next_page_token = 2;
+}
+
+message GetMessageRequest {
+  string id = 1;
+  bool reveal = 2;
+}
+
+message GetMessageResponse {
+  Message message = 1;
+  string subject = 2;
+  string body = 3;
+}
+
+message ListSchemasRequest {}
+
+message ListSchemasResponse {
+  repeated Schema schemas = 1;
+}
+
+message Schema {
+  string id = 1;
+  string schema_json = 2;
+}

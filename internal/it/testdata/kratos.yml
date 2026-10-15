@@ -1,0 +1,17 @@
+# The deployment's base file of the integration tests: what a deployment
+# owns (dsn, serve, secrets); backplane-kratos writes the overlay.
+version: v26.2.0
+dsn: memory
+serve:
+  public: {base_url: "http://127.0.0.1:34433/", host: 127.0.0.1, port: 34433}
+  admin: {base_url: "http://127.0.0.1:34434/", host: 127.0.0.1, port: 34434}
+selfservice:
+  default_browser_return_url: http://127.0.0.1:4455/
+identity:
+  default_schema_id: default
+  schemas: [{id: default, url: "file:///etc/kratos/identity.schema.json"}]
+secrets:
+  cookie: [integration-tests-cookie-secret]
+  cipher: [32-integration-tests-cipher-key!]
+courier: {smtp: {connection_uri: "smtp://127.0.0.1:1025/?disable_starttls=true"}}
+log: {level: info, format: json}

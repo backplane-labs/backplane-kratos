@@ -1,0 +1,41 @@
+export default {
+  overview: 'Overview', identities: 'Identities', sessions: 'Sessions', courier: 'Courier', schemas: 'Schemas',
+  refresh: 'Refresh', loading: 'Loading', error: 'Could not load. Check the connection, the service and Kratos.',
+  standalone: 'Standalone · local fixtures', embedded: 'Embedded in Backplane', light: 'Light theme', dark: 'Dark theme',
+  missing: 'Page not found', back: 'Back to the overview',
+
+  overviewTitle: 'Ory Kratos', overviewDescription: 'The identity installation this service joins to Backplane: its flows as hooks and events, its admin API as activities. Settings are edited on the service\'s Settings page and written to the overlay Kratos reloads.',
+  kratosDown: 'Kratos is not ready', overlayRejected: 'The settings were not applied', kratos: 'Kratos', overlay: 'Overlay', snippets: 'Snippets',
+  snippetsHint: 'No overlay file: paste the configuration below into Kratos\'s.', bound: 'Bound hooks', boundHint: 'Unbound points cost Kratos nothing.',
+  events: 'Flow events', eventsHint: 'Registered, LoggedIn, … for rules and reactors.', on: 'On', off: 'Off',
+  hooks: 'Hook points', hooksFooter: 'Bind a hook in Wiring; Kratos picks it up within seconds. A failing flow hook stops the flow unless it is fail-open.',
+  hook: 'Hook', state: 'State', meaning: 'When', isBound: 'bound', unbound: 'unbound', failOpen: 'fail-open', failOpenHint: 'A failure lets the flow continue',
+  callbacks: 'Callbacks since start', noCallbacks: 'Kratos has not called yet.', point: 'Point', calls: 'Calls', last: 'Last', outcome: 'Outcome', failures: '{{count}} failed',
+  overlayContent: 'Overlay', overlayContentHint: 'What Kratos loads after its own file; secrets are masked here.',
+
+  identitiesTitle: 'Identities', identitiesDescription: 'Every identity of the installation. Changes here go to Kratos\'s admin API and are audited.',
+  newIdentity: 'New identity', newIdentityHint: 'Traits follow the identity schema; a password is optional.', search: 'Search identities',
+  searchHint: 'An email, username or identity id', previous: 'Previous', next: 'Next', auditNote: 'Every change is an audit record (kratos.identity.*).',
+  noMatch: 'No identity matches.', noIdentities: 'No identities yet.', identity: 'Identity', schema: 'Schema', verified: 'Verified', created: 'Created', updated: 'Updated',
+  yes: 'yes', no: 'no', active: 'active', inactive: 'inactive', activate: 'Activate', deactivate: 'Deactivate', externalId: 'External id',
+  delete: 'Delete', deleteTitle: 'Delete this identity?', deleteDescription: '{{label}} loses its credentials and sessions. This cannot be undone.',
+  traits: 'Traits', metadataPublic: 'Public metadata', metadataAdmin: 'Admin metadata', save: 'Save', saving: 'Saving…',
+  required: 'required', traitsObject: 'Traits must be a JSON object.', traitsMissing: 'Missing required trait "{{key}}".', traitsUnknown: 'The schema has no trait "{{key}}".',
+  addresses: 'Addresses', noAddresses: 'No verifiable address.', credentials: 'Credentials', noCredentials: 'No credentials.',
+  credentialsHint: 'Removing a second factor or a social sign-in lets the user set it up again.', remove: 'Remove',
+  removeCredentialTitle: 'Remove the {{type}} credential?', removeCredentialDescription: 'The user can no longer sign in with it.',
+  revokeAll: 'Revoke all', revokeAllTitle: 'Revoke every session?', revokeAllDescription: 'The identity is signed out everywhere.',
+  recovery: 'Recovery', recoveryHint: 'A code or link that lets the user in to set new credentials. Shown once; hand it over yourself.',
+  recoveryCode: 'Create a recovery code', recoveryLink: 'Create a recovery link', code: 'Code', link: 'Link', expires: 'Expires',
+  passwordOptional: 'Password (optional)', create: 'Create', creating: 'Creating…',
+
+  sessionsTitle: 'Sessions', sessionsDescription: 'Sessions across every identity.', activeOnly: 'Active only', noSessions: 'No sessions.', session: 'Session',
+  methods: 'Methods', device: 'Device', ended: 'ended', revoke: 'Revoke', revokeTitle: 'Revoke this session?', revokeDescription: 'The device is signed out.',
+
+  courierTitle: 'Courier', courierDescription: 'Kratos\'s messages: codes and links by email and SMS. With kratos.Deliver bound they go through Wiring; a failed delivery is retried by Kratos.',
+  status: 'Status', anyStatus: 'Any status', recipient: 'Recipient', messages: 'Messages', noMessages: 'No messages.', template: 'Template', attempts: 'Attempts', channel: 'Channel',
+  status_queued: 'queued', status_processing: 'processing', status_sent: 'sent', status_abandoned: 'abandoned',
+  dispatches: 'Delivery attempts', noDispatches: 'No attempt yet.', content: 'Content', contentHint: 'The message holds a code: revealing it is audited.', reveal: 'Reveal',
+
+  schemasTitle: 'Identity schemas', schemasDescription: 'The schemas Kratos serves. Edit them in the settings (identity.schemas) or the deployment\'s file.', noSchemas: 'No schemas.',
+};

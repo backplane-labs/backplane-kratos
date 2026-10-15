@@ -1,0 +1,125 @@
+{
+  "flow": {
+    "expires_at": "2026-10-15T12:14:15.57068609Z",
+    "id": "e4032692-f916-45d9-b616-eaef40bf44bf",
+    "issued_at": "2026-10-15T11:14:15.57068609Z",
+    "organization_id": null,
+    "request_url": "http://127.0.0.1:24433/self-service/registration/api",
+    "state": "choose_method",
+    "transient_payload": {},
+    "type": "api",
+    "ui": {
+      "action": "http://127.0.0.1:24433/self-service/registration?flow=e4032692-f916-45d9-b616-eaef40bf44bf",
+      "method": "POST",
+      "nodes": [
+        {
+          "attributes": {
+            "disabled": false,
+            "name": "csrf_token",
+            "node_type": "input",
+            "required": true,
+            "type": "hidden",
+            "value": ""
+          },
+          "group": "default",
+          "messages": [],
+          "meta": {},
+          "type": "input"
+        },
+        {
+          "attributes": {
+            "autocomplete": "email",
+            "disabled": false,
+            "name": "traits.email",
+            "node_type": "input",
+            "required": true,
+            "type": "email"
+          },
+          "group": "default",
+          "messages": [],
+          "meta": {
+            "label": {
+              "context": {
+                "name": "traits.email",
+                "title": "E-Mail"
+              },
+              "id": 1070002,
+              "text": "E-Mail",
+              "type": "info"
+            }
+          },
+          "type": "input"
+        },
+        {
+          "attributes": {
+            "disabled": false,
+            "name": "method",
+            "node_type": "input",
+            "type": "submit",
+            "value": "profile"
+          },
+          "group": "profile",
+          "messages": [],
+          "meta": {
+            "label": {
+              "id": 1040001,
+              "text": "Sign up",
+              "type": "info"
+            }
+          },
+          "type": "input"
+        }
+      ]
+    }
+  },
+  "identity": {
+    "created_at": "0001-01-01T00:00:00Z",
+    "id": "00000000-0000-0000-0000-000000000000",
+    "metadata_public": null,
+    "organization_id": null,
+    "recovery_addresses": [
+      {
+        "created_at": "0001-01-01T00:00:00Z",
+        "id": "00000000-0000-0000-0000-000000000000",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "value": "a@example.com",
+        "via": "email"
+      }
+    ],
+    "schema_id": "default",
+    "schema_url": "",
+    "state": "active",
+    "state_changed_at": "2026-10-15T11:14:15.58586124Z",
+    "traits": {
+      "email": "a@example.com"
+    },
+    "updated_at": "0001-01-01T00:00:00Z",
+    "verifiable_addresses": [
+      {
+        "created_at": "0001-01-01T00:00:00Z",
+        "id": "00000000-0000-0000-0000-000000000000",
+        "status": "pending",
+        "updated_at": "0001-01-01T00:00:00Z",
+        "value": "a@example.com",
+        "verified": false,
+        "via": "email"
+      }
+    ]
+  },
+  "request_headers": {
+    "Accept": [
+      "*/*"
+    ],
+    "Content-Length": [
+      "90"
+    ],
+    "Content-Type": [
+      "application/json"
+    ],
+    "User-Agent": [
+      "curl/8.18.0"
+    ]
+  },
+  "request_method": "POST",
+  "request_url": "http://127.0.0.1:24433/self-service/registration?flow=e4032692-f916-45d9-b616-eaef40bf44bf"
+}
