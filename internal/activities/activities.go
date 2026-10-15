@@ -321,7 +321,7 @@ func (a *Activities) updateIdentity(ctx context.Context, in IdentityIn) (ory.Ide
 // PatchIn is a JSON Patch of an identity.
 type PatchIn struct {
 	ID    string          `json:"id"`
-	Patch json.RawMessage `json:"patch" schemapb:"description=RFC 6902 operations, e.g. [{op: replace, path: /state, value: inactive}]"`
+	Patch json.RawMessage `json:"patch" schemapb:"secret=true;description=RFC 6902 operations, e.g. [{op: replace, path: /state, value: inactive}]"`
 }
 
 func (a *Activities) patchIdentity(ctx context.Context, in PatchIn) (ory.Identity, error) {
