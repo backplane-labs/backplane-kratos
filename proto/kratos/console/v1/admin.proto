@@ -63,6 +63,20 @@ message GetStatusResponse {
   // events are published for completed flows (an event transport is configured).
   bool events = 8;
   string callbacks_url = 9;
+  Tokens tokens = 10;
+}
+
+// Tokens are the session tokens: Kratos signs them with token_key, services
+// verify them with the public keys this service serves.
+message Tokens {
+  // enabled: token_key is set, Kratos issues tokens.
+  bool enabled = 1;
+  // template clients name: /sessions/whoami?tokenize_as=<template>.
+  string template = 2;
+  // keys_path is where this service serves the public keys (its public port).
+  string keys_path = 3;
+  // default_claims is the Jsonnet used when the settings name none.
+  string default_claims = 4;
 }
 
 message Overlay {

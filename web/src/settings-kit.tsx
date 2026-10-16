@@ -6,6 +6,12 @@ import { ConfigServiceClient, GetConfigRequestSchema, SaveRevisionRequestSchema,
 import { Badge, Button, Input, NativeSelect, Panel, Stack, StatusBadge, Switch, Textarea } from '@backplane-labs/backplane-ui';
 
 /** A JSON value edited in place. */
+/** ActionError shows why an action failed; nothing when it did not. */
+export function ActionError({ error }: { error: unknown }) {
+  if (error === undefined) return null;
+  return <span role="alert" style={{ color: 'var(--destructive)', fontSize: 12 }}>{error instanceof Error ? error.message : String(error)}</span>;
+}
+
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 type Obj = { [key: string]: Json };
 

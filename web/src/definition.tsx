@@ -10,6 +10,7 @@ import {
   Badge, Button, ClipboardButton, ConfirmAction, DetailDrawer, EmptyState, Input, KeyValueList, NativeSelect, PageHeader, Panel, SearchInput,
   SecretInput, Skeleton, Stack, StatRow, StatTile, StatusBadge, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Timestamp,
 } from '@backplane-labs/backplane-ui';
+import { ActionError } from './settings-kit';
 import { AdminServiceClient } from './gen/proto/kratos/console/v1/admin_ws_pb';
 import {
   CreateIdentityRequestSchema, CreateRecoveryCodeRequestSchema, ExtendSessionRequestSchema, ImportIdentitiesRequestSchema, SetAddressVerifiedRequestSchema, DeleteCredentialsRequestSchema, DeleteIdentityRequestSchema, GetIdentityRequestSchema,
@@ -166,11 +167,6 @@ function Identities() {
 function StateBadge({ state }: { state: string }) {
   const t = useText();
   return state === 'inactive' ? <StatusBadge tone="warning">{t('inactive')}</StatusBadge> : <StatusBadge tone="success">{t('active')}</StatusBadge>;
-}
-
-function ActionError({ error }: { error: unknown }) {
-  if (error === undefined) return null;
-  return <span role="alert" style={{ color: 'var(--destructive)', fontSize: 12 }}>{error instanceof Error ? error.message : String(error)}</span>;
 }
 
 /** An empty JSON object is no metadata. */

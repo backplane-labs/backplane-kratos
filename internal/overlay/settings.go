@@ -28,6 +28,9 @@ type Settings struct {
 
 	Features Features `json:"features,omitempty"`
 
+	// Tokens are the session tokens services verify (active with token_key).
+	Tokens Tokens `json:"tokens,omitempty"`
+
 	OAuth2Provider OAuth2Provider `json:"oauth2_provider,omitempty"`
 
 	// Overrides is raw Kratos YAML merged last, for what Settings does not
@@ -209,6 +212,12 @@ type Secrets struct {
 	OIDC map[string]string
 	// OAuth2ProviderHeaders go with Kratos's requests to Hydra.
 	OAuth2ProviderHeaders map[string]string
+	// TokenKey is the private JWK the session tokens are signed with; empty:
+	// no tokens.
+	TokenKey string
+	// Masked: the secrets are placeholders (a rendering to show, not to
+	// write).
+	Masked bool
 }
 
 // OAuth2Provider makes login and registration serve Ory Hydra's

@@ -1,14 +1,18 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { create } from '@bufbuild/protobuf';
+import { useClient } from '@backplane-labs/backplane-react';
 import { usePluginContext } from '@backplane-labs/backplane-plugin-sdk';
-import { ConnectionNotice } from '@backplane-labs/backplane-platform-ui';
+import { ConnectionNotice, usePlatformAction, usePlatformQuery } from '@backplane-labs/backplane-platform-ui';
 import { CodeEditor } from '@backplane-labs/backplane-editors';
 import { Badge, Button, EmptyState, Input, NativeSelect, PageHeader, Panel, SecretInput, Skeleton, Stack, StatusBadge } from '@backplane-labs/backplane-ui';
-import { Choice, Duration, Lines, NumberField, Row, SaveBar, Text, Toggle, useLiveConfig, type Json, type LiveConfig } from './settings-kit';
+import { ActionError, Choice, Duration, Lines, NumberField, Row, SaveBar, Text, Toggle, useLiveConfig, type Json, type LiveConfig } from './settings-kit';
+import { AdminServiceClient } from './gen/proto/kratos/console/v1/admin_ws_pb';
+import { GetStatusRequestSchema } from './gen/proto/kratos/console/v1/admin_pb';
 
 const S = 'settings';
 const durationFields = ['registration.lifespan', 'login.lifespan', 'settings.lifespan', 'settings.privileged_session_max_age', 'recovery.lifespan',
-  'verification.lifespan', 'methods.code.lifespan', 'session.lifespan', 'session.earliest_possible_extend'] as const;
+  'verification.lifespan', 'methods.code.lifespan', 'session.lifespan', 'session.earliest_possible_extend', 'tokens.ttl'] as const;
 const muted = { color: 'var(--muted-foreground)', fontSize: 12 } as const;
 const providers = ['generic', 'google', 'github', 'gitlab', 'microsoft', 'apple', 'discord', 'slack', 'facebook', 'auth0', 'yandex', 'vk'] as const;
 
@@ -42,6 +46,7 @@ export function Settings() {
         <Methods cfg={cfg} />
         <Oidc cfg={cfg} />
         <Sessions cfg={cfg} />
+        <Tokens cfg={cfg} />
         <Features cfg={cfg} />
         <Schemas cfg={cfg} />
         <Hydra cfg={cfg} />
@@ -147,6 +152,72 @@ function Sessions({ cfg }: { cfg: LiveConfig }) {
     <Text cfg={cfg} path={S} field="session.cookie_domain" label={t('cookieDomain')} placeholder="example.com" />
     <Toggle cfg={cfg} path={S} field="session.cookie_persistent" label={t('cookiePersistent')} />
     <Choice cfg={cfg} path={S} field="session.cookie_same_site" label={t('cookieSameSite')} options={['Lax', 'Strict', 'None']} />
+  </Panel>;
+}
+
+type Jwk = { kid?: string; kty?: string; crv?: string; alg?: string; x?: string; y?: string };
+
+const jwkOf = (raw: string): Jwk => { try { return JSON.parse(raw) as Jwk; } catch { return {}; } };
+
+/** A new ES256 signing key: the private JWK for token_key, the public one for tokens.keys. */
+async function newSigningKey(): Promise<{ privateJwk: string; publicJwk: string }> {
+  const pair = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
+  const priv = await crypto.subtle.exportKey('jwk', pair.privateKey);
+  const kid = `${new Date().toISOString().slice(0, 10)}-${crypto.randomUUID().slice(0, 8)}`;
+  const pub = { kty: priv.kty, crv: priv.crv, x: priv.x, y: priv.y, kid, alg: 'ES256', use: 'sig' };
+  return { privateJwk: JSON.stringify({ ...pub, d: priv.d }), publicJwk: JSON.stringify(pub) };
+}
+
+/** Session tokens: Kratos signs them, services verify them with the public keys this service serves. */
+function Tokens({ cfg }: { cfg: LiveConfig }) {
+  const t = useText(), { mode } = usePluginContext(), client = useClient(AdminServiceClient);
+  const status = usePlatformQuery('kratos:status:tokens', (signal) => client.getStatus(create(GetStatusRequestSchema), { signal }));
+  const tokens = status.value?.tokens;
+  const keys = (cfg.get(S, 'tokens.keys') as string[] | null | undefined) ?? [];
+  const keySet = Boolean(cfg.get('token_key'));
+  const claims = (cfg.get(S, 'tokens.claims') as string | null | undefined) ?? '';
+  const defaults = tokens?.defaultClaims ?? '';
+  const generate = usePlatformAction<string>();
+  const rotate = () => void generate.run(async () => {
+    const k = await newSigningKey();
+    cfg.set('token_key', undefined, k.privateJwk);
+    cfg.set(S, 'tokens.keys', [k.publicJwk, ...keys]);
+    return jwkOf(k.publicJwk).kid ?? '';
+  });
+  return <Panel title={<Stack direction="row" gap={8} style={{ alignItems: 'center' }}><span>{t('tokensSection')}</span>
+    {keySet && keys.length ? <StatusBadge tone="success">{t('on')}</StatusBadge> : <Badge variant="outline">{t('off')}</Badge>}</Stack>}
+    description={t('tokensHint')}>
+    <Row label={t('tokensUse')}><Stack gap={4} style={{ fontSize: 12 }}>
+      <span>{t('tokensClient')} <code>{`${status.value?.publicUrl ?? ''}/sessions/whoami?tokenize_as=${tokens?.template ?? 'backplane'}`}</code></span>
+      <span>{t('tokensService')} <code>{`<${t('thisServicePublicUrl')}>${tokens?.keysPath ?? '/.well-known/jwks.json'}`}</code></span>
+    </Stack></Row>
+    <Duration cfg={cfg} path={S} field="tokens.ttl" label={t('tokensTtl')} hint={t('tokensTtlHint')} />
+    <Row label={t('tokensKeys')} hint={t('tokensKeysHint')}>
+      <Stack gap={6}>
+        {keys.length === 0 ? <span style={muted}>{t('tokensNoKeys')}</span> : keys.map((raw, i) => {
+          const k = jwkOf(raw);
+          return <Stack key={k.kid ?? i} direction="row" gap={8} style={{ alignItems: 'center', fontSize: 13 }}>
+            <code>{k.kid ?? '?'}</code><span style={muted}>{k.alg} {k.crv}</span>
+            {i === 0 ? <StatusBadge tone="success">{t('tokensSigning')}</StatusBadge> : <>
+              <Badge variant="outline">{t('tokensPrevious')}</Badge>
+              <Button size="sm" variant="ghost" onClick={() => cfg.set(S, 'tokens.keys', keys.filter((_, j) => j !== i))}>{t('remove')}</Button></>}
+          </Stack>;
+        })}
+        <Stack direction="row" gap={8} style={{ alignItems: 'center' }}>
+          <Button size="sm" variant="outline" disabled={generate.pending} onClick={rotate}>{keys.length ? t('tokensRotate') : t('tokensGenerate')}</Button>
+          {generate.value && <span style={muted}>{t('tokensStaged', { kid: generate.value })}</span>}
+          <ActionError error={generate.error} />
+        </Stack>
+        {!keySet && keys.length > 0 && <span style={{ ...muted, color: 'var(--destructive)' }}>{t('tokensKeyMissing')}</span>}
+      </Stack>
+    </Row>
+    <Row label={t('tokensClaims')} hint={t('tokensClaimsHint')}>
+      <Stack gap={6}>
+        <CodeEditor label={t('tokensClaims')} value={claims || defaults} language="text" mode={mode} height={200}
+          onChange={(v) => cfg.set(S, 'tokens.claims', v === defaults ? '' : v)} />
+        {claims && <div><Button size="sm" variant="ghost" onClick={() => cfg.set(S, 'tokens.claims', '')}>{t('tokensDefaultClaims')}</Button></div>}
+      </Stack>
+    </Row>
   </Panel>;
 }
 

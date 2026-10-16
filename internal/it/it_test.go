@@ -41,6 +41,7 @@ type env struct {
 	flows      *flows.Flows
 	activities *activities.Activities
 	settings   config.Live[overlay.Settings]
+	tokenKey   config.Live[config.Secret]
 	kratos     ory.Client
 }
 
@@ -84,6 +85,13 @@ func start(t *testing.T, bind func(*backplanetest.Harness, *flows.Flows)) env {
 func startWith(t *testing.T, edit func(*overlay.Settings), bind func(*backplanetest.Harness, *flows.Flows)) env {
 	t.Helper()
 
+	return startKeyed(t, "", edit, bind)
+}
+
+// startKeyed is startWith with token_key set to tokenKey.
+func startKeyed(t *testing.T, tokenKey string, edit func(*overlay.Settings), bind func(*backplanetest.Harness, *flows.Flows)) env {
+	t.Helper()
+
 	path := os.Getenv("KRATOS_IT_OVERLAY")
 	if path == "" {
 		t.Skip("KRATOS_IT_OVERLAY not set: make it-up it")
@@ -109,13 +117,14 @@ func startWith(t *testing.T, edit func(*overlay.Settings), bind func(*backplanet
 		edit(&settings)
 	}
 
-	e := env{h: h, kratos: client, settings: config.LiveOf(settings)}
+	e := env{h: h, kratos: client, settings: config.LiveOf(settings), tokenKey: config.LiveOf(config.Secret(tokenKey))}
 	e.flows = flows.New(h.Root(), key, config.LiveOf([]string(nil)))
 	e.activities = activities.New(h.Root(), client)
 	apply.New(h.Root(), path, 0o644, e.settings, apply.Secrets{
 		OIDC: config.LiveOf(
 			map[string]config.Secret{},
 		), OAuth2ProviderHeaders: config.LiveOf(map[string]config.Secret{}),
+		TokenKey: e.tokenKey,
 	}, e.flows, overlay.Wiring{
 		URL: "http://" + lis.Addr().String(), Key: key, Events: true,
 	})

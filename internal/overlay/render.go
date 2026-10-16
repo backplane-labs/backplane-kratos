@@ -100,6 +100,11 @@ func Render(s Settings, sec Secrets, w Wiring) (map[string]any, error) {
 	}
 
 	r.oauth2()
+
+	if err := r.tokens(); err != nil {
+		return nil, err
+	}
+
 	r.set("feature_flags.use_continue_with_transitions", s.Features.ContinueWith)
 	r.set("feature_flags.choose_recovery_address", s.Features.ChooseRecoveryAddress)
 

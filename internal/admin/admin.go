@@ -27,6 +27,7 @@ import (
 	"github.com/backplane-labs/backplane-kratos/internal/activities"
 	"github.com/backplane-labs/backplane-kratos/internal/apply"
 	"github.com/backplane-labs/backplane-kratos/internal/flows"
+	"github.com/backplane-labs/backplane-kratos/internal/jwks"
 	"github.com/backplane-labs/backplane-kratos/internal/ory"
 	"github.com/backplane-labs/backplane-kratos/internal/overlay"
 	v1 "github.com/backplane-labs/backplane-kratos/proto/kratos/console/v1"
@@ -45,6 +46,7 @@ type Admin struct {
 	applier  *apply.Applier
 	failOpen config.Live[[]string]
 	settings config.Live[overlay.Settings]
+	tokenKey config.Live[config.Secret]
 	events   bool
 }
 
@@ -56,13 +58,14 @@ func New(
 	a *apply.Applier,
 	failOpen config.Live[[]string],
 	settings config.Live[overlay.Settings],
+	tokenKey config.Live[config.Secret],
 	events bool,
 ) *Admin {
 	return &Admin{
 		Component: deps.NewComponent(
 			parent,
 			"admin",
-		), kratos: k, flows: f, applier: a, failOpen: failOpen, settings: settings, events: events,
+		), kratos: k, flows: f, applier: a, failOpen: failOpen, settings: settings, tokenKey: tokenKey, events: events,
 	}
 }
 
@@ -124,6 +127,10 @@ func ts(t *time.Time) *timestamppb.Timestamp {
 func (a *Admin) GetStatus(ctx context.Context, _ *v1.GetStatusRequest) (*v1.GetStatusResponse, error) {
 	out := &v1.GetStatusResponse{
 		AdminUrl: a.kratos.AdminURL(), PublicUrl: a.kratos.PublicURL(), Events: a.events,
+		Tokens: &v1.Tokens{
+			Enabled: a.tokenKey.Get().Reveal() != "", Template: overlay.TokenTemplate, KeysPath: jwks.Path,
+			DefaultClaims: overlay.DefaultClaims,
+		},
 	}
 
 	if err := a.kratos.Ready(ctx); err != nil {

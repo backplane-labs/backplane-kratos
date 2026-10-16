@@ -73,6 +73,47 @@ cannot read leaves it on the previous configuration.
 | `oidc_secrets`, `oauth2_provider_headers` | Live secrets kept apart from the settings: the console writes them only when an operator enters new ones |
 | `fail_open` | Live: flow hooks whose failure lets the flow continue (default: none — a failing hook stops the flow) |
 
+## Who made a request: session tokens and `pkg/auth`
+
+A service learns who made a request without a user cache, so every replica
+answers alike:
+
+- **Session tokens** (the default way). Generate a signing key on the
+  Settings page (Session tokens): Kratos then turns a session into a short JWT
+  at `GET <Kratos public>/sessions/whoami?tokenize_as=backplane`, and this
+  service serves the public keys at `<its public URL>/.well-known/jwks.json`.
+  A client sends the token as `Authorization: Bearer`; a service verifies it
+  locally — no call per request. A revoked session gets no new token at once;
+  a token already issued stays valid for the token lifetime (default 5m).
+- **whoami**. The session cookie or session token itself, asked of Kratos on
+  every request — no cache: a revocation shows on the next request. For the
+  few actions that must not outlive a revocation.
+
+```go
+tokens, _ := auth.NewTokens(auth.TokensOptions{
+	KeysURL: "http://backplane-kratos/.well-known/jwks.json",
+	Issuer:  "https://auth.example.com/", // Kratos's serve.public.base_url
+})
+sessions, _ := auth.NewSessions("http://kratos:4433", nil)
+a := auth.Authenticator{Tokens: tokens, Sessions: sessions}
+
+mux.Handle("/api/", a.Required(api)) // a bearer JWT, a session token or Kratos's cookie
+// in a handler:
+who, _ := auth.FromContext(r.Context()) // who.IdentityID, who.HasRole("operator"), who.AtLeast(auth.AAL2)
+```
+
+Roles are the `roles` list of the identity's public metadata. The token's
+claims come from Jsonnet (Settings → Session tokens → Claims): by default
+`aal`, `amr`, `authenticated_at`, `email`, `schema_id` and `metadata`, next to
+Kratos's `iss`, `sub`, `sid`, `iat`, `nbf`, `exp`, `jti`.
+
+Rotating the key: generate a new one on the same page and save; the earlier
+public key stays listed so the tokens it signed keep verifying, and is removed
+after a token lifetime. The only cache in `pkg/auth` is of these public keys:
+fetched on first use, again on a token with an unknown kid (at most once per
+30s) and in the background every 10m; when the keys cannot be fetched, the
+last good set keeps verifying.
+
 ## Example wiring
 
 Kratos's messages through the installation's templates and courier:

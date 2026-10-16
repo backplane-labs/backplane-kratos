@@ -62,6 +62,7 @@ type State struct {
 type Secrets struct {
 	OIDC                  config.Live[map[string]config.Secret]
 	OAuth2ProviderHeaders config.Live[map[string]config.Secret]
+	TokenKey              config.Live[config.Secret]
 }
 
 // reveal is the secrets as the overlay renders them; mask replaces each.
@@ -78,7 +79,15 @@ func (s Secrets) reveal(mask string) overlay.Secrets {
 		return r
 	}
 
-	return overlay.Secrets{OIDC: out(s.OIDC.Get()), OAuth2ProviderHeaders: out(s.OAuth2ProviderHeaders.Get())}
+	key := s.TokenKey.Get().Reveal()
+	if key != "" && mask != "" {
+		key = mask
+	}
+
+	return overlay.Secrets{
+		OIDC: out(s.OIDC.Get()), OAuth2ProviderHeaders: out(s.OAuth2ProviderHeaders.Get()),
+		TokenKey: key, Masked: mask != "",
+	}
 }
 
 // New creates the applier; an empty path renders without writing.
@@ -95,6 +104,7 @@ func New(
 	settings.Watch(func(overlay.Settings) { a.Kick() })
 	secrets.OIDC.Watch(func(map[string]config.Secret) { a.Kick() })
 	secrets.OAuth2ProviderHeaders.Watch(func(map[string]config.Secret) { a.Kick() })
+	secrets.TokenKey.Watch(func(config.Secret) { a.Kick() })
 	a.Go(a.loop)
 
 	return a

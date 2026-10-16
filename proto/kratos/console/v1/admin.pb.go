@@ -70,8 +70,9 @@ type GetStatusResponse struct {
 	Hooks     []*HookPoint    `protobuf:"bytes,6,rep,name=hooks,proto3" json:"hooks,omitempty"`
 	Callbacks []*CallbackStat `protobuf:"bytes,7,rep,name=callbacks,proto3" json:"callbacks,omitempty"`
 	// events are published for completed flows (an event transport is configured).
-	Events        bool   `protobuf:"varint,8,opt,name=events,proto3" json:"events,omitempty"`
-	CallbacksUrl  string `protobuf:"bytes,9,opt,name=callbacks_url,json=callbacksUrl,proto3" json:"callbacks_url,omitempty"`
+	Events        bool    `protobuf:"varint,8,opt,name=events,proto3" json:"events,omitempty"`
+	CallbacksUrl  string  `protobuf:"bytes,9,opt,name=callbacks_url,json=callbacksUrl,proto3" json:"callbacks_url,omitempty"`
+	Tokens        *Tokens `protobuf:"bytes,10,opt,name=tokens,proto3" json:"tokens,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -169,6 +170,87 @@ func (x *GetStatusResponse) GetCallbacksUrl() string {
 	return ""
 }
 
+func (x *GetStatusResponse) GetTokens() *Tokens {
+	if x != nil {
+		return x.Tokens
+	}
+	return nil
+}
+
+// Tokens are the session tokens: Kratos signs them with token_key, services
+// verify them with the public keys this service serves.
+type Tokens struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// enabled: token_key is set, Kratos issues tokens.
+	Enabled bool `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	// template clients name: /sessions/whoami?tokenize_as=<template>.
+	Template string `protobuf:"bytes,2,opt,name=template,proto3" json:"template,omitempty"`
+	// keys_path is where this service serves the public keys (its public port).
+	KeysPath string `protobuf:"bytes,3,opt,name=keys_path,json=keysPath,proto3" json:"keys_path,omitempty"`
+	// default_claims is the Jsonnet used when the settings name none.
+	DefaultClaims string `protobuf:"bytes,4,opt,name=default_claims,json=defaultClaims,proto3" json:"default_claims,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Tokens) Reset() {
+	*x = Tokens{}
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Tokens) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Tokens) ProtoMessage() {}
+
+func (x *Tokens) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Tokens.ProtoReflect.Descriptor instead.
+func (*Tokens) Descriptor() ([]byte, []int) {
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *Tokens) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *Tokens) GetTemplate() string {
+	if x != nil {
+		return x.Template
+	}
+	return ""
+}
+
+func (x *Tokens) GetKeysPath() string {
+	if x != nil {
+		return x.KeysPath
+	}
+	return ""
+}
+
+func (x *Tokens) GetDefaultClaims() string {
+	if x != nil {
+		return x.DefaultClaims
+	}
+	return ""
+}
+
 type Overlay struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// path of the file; empty: snippets mode.
@@ -183,7 +265,7 @@ type Overlay struct {
 
 func (x *Overlay) Reset() {
 	*x = Overlay{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[2]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -195,7 +277,7 @@ func (x *Overlay) String() string {
 func (*Overlay) ProtoMessage() {}
 
 func (x *Overlay) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[2]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -208,7 +290,7 @@ func (x *Overlay) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Overlay.ProtoReflect.Descriptor instead.
 func (*Overlay) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{2}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Overlay) GetPath() string {
@@ -252,7 +334,7 @@ type HookPoint struct {
 
 func (x *HookPoint) Reset() {
 	*x = HookPoint{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[3]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -264,7 +346,7 @@ func (x *HookPoint) String() string {
 func (*HookPoint) ProtoMessage() {}
 
 func (x *HookPoint) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[3]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -277,7 +359,7 @@ func (x *HookPoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HookPoint.ProtoReflect.Descriptor instead.
 func (*HookPoint) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{3}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *HookPoint) GetName() string {
@@ -324,7 +406,7 @@ type CallbackStat struct {
 
 func (x *CallbackStat) Reset() {
 	*x = CallbackStat{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[4]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -336,7 +418,7 @@ func (x *CallbackStat) String() string {
 func (*CallbackStat) ProtoMessage() {}
 
 func (x *CallbackStat) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[4]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -349,7 +431,7 @@ func (x *CallbackStat) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CallbackStat.ProtoReflect.Descriptor instead.
 func (*CallbackStat) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{4}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *CallbackStat) GetPoint() string {
@@ -409,7 +491,7 @@ type GetOverlayRequest struct {
 
 func (x *GetOverlayRequest) Reset() {
 	*x = GetOverlayRequest{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[5]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -421,7 +503,7 @@ func (x *GetOverlayRequest) String() string {
 func (*GetOverlayRequest) ProtoMessage() {}
 
 func (x *GetOverlayRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[5]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -434,7 +516,7 @@ func (x *GetOverlayRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOverlayRequest.ProtoReflect.Descriptor instead.
 func (*GetOverlayRequest) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{5}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{6}
 }
 
 type GetOverlayResponse struct {
@@ -449,7 +531,7 @@ type GetOverlayResponse struct {
 
 func (x *GetOverlayResponse) Reset() {
 	*x = GetOverlayResponse{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[6]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -461,7 +543,7 @@ func (x *GetOverlayResponse) String() string {
 func (*GetOverlayResponse) ProtoMessage() {}
 
 func (x *GetOverlayResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[6]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -474,7 +556,7 @@ func (x *GetOverlayResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetOverlayResponse.ProtoReflect.Descriptor instead.
 func (*GetOverlayResponse) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{6}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *GetOverlayResponse) GetContent() string {
@@ -515,7 +597,7 @@ type Identity struct {
 
 func (x *Identity) Reset() {
 	*x = Identity{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[7]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -527,7 +609,7 @@ func (x *Identity) String() string {
 func (*Identity) ProtoMessage() {}
 
 func (x *Identity) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[7]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -540,7 +622,7 @@ func (x *Identity) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Identity.ProtoReflect.Descriptor instead.
 func (*Identity) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{7}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *Identity) GetId() string {
@@ -646,7 +728,7 @@ type Address struct {
 
 func (x *Address) Reset() {
 	*x = Address{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[8]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -658,7 +740,7 @@ func (x *Address) String() string {
 func (*Address) ProtoMessage() {}
 
 func (x *Address) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[8]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -671,7 +753,7 @@ func (x *Address) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Address.ProtoReflect.Descriptor instead.
 func (*Address) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{8}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *Address) GetValue() string {
@@ -713,7 +795,7 @@ type Credential struct {
 
 func (x *Credential) Reset() {
 	*x = Credential{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[9]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -725,7 +807,7 @@ func (x *Credential) String() string {
 func (*Credential) ProtoMessage() {}
 
 func (x *Credential) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[9]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -738,7 +820,7 @@ func (x *Credential) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Credential.ProtoReflect.Descriptor instead.
 func (*Credential) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{9}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *Credential) GetType() string {
@@ -774,7 +856,7 @@ type ListIdentitiesRequest struct {
 
 func (x *ListIdentitiesRequest) Reset() {
 	*x = ListIdentitiesRequest{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[10]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -786,7 +868,7 @@ func (x *ListIdentitiesRequest) String() string {
 func (*ListIdentitiesRequest) ProtoMessage() {}
 
 func (x *ListIdentitiesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[10]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -799,7 +881,7 @@ func (x *ListIdentitiesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListIdentitiesRequest.ProtoReflect.Descriptor instead.
 func (*ListIdentitiesRequest) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{10}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ListIdentitiesRequest) GetQuery() string {
@@ -833,7 +915,7 @@ type ListIdentitiesResponse struct {
 
 func (x *ListIdentitiesResponse) Reset() {
 	*x = ListIdentitiesResponse{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[11]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -845,7 +927,7 @@ func (x *ListIdentitiesResponse) String() string {
 func (*ListIdentitiesResponse) ProtoMessage() {}
 
 func (x *ListIdentitiesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[11]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -858,7 +940,7 @@ func (x *ListIdentitiesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListIdentitiesResponse.ProtoReflect.Descriptor instead.
 func (*ListIdentitiesResponse) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{11}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ListIdentitiesResponse) GetIdentities() []*Identity {
@@ -884,7 +966,7 @@ type GetIdentityRequest struct {
 
 func (x *GetIdentityRequest) Reset() {
 	*x = GetIdentityRequest{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[12]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -896,7 +978,7 @@ func (x *GetIdentityRequest) String() string {
 func (*GetIdentityRequest) ProtoMessage() {}
 
 func (x *GetIdentityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[12]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -909,7 +991,7 @@ func (x *GetIdentityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetIdentityRequest.ProtoReflect.Descriptor instead.
 func (*GetIdentityRequest) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{12}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *GetIdentityRequest) GetId() string {
@@ -929,7 +1011,7 @@ type GetIdentityResponse struct {
 
 func (x *GetIdentityResponse) Reset() {
 	*x = GetIdentityResponse{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[13]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -941,7 +1023,7 @@ func (x *GetIdentityResponse) String() string {
 func (*GetIdentityResponse) ProtoMessage() {}
 
 func (x *GetIdentityResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[13]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -954,7 +1036,7 @@ func (x *GetIdentityResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetIdentityResponse.ProtoReflect.Descriptor instead.
 func (*GetIdentityResponse) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{13}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *GetIdentityResponse) GetIdentity() *Identity {
@@ -986,7 +1068,7 @@ type CreateIdentityRequest struct {
 
 func (x *CreateIdentityRequest) Reset() {
 	*x = CreateIdentityRequest{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[14]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -998,7 +1080,7 @@ func (x *CreateIdentityRequest) String() string {
 func (*CreateIdentityRequest) ProtoMessage() {}
 
 func (x *CreateIdentityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[14]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1011,7 +1093,7 @@ func (x *CreateIdentityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateIdentityRequest.ProtoReflect.Descriptor instead.
 func (*CreateIdentityRequest) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{14}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *CreateIdentityRequest) GetSchemaId() string {
@@ -1072,7 +1154,7 @@ type CreateIdentityResponse struct {
 
 func (x *CreateIdentityResponse) Reset() {
 	*x = CreateIdentityResponse{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[15]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1084,7 +1166,7 @@ func (x *CreateIdentityResponse) String() string {
 func (*CreateIdentityResponse) ProtoMessage() {}
 
 func (x *CreateIdentityResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[15]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1097,7 +1179,7 @@ func (x *CreateIdentityResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateIdentityResponse.ProtoReflect.Descriptor instead.
 func (*CreateIdentityResponse) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{15}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *CreateIdentityResponse) GetIdentity() *Identity {
@@ -1121,7 +1203,7 @@ type UpdateIdentityRequest struct {
 
 func (x *UpdateIdentityRequest) Reset() {
 	*x = UpdateIdentityRequest{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[16]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1133,7 +1215,7 @@ func (x *UpdateIdentityRequest) String() string {
 func (*UpdateIdentityRequest) ProtoMessage() {}
 
 func (x *UpdateIdentityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[16]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1146,7 +1228,7 @@ func (x *UpdateIdentityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateIdentityRequest.ProtoReflect.Descriptor instead.
 func (*UpdateIdentityRequest) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{16}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *UpdateIdentityRequest) GetId() string {
@@ -1200,7 +1282,7 @@ type UpdateIdentityResponse struct {
 
 func (x *UpdateIdentityResponse) Reset() {
 	*x = UpdateIdentityResponse{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[17]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1212,7 +1294,7 @@ func (x *UpdateIdentityResponse) String() string {
 func (*UpdateIdentityResponse) ProtoMessage() {}
 
 func (x *UpdateIdentityResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[17]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1225,7 +1307,7 @@ func (x *UpdateIdentityResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateIdentityResponse.ProtoReflect.Descriptor instead.
 func (*UpdateIdentityResponse) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{17}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *UpdateIdentityResponse) GetIdentity() *Identity {
@@ -1244,7 +1326,7 @@ type DeleteIdentityRequest struct {
 
 func (x *DeleteIdentityRequest) Reset() {
 	*x = DeleteIdentityRequest{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[18]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1256,7 +1338,7 @@ func (x *DeleteIdentityRequest) String() string {
 func (*DeleteIdentityRequest) ProtoMessage() {}
 
 func (x *DeleteIdentityRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[18]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1269,7 +1351,7 @@ func (x *DeleteIdentityRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteIdentityRequest.ProtoReflect.Descriptor instead.
 func (*DeleteIdentityRequest) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{18}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *DeleteIdentityRequest) GetId() string {
@@ -1287,7 +1369,7 @@ type DeleteIdentityResponse struct {
 
 func (x *DeleteIdentityResponse) Reset() {
 	*x = DeleteIdentityResponse{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[19]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1299,7 +1381,7 @@ func (x *DeleteIdentityResponse) String() string {
 func (*DeleteIdentityResponse) ProtoMessage() {}
 
 func (x *DeleteIdentityResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[19]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1312,7 +1394,7 @@ func (x *DeleteIdentityResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteIdentityResponse.ProtoReflect.Descriptor instead.
 func (*DeleteIdentityResponse) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{19}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{20}
 }
 
 type DeleteCredentialsRequest struct {
@@ -1326,7 +1408,7 @@ type DeleteCredentialsRequest struct {
 
 func (x *DeleteCredentialsRequest) Reset() {
 	*x = DeleteCredentialsRequest{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[20]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1338,7 +1420,7 @@ func (x *DeleteCredentialsRequest) String() string {
 func (*DeleteCredentialsRequest) ProtoMessage() {}
 
 func (x *DeleteCredentialsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[20]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1351,7 +1433,7 @@ func (x *DeleteCredentialsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteCredentialsRequest.ProtoReflect.Descriptor instead.
 func (*DeleteCredentialsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{20}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *DeleteCredentialsRequest) GetId() string {
@@ -1383,7 +1465,7 @@ type DeleteCredentialsResponse struct {
 
 func (x *DeleteCredentialsResponse) Reset() {
 	*x = DeleteCredentialsResponse{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[21]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1395,7 +1477,7 @@ func (x *DeleteCredentialsResponse) String() string {
 func (*DeleteCredentialsResponse) ProtoMessage() {}
 
 func (x *DeleteCredentialsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[21]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1408,7 +1490,7 @@ func (x *DeleteCredentialsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteCredentialsResponse.ProtoReflect.Descriptor instead.
 func (*DeleteCredentialsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{21}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{22}
 }
 
 type CreateRecoveryCodeRequest struct {
@@ -1426,7 +1508,7 @@ type CreateRecoveryCodeRequest struct {
 
 func (x *CreateRecoveryCodeRequest) Reset() {
 	*x = CreateRecoveryCodeRequest{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[22]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1438,7 +1520,7 @@ func (x *CreateRecoveryCodeRequest) String() string {
 func (*CreateRecoveryCodeRequest) ProtoMessage() {}
 
 func (x *CreateRecoveryCodeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[22]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1451,7 +1533,7 @@ func (x *CreateRecoveryCodeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRecoveryCodeRequest.ProtoReflect.Descriptor instead.
 func (*CreateRecoveryCodeRequest) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{22}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *CreateRecoveryCodeRequest) GetId() string {
@@ -1493,7 +1575,7 @@ type CreateRecoveryCodeResponse struct {
 
 func (x *CreateRecoveryCodeResponse) Reset() {
 	*x = CreateRecoveryCodeResponse{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[23]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1505,7 +1587,7 @@ func (x *CreateRecoveryCodeResponse) String() string {
 func (*CreateRecoveryCodeResponse) ProtoMessage() {}
 
 func (x *CreateRecoveryCodeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[23]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1518,7 +1600,7 @@ func (x *CreateRecoveryCodeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRecoveryCodeResponse.ProtoReflect.Descriptor instead.
 func (*CreateRecoveryCodeResponse) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{23}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *CreateRecoveryCodeResponse) GetCode() string {
@@ -1559,7 +1641,7 @@ type Session struct {
 
 func (x *Session) Reset() {
 	*x = Session{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[24]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1571,7 +1653,7 @@ func (x *Session) String() string {
 func (*Session) ProtoMessage() {}
 
 func (x *Session) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[24]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1584,7 +1666,7 @@ func (x *Session) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Session.ProtoReflect.Descriptor instead.
 func (*Session) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{24}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *Session) GetId() string {
@@ -1661,7 +1743,7 @@ type Device struct {
 
 func (x *Device) Reset() {
 	*x = Device{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[25]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1673,7 +1755,7 @@ func (x *Device) String() string {
 func (*Device) ProtoMessage() {}
 
 func (x *Device) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[25]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1686,7 +1768,7 @@ func (x *Device) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Device.ProtoReflect.Descriptor instead.
 func (*Device) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{25}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *Device) GetIpAddress() string {
@@ -1721,7 +1803,7 @@ type ListSessionsRequest struct {
 
 func (x *ListSessionsRequest) Reset() {
 	*x = ListSessionsRequest{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[26]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1733,7 +1815,7 @@ func (x *ListSessionsRequest) String() string {
 func (*ListSessionsRequest) ProtoMessage() {}
 
 func (x *ListSessionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[26]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1746,7 +1828,7 @@ func (x *ListSessionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSessionsRequest.ProtoReflect.Descriptor instead.
 func (*ListSessionsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{26}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *ListSessionsRequest) GetActiveOnly() bool {
@@ -1780,7 +1862,7 @@ type ListSessionsResponse struct {
 
 func (x *ListSessionsResponse) Reset() {
 	*x = ListSessionsResponse{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[27]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1792,7 +1874,7 @@ func (x *ListSessionsResponse) String() string {
 func (*ListSessionsResponse) ProtoMessage() {}
 
 func (x *ListSessionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[27]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1805,7 +1887,7 @@ func (x *ListSessionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSessionsResponse.ProtoReflect.Descriptor instead.
 func (*ListSessionsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{27}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ListSessionsResponse) GetSessions() []*Session {
@@ -1832,7 +1914,7 @@ type RevokeSessionsRequest struct {
 
 func (x *RevokeSessionsRequest) Reset() {
 	*x = RevokeSessionsRequest{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[28]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1844,7 +1926,7 @@ func (x *RevokeSessionsRequest) String() string {
 func (*RevokeSessionsRequest) ProtoMessage() {}
 
 func (x *RevokeSessionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[28]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1857,7 +1939,7 @@ func (x *RevokeSessionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeSessionsRequest.ProtoReflect.Descriptor instead.
 func (*RevokeSessionsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{28}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *RevokeSessionsRequest) GetSessionId() string {
@@ -1882,7 +1964,7 @@ type RevokeSessionsResponse struct {
 
 func (x *RevokeSessionsResponse) Reset() {
 	*x = RevokeSessionsResponse{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[29]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1894,7 +1976,7 @@ func (x *RevokeSessionsResponse) String() string {
 func (*RevokeSessionsResponse) ProtoMessage() {}
 
 func (x *RevokeSessionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[29]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1907,7 +1989,7 @@ func (x *RevokeSessionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RevokeSessionsResponse.ProtoReflect.Descriptor instead.
 func (*RevokeSessionsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{29}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{30}
 }
 
 type Message struct {
@@ -1927,7 +2009,7 @@ type Message struct {
 
 func (x *Message) Reset() {
 	*x = Message{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[30]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1939,7 +2021,7 @@ func (x *Message) String() string {
 func (*Message) ProtoMessage() {}
 
 func (x *Message) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[30]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1952,7 +2034,7 @@ func (x *Message) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Message.ProtoReflect.Descriptor instead.
 func (*Message) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{30}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *Message) GetId() string {
@@ -2029,7 +2111,7 @@ type Dispatch struct {
 
 func (x *Dispatch) Reset() {
 	*x = Dispatch{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[31]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2041,7 +2123,7 @@ func (x *Dispatch) String() string {
 func (*Dispatch) ProtoMessage() {}
 
 func (x *Dispatch) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[31]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2054,7 +2136,7 @@ func (x *Dispatch) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Dispatch.ProtoReflect.Descriptor instead.
 func (*Dispatch) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{31}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *Dispatch) GetStatus() string {
@@ -2090,7 +2172,7 @@ type ListMessagesRequest struct {
 
 func (x *ListMessagesRequest) Reset() {
 	*x = ListMessagesRequest{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[32]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2102,7 +2184,7 @@ func (x *ListMessagesRequest) String() string {
 func (*ListMessagesRequest) ProtoMessage() {}
 
 func (x *ListMessagesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[32]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2115,7 +2197,7 @@ func (x *ListMessagesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMessagesRequest.ProtoReflect.Descriptor instead.
 func (*ListMessagesRequest) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{32}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *ListMessagesRequest) GetStatus() string {
@@ -2156,7 +2238,7 @@ type ListMessagesResponse struct {
 
 func (x *ListMessagesResponse) Reset() {
 	*x = ListMessagesResponse{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[33]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2168,7 +2250,7 @@ func (x *ListMessagesResponse) String() string {
 func (*ListMessagesResponse) ProtoMessage() {}
 
 func (x *ListMessagesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[33]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2181,7 +2263,7 @@ func (x *ListMessagesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMessagesResponse.ProtoReflect.Descriptor instead.
 func (*ListMessagesResponse) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{33}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *ListMessagesResponse) GetMessages() []*Message {
@@ -2208,7 +2290,7 @@ type GetMessageRequest struct {
 
 func (x *GetMessageRequest) Reset() {
 	*x = GetMessageRequest{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[34]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2220,7 +2302,7 @@ func (x *GetMessageRequest) String() string {
 func (*GetMessageRequest) ProtoMessage() {}
 
 func (x *GetMessageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[34]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2233,7 +2315,7 @@ func (x *GetMessageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMessageRequest.ProtoReflect.Descriptor instead.
 func (*GetMessageRequest) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{34}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *GetMessageRequest) GetId() string {
@@ -2264,7 +2346,7 @@ type GetMessageResponse struct {
 
 func (x *GetMessageResponse) Reset() {
 	*x = GetMessageResponse{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[35]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2276,7 +2358,7 @@ func (x *GetMessageResponse) String() string {
 func (*GetMessageResponse) ProtoMessage() {}
 
 func (x *GetMessageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[35]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2289,7 +2371,7 @@ func (x *GetMessageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMessageResponse.ProtoReflect.Descriptor instead.
 func (*GetMessageResponse) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{35}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *GetMessageResponse) GetMessage() *Message {
@@ -2328,7 +2410,7 @@ type ListSchemasRequest struct {
 
 func (x *ListSchemasRequest) Reset() {
 	*x = ListSchemasRequest{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[36]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2340,7 +2422,7 @@ func (x *ListSchemasRequest) String() string {
 func (*ListSchemasRequest) ProtoMessage() {}
 
 func (x *ListSchemasRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[36]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2353,7 +2435,7 @@ func (x *ListSchemasRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSchemasRequest.ProtoReflect.Descriptor instead.
 func (*ListSchemasRequest) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{36}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{37}
 }
 
 type ListSchemasResponse struct {
@@ -2365,7 +2447,7 @@ type ListSchemasResponse struct {
 
 func (x *ListSchemasResponse) Reset() {
 	*x = ListSchemasResponse{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[37]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2377,7 +2459,7 @@ func (x *ListSchemasResponse) String() string {
 func (*ListSchemasResponse) ProtoMessage() {}
 
 func (x *ListSchemasResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[37]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2390,7 +2472,7 @@ func (x *ListSchemasResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSchemasResponse.ProtoReflect.Descriptor instead.
 func (*ListSchemasResponse) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{37}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *ListSchemasResponse) GetSchemas() []*Schema {
@@ -2410,7 +2492,7 @@ type Schema struct {
 
 func (x *Schema) Reset() {
 	*x = Schema{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[38]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2422,7 +2504,7 @@ func (x *Schema) String() string {
 func (*Schema) ProtoMessage() {}
 
 func (x *Schema) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[38]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2435,7 +2517,7 @@ func (x *Schema) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Schema.ProtoReflect.Descriptor instead.
 func (*Schema) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{38}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *Schema) GetId() string {
@@ -2463,7 +2545,7 @@ type SetAddressVerifiedRequest struct {
 
 func (x *SetAddressVerifiedRequest) Reset() {
 	*x = SetAddressVerifiedRequest{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[39]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2475,7 +2557,7 @@ func (x *SetAddressVerifiedRequest) String() string {
 func (*SetAddressVerifiedRequest) ProtoMessage() {}
 
 func (x *SetAddressVerifiedRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[39]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2488,7 +2570,7 @@ func (x *SetAddressVerifiedRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetAddressVerifiedRequest.ProtoReflect.Descriptor instead.
 func (*SetAddressVerifiedRequest) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{39}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *SetAddressVerifiedRequest) GetId() string {
@@ -2521,7 +2603,7 @@ type SetAddressVerifiedResponse struct {
 
 func (x *SetAddressVerifiedResponse) Reset() {
 	*x = SetAddressVerifiedResponse{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[40]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2533,7 +2615,7 @@ func (x *SetAddressVerifiedResponse) String() string {
 func (*SetAddressVerifiedResponse) ProtoMessage() {}
 
 func (x *SetAddressVerifiedResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[40]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2546,7 +2628,7 @@ func (x *SetAddressVerifiedResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetAddressVerifiedResponse.ProtoReflect.Descriptor instead.
 func (*SetAddressVerifiedResponse) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{40}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *SetAddressVerifiedResponse) GetIdentity() *Identity {
@@ -2566,7 +2648,7 @@ type ImportIdentitiesRequest struct {
 
 func (x *ImportIdentitiesRequest) Reset() {
 	*x = ImportIdentitiesRequest{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[41]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2578,7 +2660,7 @@ func (x *ImportIdentitiesRequest) String() string {
 func (*ImportIdentitiesRequest) ProtoMessage() {}
 
 func (x *ImportIdentitiesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[41]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2591,7 +2673,7 @@ func (x *ImportIdentitiesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImportIdentitiesRequest.ProtoReflect.Descriptor instead.
 func (*ImportIdentitiesRequest) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{41}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *ImportIdentitiesRequest) GetIdentitiesJson() string {
@@ -2610,7 +2692,7 @@ type ImportIdentitiesResponse struct {
 
 func (x *ImportIdentitiesResponse) Reset() {
 	*x = ImportIdentitiesResponse{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[42]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2622,7 +2704,7 @@ func (x *ImportIdentitiesResponse) String() string {
 func (*ImportIdentitiesResponse) ProtoMessage() {}
 
 func (x *ImportIdentitiesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[42]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2635,7 +2717,7 @@ func (x *ImportIdentitiesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImportIdentitiesResponse.ProtoReflect.Descriptor instead.
 func (*ImportIdentitiesResponse) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{42}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *ImportIdentitiesResponse) GetResults() []*ImportResult {
@@ -2656,7 +2738,7 @@ type ImportResult struct {
 
 func (x *ImportResult) Reset() {
 	*x = ImportResult{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[43]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2668,7 +2750,7 @@ func (x *ImportResult) String() string {
 func (*ImportResult) ProtoMessage() {}
 
 func (x *ImportResult) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[43]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2681,7 +2763,7 @@ func (x *ImportResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ImportResult.ProtoReflect.Descriptor instead.
 func (*ImportResult) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{43}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *ImportResult) GetAction() string {
@@ -2714,7 +2796,7 @@ type ExtendSessionRequest struct {
 
 func (x *ExtendSessionRequest) Reset() {
 	*x = ExtendSessionRequest{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[44]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2726,7 +2808,7 @@ func (x *ExtendSessionRequest) String() string {
 func (*ExtendSessionRequest) ProtoMessage() {}
 
 func (x *ExtendSessionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[44]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2739,7 +2821,7 @@ func (x *ExtendSessionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExtendSessionRequest.ProtoReflect.Descriptor instead.
 func (*ExtendSessionRequest) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{44}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *ExtendSessionRequest) GetId() string {
@@ -2758,7 +2840,7 @@ type ExtendSessionResponse struct {
 
 func (x *ExtendSessionResponse) Reset() {
 	*x = ExtendSessionResponse{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[45]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2770,7 +2852,7 @@ func (x *ExtendSessionResponse) String() string {
 func (*ExtendSessionResponse) ProtoMessage() {}
 
 func (x *ExtendSessionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[45]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2783,7 +2865,7 @@ func (x *ExtendSessionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExtendSessionResponse.ProtoReflect.Descriptor instead.
 func (*ExtendSessionResponse) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{45}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *ExtendSessionResponse) GetSession() *Session {
@@ -2801,7 +2883,7 @@ type GetFlowsRequest struct {
 
 func (x *GetFlowsRequest) Reset() {
 	*x = GetFlowsRequest{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[46]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2813,7 +2895,7 @@ func (x *GetFlowsRequest) String() string {
 func (*GetFlowsRequest) ProtoMessage() {}
 
 func (x *GetFlowsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[46]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2826,7 +2908,7 @@ func (x *GetFlowsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFlowsRequest.ProtoReflect.Descriptor instead.
 func (*GetFlowsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{46}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{47}
 }
 
 type GetFlowsResponse struct {
@@ -2843,7 +2925,7 @@ type GetFlowsResponse struct {
 
 func (x *GetFlowsResponse) Reset() {
 	*x = GetFlowsResponse{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[47]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2855,7 +2937,7 @@ func (x *GetFlowsResponse) String() string {
 func (*GetFlowsResponse) ProtoMessage() {}
 
 func (x *GetFlowsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[47]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2868,7 +2950,7 @@ func (x *GetFlowsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFlowsResponse.ProtoReflect.Descriptor instead.
 func (*GetFlowsResponse) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{47}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *GetFlowsResponse) GetFlows() []*FlowCard {
@@ -2906,7 +2988,7 @@ type FlowCard struct {
 
 func (x *FlowCard) Reset() {
 	*x = FlowCard{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[48]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2918,7 +3000,7 @@ func (x *FlowCard) String() string {
 func (*FlowCard) ProtoMessage() {}
 
 func (x *FlowCard) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[48]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2931,7 +3013,7 @@ func (x *FlowCard) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FlowCard.ProtoReflect.Descriptor instead.
 func (*FlowCard) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{48}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *FlowCard) GetFlow() string {
@@ -2980,7 +3062,7 @@ type FlowHook struct {
 
 func (x *FlowHook) Reset() {
 	*x = FlowHook{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[49]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2992,7 +3074,7 @@ func (x *FlowHook) String() string {
 func (*FlowHook) ProtoMessage() {}
 
 func (x *FlowHook) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[49]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3005,7 +3087,7 @@ func (x *FlowHook) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FlowHook.ProtoReflect.Descriptor instead.
 func (*FlowHook) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{49}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *FlowHook) GetName() string {
@@ -3077,7 +3159,7 @@ type Finding struct {
 
 func (x *Finding) Reset() {
 	*x = Finding{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[50]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3089,7 +3171,7 @@ func (x *Finding) String() string {
 func (*Finding) ProtoMessage() {}
 
 func (x *Finding) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[50]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3102,7 +3184,7 @@ func (x *Finding) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Finding.ProtoReflect.Descriptor instead.
 func (*Finding) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{50}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *Finding) GetLevel() string {
@@ -3135,7 +3217,7 @@ type TryFlowRequest struct {
 
 func (x *TryFlowRequest) Reset() {
 	*x = TryFlowRequest{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[51]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3147,7 +3229,7 @@ func (x *TryFlowRequest) String() string {
 func (*TryFlowRequest) ProtoMessage() {}
 
 func (x *TryFlowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[51]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3160,7 +3242,7 @@ func (x *TryFlowRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TryFlowRequest.ProtoReflect.Descriptor instead.
 func (*TryFlowRequest) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{51}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *TryFlowRequest) GetFlow() string {
@@ -3185,7 +3267,7 @@ type TryFlowResponse struct {
 
 func (x *TryFlowResponse) Reset() {
 	*x = TryFlowResponse{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[52]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3197,7 +3279,7 @@ func (x *TryFlowResponse) String() string {
 func (*TryFlowResponse) ProtoMessage() {}
 
 func (x *TryFlowResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[52]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3210,7 +3292,7 @@ func (x *TryFlowResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TryFlowResponse.ProtoReflect.Descriptor instead.
 func (*TryFlowResponse) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{52}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *TryFlowResponse) GetFlowJson() string {
@@ -3258,7 +3340,7 @@ type FormNode struct {
 
 func (x *FormNode) Reset() {
 	*x = FormNode{}
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[53]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3270,7 +3352,7 @@ func (x *FormNode) String() string {
 func (*FormNode) ProtoMessage() {}
 
 func (x *FormNode) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[53]
+	mi := &file_proto_kratos_console_v1_admin_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3283,7 +3365,7 @@ func (x *FormNode) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FormNode.ProtoReflect.Descriptor instead.
 func (*FormNode) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{53}
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *FormNode) GetGroup() string {
@@ -3340,7 +3422,7 @@ var File_proto_kratos_console_v1_admin_proto protoreflect.FileDescriptor
 const file_proto_kratos_console_v1_admin_proto_rawDesc = "" +
 	"\n" +
 	"#proto/kratos/console/v1/admin.proto\x12\x11kratos.console.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x12\n" +
-	"\x10GetStatusRequest\"\xe9\x02\n" +
+	"\x10GetStatusRequest\"\x9c\x03\n" +
 	"\x11GetStatusResponse\x12\x1b\n" +
 	"\tadmin_url\x18\x01 \x01(\tR\badminUrl\x12\x1d\n" +
 	"\n" +
@@ -3351,7 +3433,14 @@ const file_proto_kratos_console_v1_admin_proto_rawDesc = "" +
 	"\x05hooks\x18\x06 \x03(\v2\x1c.kratos.console.v1.HookPointR\x05hooks\x12=\n" +
 	"\tcallbacks\x18\a \x03(\v2\x1f.kratos.console.v1.CallbackStatR\tcallbacks\x12\x16\n" +
 	"\x06events\x18\b \x01(\bR\x06events\x12#\n" +
-	"\rcallbacks_url\x18\t \x01(\tR\fcallbacksUrl\"\x82\x01\n" +
+	"\rcallbacks_url\x18\t \x01(\tR\fcallbacksUrl\x121\n" +
+	"\x06tokens\x18\n" +
+	" \x01(\v2\x19.kratos.console.v1.TokensR\x06tokens\"\x82\x01\n" +
+	"\x06Tokens\x12\x18\n" +
+	"\aenabled\x18\x01 \x01(\bR\aenabled\x12\x1a\n" +
+	"\btemplate\x18\x02 \x01(\tR\btemplate\x12\x1b\n" +
+	"\tkeys_path\x18\x03 \x01(\tR\bkeysPath\x12%\n" +
+	"\x0edefault_claims\x18\x04 \x01(\tR\rdefaultClaims\"\x82\x01\n" +
 	"\aOverlay\x12\x12\n" +
 	"\x04path\x18\x01 \x01(\tR\x04path\x12\x12\n" +
 	"\x04hash\x18\x02 \x01(\tR\x04hash\x129\n" +
@@ -3633,145 +3722,147 @@ func file_proto_kratos_console_v1_admin_proto_rawDescGZIP() []byte {
 	return file_proto_kratos_console_v1_admin_proto_rawDescData
 }
 
-var file_proto_kratos_console_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 54)
+var file_proto_kratos_console_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 55)
 var file_proto_kratos_console_v1_admin_proto_goTypes = []any{
 	(*GetStatusRequest)(nil),           // 0: kratos.console.v1.GetStatusRequest
 	(*GetStatusResponse)(nil),          // 1: kratos.console.v1.GetStatusResponse
-	(*Overlay)(nil),                    // 2: kratos.console.v1.Overlay
-	(*HookPoint)(nil),                  // 3: kratos.console.v1.HookPoint
-	(*CallbackStat)(nil),               // 4: kratos.console.v1.CallbackStat
-	(*GetOverlayRequest)(nil),          // 5: kratos.console.v1.GetOverlayRequest
-	(*GetOverlayResponse)(nil),         // 6: kratos.console.v1.GetOverlayResponse
-	(*Identity)(nil),                   // 7: kratos.console.v1.Identity
-	(*Address)(nil),                    // 8: kratos.console.v1.Address
-	(*Credential)(nil),                 // 9: kratos.console.v1.Credential
-	(*ListIdentitiesRequest)(nil),      // 10: kratos.console.v1.ListIdentitiesRequest
-	(*ListIdentitiesResponse)(nil),     // 11: kratos.console.v1.ListIdentitiesResponse
-	(*GetIdentityRequest)(nil),         // 12: kratos.console.v1.GetIdentityRequest
-	(*GetIdentityResponse)(nil),        // 13: kratos.console.v1.GetIdentityResponse
-	(*CreateIdentityRequest)(nil),      // 14: kratos.console.v1.CreateIdentityRequest
-	(*CreateIdentityResponse)(nil),     // 15: kratos.console.v1.CreateIdentityResponse
-	(*UpdateIdentityRequest)(nil),      // 16: kratos.console.v1.UpdateIdentityRequest
-	(*UpdateIdentityResponse)(nil),     // 17: kratos.console.v1.UpdateIdentityResponse
-	(*DeleteIdentityRequest)(nil),      // 18: kratos.console.v1.DeleteIdentityRequest
-	(*DeleteIdentityResponse)(nil),     // 19: kratos.console.v1.DeleteIdentityResponse
-	(*DeleteCredentialsRequest)(nil),   // 20: kratos.console.v1.DeleteCredentialsRequest
-	(*DeleteCredentialsResponse)(nil),  // 21: kratos.console.v1.DeleteCredentialsResponse
-	(*CreateRecoveryCodeRequest)(nil),  // 22: kratos.console.v1.CreateRecoveryCodeRequest
-	(*CreateRecoveryCodeResponse)(nil), // 23: kratos.console.v1.CreateRecoveryCodeResponse
-	(*Session)(nil),                    // 24: kratos.console.v1.Session
-	(*Device)(nil),                     // 25: kratos.console.v1.Device
-	(*ListSessionsRequest)(nil),        // 26: kratos.console.v1.ListSessionsRequest
-	(*ListSessionsResponse)(nil),       // 27: kratos.console.v1.ListSessionsResponse
-	(*RevokeSessionsRequest)(nil),      // 28: kratos.console.v1.RevokeSessionsRequest
-	(*RevokeSessionsResponse)(nil),     // 29: kratos.console.v1.RevokeSessionsResponse
-	(*Message)(nil),                    // 30: kratos.console.v1.Message
-	(*Dispatch)(nil),                   // 31: kratos.console.v1.Dispatch
-	(*ListMessagesRequest)(nil),        // 32: kratos.console.v1.ListMessagesRequest
-	(*ListMessagesResponse)(nil),       // 33: kratos.console.v1.ListMessagesResponse
-	(*GetMessageRequest)(nil),          // 34: kratos.console.v1.GetMessageRequest
-	(*GetMessageResponse)(nil),         // 35: kratos.console.v1.GetMessageResponse
-	(*ListSchemasRequest)(nil),         // 36: kratos.console.v1.ListSchemasRequest
-	(*ListSchemasResponse)(nil),        // 37: kratos.console.v1.ListSchemasResponse
-	(*Schema)(nil),                     // 38: kratos.console.v1.Schema
-	(*SetAddressVerifiedRequest)(nil),  // 39: kratos.console.v1.SetAddressVerifiedRequest
-	(*SetAddressVerifiedResponse)(nil), // 40: kratos.console.v1.SetAddressVerifiedResponse
-	(*ImportIdentitiesRequest)(nil),    // 41: kratos.console.v1.ImportIdentitiesRequest
-	(*ImportIdentitiesResponse)(nil),   // 42: kratos.console.v1.ImportIdentitiesResponse
-	(*ImportResult)(nil),               // 43: kratos.console.v1.ImportResult
-	(*ExtendSessionRequest)(nil),       // 44: kratos.console.v1.ExtendSessionRequest
-	(*ExtendSessionResponse)(nil),      // 45: kratos.console.v1.ExtendSessionResponse
-	(*GetFlowsRequest)(nil),            // 46: kratos.console.v1.GetFlowsRequest
-	(*GetFlowsResponse)(nil),           // 47: kratos.console.v1.GetFlowsResponse
-	(*FlowCard)(nil),                   // 48: kratos.console.v1.FlowCard
-	(*FlowHook)(nil),                   // 49: kratos.console.v1.FlowHook
-	(*Finding)(nil),                    // 50: kratos.console.v1.Finding
-	(*TryFlowRequest)(nil),             // 51: kratos.console.v1.TryFlowRequest
-	(*TryFlowResponse)(nil),            // 52: kratos.console.v1.TryFlowResponse
-	(*FormNode)(nil),                   // 53: kratos.console.v1.FormNode
-	(*timestamppb.Timestamp)(nil),      // 54: google.protobuf.Timestamp
+	(*Tokens)(nil),                     // 2: kratos.console.v1.Tokens
+	(*Overlay)(nil),                    // 3: kratos.console.v1.Overlay
+	(*HookPoint)(nil),                  // 4: kratos.console.v1.HookPoint
+	(*CallbackStat)(nil),               // 5: kratos.console.v1.CallbackStat
+	(*GetOverlayRequest)(nil),          // 6: kratos.console.v1.GetOverlayRequest
+	(*GetOverlayResponse)(nil),         // 7: kratos.console.v1.GetOverlayResponse
+	(*Identity)(nil),                   // 8: kratos.console.v1.Identity
+	(*Address)(nil),                    // 9: kratos.console.v1.Address
+	(*Credential)(nil),                 // 10: kratos.console.v1.Credential
+	(*ListIdentitiesRequest)(nil),      // 11: kratos.console.v1.ListIdentitiesRequest
+	(*ListIdentitiesResponse)(nil),     // 12: kratos.console.v1.ListIdentitiesResponse
+	(*GetIdentityRequest)(nil),         // 13: kratos.console.v1.GetIdentityRequest
+	(*GetIdentityResponse)(nil),        // 14: kratos.console.v1.GetIdentityResponse
+	(*CreateIdentityRequest)(nil),      // 15: kratos.console.v1.CreateIdentityRequest
+	(*CreateIdentityResponse)(nil),     // 16: kratos.console.v1.CreateIdentityResponse
+	(*UpdateIdentityRequest)(nil),      // 17: kratos.console.v1.UpdateIdentityRequest
+	(*UpdateIdentityResponse)(nil),     // 18: kratos.console.v1.UpdateIdentityResponse
+	(*DeleteIdentityRequest)(nil),      // 19: kratos.console.v1.DeleteIdentityRequest
+	(*DeleteIdentityResponse)(nil),     // 20: kratos.console.v1.DeleteIdentityResponse
+	(*DeleteCredentialsRequest)(nil),   // 21: kratos.console.v1.DeleteCredentialsRequest
+	(*DeleteCredentialsResponse)(nil),  // 22: kratos.console.v1.DeleteCredentialsResponse
+	(*CreateRecoveryCodeRequest)(nil),  // 23: kratos.console.v1.CreateRecoveryCodeRequest
+	(*CreateRecoveryCodeResponse)(nil), // 24: kratos.console.v1.CreateRecoveryCodeResponse
+	(*Session)(nil),                    // 25: kratos.console.v1.Session
+	(*Device)(nil),                     // 26: kratos.console.v1.Device
+	(*ListSessionsRequest)(nil),        // 27: kratos.console.v1.ListSessionsRequest
+	(*ListSessionsResponse)(nil),       // 28: kratos.console.v1.ListSessionsResponse
+	(*RevokeSessionsRequest)(nil),      // 29: kratos.console.v1.RevokeSessionsRequest
+	(*RevokeSessionsResponse)(nil),     // 30: kratos.console.v1.RevokeSessionsResponse
+	(*Message)(nil),                    // 31: kratos.console.v1.Message
+	(*Dispatch)(nil),                   // 32: kratos.console.v1.Dispatch
+	(*ListMessagesRequest)(nil),        // 33: kratos.console.v1.ListMessagesRequest
+	(*ListMessagesResponse)(nil),       // 34: kratos.console.v1.ListMessagesResponse
+	(*GetMessageRequest)(nil),          // 35: kratos.console.v1.GetMessageRequest
+	(*GetMessageResponse)(nil),         // 36: kratos.console.v1.GetMessageResponse
+	(*ListSchemasRequest)(nil),         // 37: kratos.console.v1.ListSchemasRequest
+	(*ListSchemasResponse)(nil),        // 38: kratos.console.v1.ListSchemasResponse
+	(*Schema)(nil),                     // 39: kratos.console.v1.Schema
+	(*SetAddressVerifiedRequest)(nil),  // 40: kratos.console.v1.SetAddressVerifiedRequest
+	(*SetAddressVerifiedResponse)(nil), // 41: kratos.console.v1.SetAddressVerifiedResponse
+	(*ImportIdentitiesRequest)(nil),    // 42: kratos.console.v1.ImportIdentitiesRequest
+	(*ImportIdentitiesResponse)(nil),   // 43: kratos.console.v1.ImportIdentitiesResponse
+	(*ImportResult)(nil),               // 44: kratos.console.v1.ImportResult
+	(*ExtendSessionRequest)(nil),       // 45: kratos.console.v1.ExtendSessionRequest
+	(*ExtendSessionResponse)(nil),      // 46: kratos.console.v1.ExtendSessionResponse
+	(*GetFlowsRequest)(nil),            // 47: kratos.console.v1.GetFlowsRequest
+	(*GetFlowsResponse)(nil),           // 48: kratos.console.v1.GetFlowsResponse
+	(*FlowCard)(nil),                   // 49: kratos.console.v1.FlowCard
+	(*FlowHook)(nil),                   // 50: kratos.console.v1.FlowHook
+	(*Finding)(nil),                    // 51: kratos.console.v1.Finding
+	(*TryFlowRequest)(nil),             // 52: kratos.console.v1.TryFlowRequest
+	(*TryFlowResponse)(nil),            // 53: kratos.console.v1.TryFlowResponse
+	(*FormNode)(nil),                   // 54: kratos.console.v1.FormNode
+	(*timestamppb.Timestamp)(nil),      // 55: google.protobuf.Timestamp
 }
 var file_proto_kratos_console_v1_admin_proto_depIdxs = []int32{
-	2,  // 0: kratos.console.v1.GetStatusResponse.overlay:type_name -> kratos.console.v1.Overlay
-	3,  // 1: kratos.console.v1.GetStatusResponse.hooks:type_name -> kratos.console.v1.HookPoint
-	4,  // 2: kratos.console.v1.GetStatusResponse.callbacks:type_name -> kratos.console.v1.CallbackStat
-	54, // 3: kratos.console.v1.Overlay.written_at:type_name -> google.protobuf.Timestamp
-	54, // 4: kratos.console.v1.CallbackStat.last_at:type_name -> google.protobuf.Timestamp
-	8,  // 5: kratos.console.v1.Identity.verifiable_addresses:type_name -> kratos.console.v1.Address
-	8,  // 6: kratos.console.v1.Identity.recovery_addresses:type_name -> kratos.console.v1.Address
-	9,  // 7: kratos.console.v1.Identity.credentials:type_name -> kratos.console.v1.Credential
-	54, // 8: kratos.console.v1.Identity.created_at:type_name -> google.protobuf.Timestamp
-	54, // 9: kratos.console.v1.Identity.updated_at:type_name -> google.protobuf.Timestamp
-	54, // 10: kratos.console.v1.Credential.created_at:type_name -> google.protobuf.Timestamp
-	7,  // 11: kratos.console.v1.ListIdentitiesResponse.identities:type_name -> kratos.console.v1.Identity
-	7,  // 12: kratos.console.v1.GetIdentityResponse.identity:type_name -> kratos.console.v1.Identity
-	24, // 13: kratos.console.v1.GetIdentityResponse.sessions:type_name -> kratos.console.v1.Session
-	7,  // 14: kratos.console.v1.CreateIdentityResponse.identity:type_name -> kratos.console.v1.Identity
-	7,  // 15: kratos.console.v1.UpdateIdentityResponse.identity:type_name -> kratos.console.v1.Identity
-	54, // 16: kratos.console.v1.CreateRecoveryCodeResponse.expires_at:type_name -> google.protobuf.Timestamp
-	54, // 17: kratos.console.v1.Session.authenticated_at:type_name -> google.protobuf.Timestamp
-	54, // 18: kratos.console.v1.Session.expires_at:type_name -> google.protobuf.Timestamp
-	25, // 19: kratos.console.v1.Session.devices:type_name -> kratos.console.v1.Device
-	24, // 20: kratos.console.v1.ListSessionsResponse.sessions:type_name -> kratos.console.v1.Session
-	54, // 21: kratos.console.v1.Message.created_at:type_name -> google.protobuf.Timestamp
-	54, // 22: kratos.console.v1.Message.updated_at:type_name -> google.protobuf.Timestamp
-	31, // 23: kratos.console.v1.Message.dispatches:type_name -> kratos.console.v1.Dispatch
-	54, // 24: kratos.console.v1.Dispatch.created_at:type_name -> google.protobuf.Timestamp
-	30, // 25: kratos.console.v1.ListMessagesResponse.messages:type_name -> kratos.console.v1.Message
-	30, // 26: kratos.console.v1.GetMessageResponse.message:type_name -> kratos.console.v1.Message
-	38, // 27: kratos.console.v1.ListSchemasResponse.schemas:type_name -> kratos.console.v1.Schema
-	7,  // 28: kratos.console.v1.SetAddressVerifiedResponse.identity:type_name -> kratos.console.v1.Identity
-	43, // 29: kratos.console.v1.ImportIdentitiesResponse.results:type_name -> kratos.console.v1.ImportResult
-	24, // 30: kratos.console.v1.ExtendSessionResponse.session:type_name -> kratos.console.v1.Session
-	48, // 31: kratos.console.v1.GetFlowsResponse.flows:type_name -> kratos.console.v1.FlowCard
-	50, // 32: kratos.console.v1.GetFlowsResponse.findings:type_name -> kratos.console.v1.Finding
-	49, // 33: kratos.console.v1.FlowCard.hooks:type_name -> kratos.console.v1.FlowHook
-	50, // 34: kratos.console.v1.FlowCard.findings:type_name -> kratos.console.v1.Finding
-	54, // 35: kratos.console.v1.FlowHook.last_at:type_name -> google.protobuf.Timestamp
-	53, // 36: kratos.console.v1.TryFlowResponse.nodes:type_name -> kratos.console.v1.FormNode
-	0,  // 37: kratos.console.v1.AdminService.GetStatus:input_type -> kratos.console.v1.GetStatusRequest
-	5,  // 38: kratos.console.v1.AdminService.GetOverlay:input_type -> kratos.console.v1.GetOverlayRequest
-	46, // 39: kratos.console.v1.AdminService.GetFlows:input_type -> kratos.console.v1.GetFlowsRequest
-	51, // 40: kratos.console.v1.AdminService.TryFlow:input_type -> kratos.console.v1.TryFlowRequest
-	10, // 41: kratos.console.v1.AdminService.ListIdentities:input_type -> kratos.console.v1.ListIdentitiesRequest
-	12, // 42: kratos.console.v1.AdminService.GetIdentity:input_type -> kratos.console.v1.GetIdentityRequest
-	14, // 43: kratos.console.v1.AdminService.CreateIdentity:input_type -> kratos.console.v1.CreateIdentityRequest
-	16, // 44: kratos.console.v1.AdminService.UpdateIdentity:input_type -> kratos.console.v1.UpdateIdentityRequest
-	18, // 45: kratos.console.v1.AdminService.DeleteIdentity:input_type -> kratos.console.v1.DeleteIdentityRequest
-	20, // 46: kratos.console.v1.AdminService.DeleteCredentials:input_type -> kratos.console.v1.DeleteCredentialsRequest
-	22, // 47: kratos.console.v1.AdminService.CreateRecoveryCode:input_type -> kratos.console.v1.CreateRecoveryCodeRequest
-	39, // 48: kratos.console.v1.AdminService.SetAddressVerified:input_type -> kratos.console.v1.SetAddressVerifiedRequest
-	41, // 49: kratos.console.v1.AdminService.ImportIdentities:input_type -> kratos.console.v1.ImportIdentitiesRequest
-	26, // 50: kratos.console.v1.AdminService.ListSessions:input_type -> kratos.console.v1.ListSessionsRequest
-	28, // 51: kratos.console.v1.AdminService.RevokeSessions:input_type -> kratos.console.v1.RevokeSessionsRequest
-	44, // 52: kratos.console.v1.AdminService.ExtendSession:input_type -> kratos.console.v1.ExtendSessionRequest
-	32, // 53: kratos.console.v1.AdminService.ListMessages:input_type -> kratos.console.v1.ListMessagesRequest
-	34, // 54: kratos.console.v1.AdminService.GetMessage:input_type -> kratos.console.v1.GetMessageRequest
-	36, // 55: kratos.console.v1.AdminService.ListSchemas:input_type -> kratos.console.v1.ListSchemasRequest
-	1,  // 56: kratos.console.v1.AdminService.GetStatus:output_type -> kratos.console.v1.GetStatusResponse
-	6,  // 57: kratos.console.v1.AdminService.GetOverlay:output_type -> kratos.console.v1.GetOverlayResponse
-	47, // 58: kratos.console.v1.AdminService.GetFlows:output_type -> kratos.console.v1.GetFlowsResponse
-	52, // 59: kratos.console.v1.AdminService.TryFlow:output_type -> kratos.console.v1.TryFlowResponse
-	11, // 60: kratos.console.v1.AdminService.ListIdentities:output_type -> kratos.console.v1.ListIdentitiesResponse
-	13, // 61: kratos.console.v1.AdminService.GetIdentity:output_type -> kratos.console.v1.GetIdentityResponse
-	15, // 62: kratos.console.v1.AdminService.CreateIdentity:output_type -> kratos.console.v1.CreateIdentityResponse
-	17, // 63: kratos.console.v1.AdminService.UpdateIdentity:output_type -> kratos.console.v1.UpdateIdentityResponse
-	19, // 64: kratos.console.v1.AdminService.DeleteIdentity:output_type -> kratos.console.v1.DeleteIdentityResponse
-	21, // 65: kratos.console.v1.AdminService.DeleteCredentials:output_type -> kratos.console.v1.DeleteCredentialsResponse
-	23, // 66: kratos.console.v1.AdminService.CreateRecoveryCode:output_type -> kratos.console.v1.CreateRecoveryCodeResponse
-	40, // 67: kratos.console.v1.AdminService.SetAddressVerified:output_type -> kratos.console.v1.SetAddressVerifiedResponse
-	42, // 68: kratos.console.v1.AdminService.ImportIdentities:output_type -> kratos.console.v1.ImportIdentitiesResponse
-	27, // 69: kratos.console.v1.AdminService.ListSessions:output_type -> kratos.console.v1.ListSessionsResponse
-	29, // 70: kratos.console.v1.AdminService.RevokeSessions:output_type -> kratos.console.v1.RevokeSessionsResponse
-	45, // 71: kratos.console.v1.AdminService.ExtendSession:output_type -> kratos.console.v1.ExtendSessionResponse
-	33, // 72: kratos.console.v1.AdminService.ListMessages:output_type -> kratos.console.v1.ListMessagesResponse
-	35, // 73: kratos.console.v1.AdminService.GetMessage:output_type -> kratos.console.v1.GetMessageResponse
-	37, // 74: kratos.console.v1.AdminService.ListSchemas:output_type -> kratos.console.v1.ListSchemasResponse
-	56, // [56:75] is the sub-list for method output_type
-	37, // [37:56] is the sub-list for method input_type
-	37, // [37:37] is the sub-list for extension type_name
-	37, // [37:37] is the sub-list for extension extendee
-	0,  // [0:37] is the sub-list for field type_name
+	3,  // 0: kratos.console.v1.GetStatusResponse.overlay:type_name -> kratos.console.v1.Overlay
+	4,  // 1: kratos.console.v1.GetStatusResponse.hooks:type_name -> kratos.console.v1.HookPoint
+	5,  // 2: kratos.console.v1.GetStatusResponse.callbacks:type_name -> kratos.console.v1.CallbackStat
+	2,  // 3: kratos.console.v1.GetStatusResponse.tokens:type_name -> kratos.console.v1.Tokens
+	55, // 4: kratos.console.v1.Overlay.written_at:type_name -> google.protobuf.Timestamp
+	55, // 5: kratos.console.v1.CallbackStat.last_at:type_name -> google.protobuf.Timestamp
+	9,  // 6: kratos.console.v1.Identity.verifiable_addresses:type_name -> kratos.console.v1.Address
+	9,  // 7: kratos.console.v1.Identity.recovery_addresses:type_name -> kratos.console.v1.Address
+	10, // 8: kratos.console.v1.Identity.credentials:type_name -> kratos.console.v1.Credential
+	55, // 9: kratos.console.v1.Identity.created_at:type_name -> google.protobuf.Timestamp
+	55, // 10: kratos.console.v1.Identity.updated_at:type_name -> google.protobuf.Timestamp
+	55, // 11: kratos.console.v1.Credential.created_at:type_name -> google.protobuf.Timestamp
+	8,  // 12: kratos.console.v1.ListIdentitiesResponse.identities:type_name -> kratos.console.v1.Identity
+	8,  // 13: kratos.console.v1.GetIdentityResponse.identity:type_name -> kratos.console.v1.Identity
+	25, // 14: kratos.console.v1.GetIdentityResponse.sessions:type_name -> kratos.console.v1.Session
+	8,  // 15: kratos.console.v1.CreateIdentityResponse.identity:type_name -> kratos.console.v1.Identity
+	8,  // 16: kratos.console.v1.UpdateIdentityResponse.identity:type_name -> kratos.console.v1.Identity
+	55, // 17: kratos.console.v1.CreateRecoveryCodeResponse.expires_at:type_name -> google.protobuf.Timestamp
+	55, // 18: kratos.console.v1.Session.authenticated_at:type_name -> google.protobuf.Timestamp
+	55, // 19: kratos.console.v1.Session.expires_at:type_name -> google.protobuf.Timestamp
+	26, // 20: kratos.console.v1.Session.devices:type_name -> kratos.console.v1.Device
+	25, // 21: kratos.console.v1.ListSessionsResponse.sessions:type_name -> kratos.console.v1.Session
+	55, // 22: kratos.console.v1.Message.created_at:type_name -> google.protobuf.Timestamp
+	55, // 23: kratos.console.v1.Message.updated_at:type_name -> google.protobuf.Timestamp
+	32, // 24: kratos.console.v1.Message.dispatches:type_name -> kratos.console.v1.Dispatch
+	55, // 25: kratos.console.v1.Dispatch.created_at:type_name -> google.protobuf.Timestamp
+	31, // 26: kratos.console.v1.ListMessagesResponse.messages:type_name -> kratos.console.v1.Message
+	31, // 27: kratos.console.v1.GetMessageResponse.message:type_name -> kratos.console.v1.Message
+	39, // 28: kratos.console.v1.ListSchemasResponse.schemas:type_name -> kratos.console.v1.Schema
+	8,  // 29: kratos.console.v1.SetAddressVerifiedResponse.identity:type_name -> kratos.console.v1.Identity
+	44, // 30: kratos.console.v1.ImportIdentitiesResponse.results:type_name -> kratos.console.v1.ImportResult
+	25, // 31: kratos.console.v1.ExtendSessionResponse.session:type_name -> kratos.console.v1.Session
+	49, // 32: kratos.console.v1.GetFlowsResponse.flows:type_name -> kratos.console.v1.FlowCard
+	51, // 33: kratos.console.v1.GetFlowsResponse.findings:type_name -> kratos.console.v1.Finding
+	50, // 34: kratos.console.v1.FlowCard.hooks:type_name -> kratos.console.v1.FlowHook
+	51, // 35: kratos.console.v1.FlowCard.findings:type_name -> kratos.console.v1.Finding
+	55, // 36: kratos.console.v1.FlowHook.last_at:type_name -> google.protobuf.Timestamp
+	54, // 37: kratos.console.v1.TryFlowResponse.nodes:type_name -> kratos.console.v1.FormNode
+	0,  // 38: kratos.console.v1.AdminService.GetStatus:input_type -> kratos.console.v1.GetStatusRequest
+	6,  // 39: kratos.console.v1.AdminService.GetOverlay:input_type -> kratos.console.v1.GetOverlayRequest
+	47, // 40: kratos.console.v1.AdminService.GetFlows:input_type -> kratos.console.v1.GetFlowsRequest
+	52, // 41: kratos.console.v1.AdminService.TryFlow:input_type -> kratos.console.v1.TryFlowRequest
+	11, // 42: kratos.console.v1.AdminService.ListIdentities:input_type -> kratos.console.v1.ListIdentitiesRequest
+	13, // 43: kratos.console.v1.AdminService.GetIdentity:input_type -> kratos.console.v1.GetIdentityRequest
+	15, // 44: kratos.console.v1.AdminService.CreateIdentity:input_type -> kratos.console.v1.CreateIdentityRequest
+	17, // 45: kratos.console.v1.AdminService.UpdateIdentity:input_type -> kratos.console.v1.UpdateIdentityRequest
+	19, // 46: kratos.console.v1.AdminService.DeleteIdentity:input_type -> kratos.console.v1.DeleteIdentityRequest
+	21, // 47: kratos.console.v1.AdminService.DeleteCredentials:input_type -> kratos.console.v1.DeleteCredentialsRequest
+	23, // 48: kratos.console.v1.AdminService.CreateRecoveryCode:input_type -> kratos.console.v1.CreateRecoveryCodeRequest
+	40, // 49: kratos.console.v1.AdminService.SetAddressVerified:input_type -> kratos.console.v1.SetAddressVerifiedRequest
+	42, // 50: kratos.console.v1.AdminService.ImportIdentities:input_type -> kratos.console.v1.ImportIdentitiesRequest
+	27, // 51: kratos.console.v1.AdminService.ListSessions:input_type -> kratos.console.v1.ListSessionsRequest
+	29, // 52: kratos.console.v1.AdminService.RevokeSessions:input_type -> kratos.console.v1.RevokeSessionsRequest
+	45, // 53: kratos.console.v1.AdminService.ExtendSession:input_type -> kratos.console.v1.ExtendSessionRequest
+	33, // 54: kratos.console.v1.AdminService.ListMessages:input_type -> kratos.console.v1.ListMessagesRequest
+	35, // 55: kratos.console.v1.AdminService.GetMessage:input_type -> kratos.console.v1.GetMessageRequest
+	37, // 56: kratos.console.v1.AdminService.ListSchemas:input_type -> kratos.console.v1.ListSchemasRequest
+	1,  // 57: kratos.console.v1.AdminService.GetStatus:output_type -> kratos.console.v1.GetStatusResponse
+	7,  // 58: kratos.console.v1.AdminService.GetOverlay:output_type -> kratos.console.v1.GetOverlayResponse
+	48, // 59: kratos.console.v1.AdminService.GetFlows:output_type -> kratos.console.v1.GetFlowsResponse
+	53, // 60: kratos.console.v1.AdminService.TryFlow:output_type -> kratos.console.v1.TryFlowResponse
+	12, // 61: kratos.console.v1.AdminService.ListIdentities:output_type -> kratos.console.v1.ListIdentitiesResponse
+	14, // 62: kratos.console.v1.AdminService.GetIdentity:output_type -> kratos.console.v1.GetIdentityResponse
+	16, // 63: kratos.console.v1.AdminService.CreateIdentity:output_type -> kratos.console.v1.CreateIdentityResponse
+	18, // 64: kratos.console.v1.AdminService.UpdateIdentity:output_type -> kratos.console.v1.UpdateIdentityResponse
+	20, // 65: kratos.console.v1.AdminService.DeleteIdentity:output_type -> kratos.console.v1.DeleteIdentityResponse
+	22, // 66: kratos.console.v1.AdminService.DeleteCredentials:output_type -> kratos.console.v1.DeleteCredentialsResponse
+	24, // 67: kratos.console.v1.AdminService.CreateRecoveryCode:output_type -> kratos.console.v1.CreateRecoveryCodeResponse
+	41, // 68: kratos.console.v1.AdminService.SetAddressVerified:output_type -> kratos.console.v1.SetAddressVerifiedResponse
+	43, // 69: kratos.console.v1.AdminService.ImportIdentities:output_type -> kratos.console.v1.ImportIdentitiesResponse
+	28, // 70: kratos.console.v1.AdminService.ListSessions:output_type -> kratos.console.v1.ListSessionsResponse
+	30, // 71: kratos.console.v1.AdminService.RevokeSessions:output_type -> kratos.console.v1.RevokeSessionsResponse
+	46, // 72: kratos.console.v1.AdminService.ExtendSession:output_type -> kratos.console.v1.ExtendSessionResponse
+	34, // 73: kratos.console.v1.AdminService.ListMessages:output_type -> kratos.console.v1.ListMessagesResponse
+	36, // 74: kratos.console.v1.AdminService.GetMessage:output_type -> kratos.console.v1.GetMessageResponse
+	38, // 75: kratos.console.v1.AdminService.ListSchemas:output_type -> kratos.console.v1.ListSchemasResponse
+	57, // [57:76] is the sub-list for method output_type
+	38, // [38:57] is the sub-list for method input_type
+	38, // [38:38] is the sub-list for extension type_name
+	38, // [38:38] is the sub-list for extension extendee
+	0,  // [0:38] is the sub-list for field type_name
 }
 
 func init() { file_proto_kratos_console_v1_admin_proto_init() }
@@ -3785,7 +3876,7 @@ func file_proto_kratos_console_v1_admin_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_kratos_console_v1_admin_proto_rawDesc), len(file_proto_kratos_console_v1_admin_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   54,
+			NumMessages:   55,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

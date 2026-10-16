@@ -29,6 +29,7 @@ import (
 	"github.com/backplane-labs/backplane-kratos/internal/admin"
 	"github.com/backplane-labs/backplane-kratos/internal/apply"
 	"github.com/backplane-labs/backplane-kratos/internal/flows"
+	"github.com/backplane-labs/backplane-kratos/internal/jwks"
 	"github.com/backplane-labs/backplane-kratos/internal/ory"
 	"github.com/backplane-labs/backplane-kratos/internal/overlay"
 	"github.com/backplane-labs/backplane-kratos/internal/ui"
@@ -58,6 +59,9 @@ type Config struct {
 	OIDCSecrets config.Live[map[string]config.Secret] `json:"oidc_secrets,omitempty" schemapb:"description=Client secrets of the OIDC providers by provider id"`
 	// OAuth2ProviderHeaders go with Kratos's requests to Hydra; live.
 	OAuth2ProviderHeaders config.Live[map[string]config.Secret] `json:"oauth2_provider_headers,omitempty" schemapb:"description=Headers of Kratos's requests to Hydra's admin API"`
+	// TokenKey is the private JWK (JSON) session tokens are signed with; its
+	// public key must be the first of settings.tokens.keys. Live, a secret.
+	TokenKey config.Live[config.Secret] `json:"token_key,omitempty" schemapb:"description=Private JWK the session tokens are signed with (empty: no tokens)"`
 	// FailOpen names flow hooks whose failure lets the flow continue.
 	FailOpen config.Live[[]string] `json:"fail_open,omitempty" schemapb:"description=Flow hooks (e.g. AfterLogin) whose failure lets the flow continue"`
 }
@@ -132,7 +136,8 @@ type State struct {
 	Activities *activities.Activities
 	Admin      *admin.Admin
 
-	callbacks string // listen address of the callbacks
+	callbacks string                        // listen address of the callbacks
+	settings  config.Live[overlay.Settings] // the tokens' public keys among them
 }
 
 // Main runs backplane-kratos until a signal stops it, exiting on error.
@@ -153,6 +158,7 @@ func Run(ctx context.Context) error {
 	st := svc.State()
 
 	svc.HTTP("/", st.Flows.Handler(), api.Listen(st.callbacks))
+	svc.HTTP("/.well-known/", jwks.Handler(st.settings))
 	svc.Internal(func(r grpc.ServiceRegistrar) { kratosconsolev1.RegisterAdminServiceServer(r, st.Admin) })
 
 	if bundle := ui.Bundle(); bundle != nil {
@@ -191,6 +197,7 @@ func newState(root backplane.Root[Config]) (*State, error) {
 	st := &State{
 		Kratos:    deps.NewDependency[ory.Client](root, dependency{client: client}),
 		callbacks: cfg.Callbacks.Listen,
+		settings:  cfg.Settings,
 	}
 	st.Flows = flows.New(root, key, cfg.FailOpen)
 
@@ -207,6 +214,7 @@ func newState(root backplane.Root[Config]) (*State, error) {
 		apply.Secrets{
 			OIDC:                  cfg.OIDCSecrets,
 			OAuth2ProviderHeaders: cfg.OAuth2ProviderHeaders,
+			TokenKey:              cfg.TokenKey,
 		},
 		st.Flows,
 		overlay.Wiring{
@@ -214,7 +222,7 @@ func newState(root backplane.Root[Config]) (*State, error) {
 		},
 	)
 	st.Activities = activities.New(root, client)
-	st.Admin = admin.New(root, client, st.Flows, st.Applier, cfg.FailOpen, cfg.Settings, cfg.NATS.Enabled())
+	st.Admin = admin.New(root, client, st.Flows, st.Applier, cfg.FailOpen, cfg.Settings, cfg.TokenKey, cfg.NATS.Enabled())
 
 	return st, nil
 }

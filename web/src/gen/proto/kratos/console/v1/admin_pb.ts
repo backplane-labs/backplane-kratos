@@ -12,7 +12,7 @@ import type { Message as Message$1 } from "@bufbuild/protobuf";
  * Describes the file proto/kratos/console/v1/admin.proto.
  */
 export const file_proto_kratos_console_v1_admin: GenFile = /*@__PURE__*/
-  fileDesc("CiNwcm90by9rcmF0b3MvY29uc29sZS92MS9hZG1pbi5wcm90bxIRa3JhdG9zLmNvbnNvbGUudjEiEgoQR2V0U3RhdHVzUmVxdWVzdCKRAgoRR2V0U3RhdHVzUmVzcG9uc2USEQoJYWRtaW5fdXJsGAEgASgJEhIKCnB1YmxpY191cmwYAiABKAkSDwoHdmVyc2lvbhgDIAEoCRIPCgdwcm9ibGVtGAQgASgJEisKB292ZXJsYXkYBSABKAsyGi5rcmF0b3MuY29uc29sZS52MS5PdmVybGF5EisKBWhvb2tzGAYgAygLMhwua3JhdG9zLmNvbnNvbGUudjEuSG9va1BvaW50EjIKCWNhbGxiYWNrcxgHIAMoCzIfLmtyYXRvcy5jb25zb2xlLnYxLkNhbGxiYWNrU3RhdBIOCgZldmVudHMYCCABKAgSFQoNY2FsbGJhY2tzX3VybBgJIAEoCSJkCgdPdmVybGF5EgwKBHBhdGgYASABKAkSDAoEaGFzaBgCIAEoCRIuCgp3cml0dGVuX2F0GAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBINCgVlcnJvchgEIAEoCSJQCglIb29rUG9pbnQSDAoEbmFtZRgBIAEoCRITCgtkZXNjcmlwdGlvbhgCIAEoCRINCgVib3VuZBgDIAEoCBIRCglmYWlsX29wZW4YBCABKAgirgEKDENhbGxiYWNrU3RhdBINCgVwb2ludBgBIAEoCRINCgVjYWxscxgCIAEoBBIQCghmYWlsdXJlcxgDIAEoBBIrCgdsYXN0X2F0GAQgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIUCgxsYXN0X291dGNvbWUYBSABKAkSEgoKbGFzdF9lcnJvchgGIAEoCRIXCg9sYXN0X2xhdGVuY3lfbXMYByABKAEiEwoRR2V0T3ZlcmxheVJlcXVlc3QiNAoSR2V0T3ZlcmxheVJlc3BvbnNlEg8KB2NvbnRlbnQYASABKAkSDQoFZXJyb3IYAiABKAkisgMKCElkZW50aXR5EgoKAmlkGAEgASgJEhEKCXNjaGVtYV9pZBgCIAEoCRINCgVzdGF0ZRgDIAEoCRITCgt0cmFpdHNfanNvbhgEIAEoCRIcChRtZXRhZGF0YV9wdWJsaWNfanNvbhgFIAEoCRIbChNtZXRhZGF0YV9hZG1pbl9qc29uGAYgASgJEhMKC2V4dGVybmFsX2lkGAcgASgJEjgKFHZlcmlmaWFibGVfYWRkcmVzc2VzGAggAygLMhoua3JhdG9zLmNvbnNvbGUudjEuQWRkcmVzcxI2ChJyZWNvdmVyeV9hZGRyZXNzZXMYCSADKAsyGi5rcmF0b3MuY29uc29sZS52MS5BZGRyZXNzEjIKC2NyZWRlbnRpYWxzGAogAygLMh0ua3JhdG9zLmNvbnNvbGUudjEuQ3JlZGVudGlhbBIuCgpjcmVhdGVkX2F0GAsgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBIuCgp1cGRhdGVkX2F0GAwgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBINCgVsYWJlbBgNIAEoCSJHCgdBZGRyZXNzEg0KBXZhbHVlGAEgASgJEgsKA3ZpYRgCIAEoCRIQCgh2ZXJpZmllZBgDIAEoCBIOCgZzdGF0dXMYBCABKAkiXwoKQ3JlZGVudGlhbBIMCgR0eXBlGAEgASgJEhMKC2lkZW50aWZpZXJzGAIgAygJEi4KCmNyZWF0ZWRfYXQYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wIk0KFUxpc3RJZGVudGl0aWVzUmVxdWVzdBINCgVxdWVyeRgBIAEoCRIRCglwYWdlX3NpemUYAiABKAUSEgoKcGFnZV90b2tlbhgDIAEoCSJiChZMaXN0SWRlbnRpdGllc1Jlc3BvbnNlEi8KCmlkZW50aXRpZXMYASADKAsyGy5rcmF0b3MuY29uc29sZS52MS5JZGVudGl0eRIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkiIAoSR2V0SWRlbnRpdHlSZXF1ZXN0EgoKAmlkGAEgASgJInIKE0dldElkZW50aXR5UmVzcG9uc2USLQoIaWRlbnRpdHkYASABKAsyGy5rcmF0b3MuY29uc29sZS52MS5JZGVudGl0eRIsCghzZXNzaW9ucxgCIAMoCzIaLmtyYXRvcy5jb25zb2xlLnYxLlNlc3Npb24isAEKFUNyZWF0ZUlkZW50aXR5UmVxdWVzdBIRCglzY2hlbWFfaWQYASABKAkSEwoLdHJhaXRzX2pzb24YAiABKAkSDQoFc3RhdGUYAyABKAkSEAoIcGFzc3dvcmQYBCABKAkSHAoUbWV0YWRhdGFfcHVibGljX2pzb24YBSABKAkSGwoTbWV0YWRhdGFfYWRtaW5fanNvbhgGIAEoCRITCgtleHRlcm5hbF9pZBgHIAEoCSJHChZDcmVhdGVJZGVudGl0eVJlc3BvbnNlEi0KCGlkZW50aXR5GAEgASgLMhsua3JhdG9zLmNvbnNvbGUudjEuSWRlbnRpdHkilQEKFVVwZGF0ZUlkZW50aXR5UmVxdWVzdBIKCgJpZBgBIAEoCRIRCglzY2hlbWFfaWQYAiABKAkSEwoLdHJhaXRzX2pzb24YAyABKAkSDQoFc3RhdGUYBCABKAkSHAoUbWV0YWRhdGFfcHVibGljX2pzb24YBSABKAkSGwoTbWV0YWRhdGFfYWRtaW5fanNvbhgGIAEoCSJHChZVcGRhdGVJZGVudGl0eVJlc3BvbnNlEi0KCGlkZW50aXR5GAEgASgLMhsua3JhdG9zLmNvbnNvbGUudjEuSWRlbnRpdHkiIwoVRGVsZXRlSWRlbnRpdHlSZXF1ZXN0EgoKAmlkGAEgASgJIhgKFkRlbGV0ZUlkZW50aXR5UmVzcG9uc2UiSAoYRGVsZXRlQ3JlZGVudGlhbHNSZXF1ZXN0EgoKAmlkGAEgASgJEgwKBHR5cGUYAiABKAkSEgoKaWRlbnRpZmllchgDIAEoCSIbChlEZWxldGVDcmVkZW50aWFsc1Jlc3BvbnNlIlwKGUNyZWF0ZVJlY292ZXJ5Q29kZVJlcXVlc3QSCgoCaWQYASABKAkSEgoKZXhwaXJlc19pbhgCIAEoCRIMCgRsaW5rGAMgASgIEhEKCWZsb3dfdHlwZRgEIAEoCSJoChpDcmVhdGVSZWNvdmVyeUNvZGVSZXNwb25zZRIMCgRjb2RlGAEgASgJEgwKBGxpbmsYAiABKAkSLgoKZXhwaXJlc19hdBgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiggIKB1Nlc3Npb24SCgoCaWQYASABKAkSDgoGYWN0aXZlGAIgASgIEhMKC2lkZW50aXR5X2lkGAMgASgJEhYKDmlkZW50aXR5X2xhYmVsGAQgASgJEgsKA2FhbBgFIAEoCRIPCgdtZXRob2RzGAYgAygJEjQKEGF1dGhlbnRpY2F0ZWRfYXQYByABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi4KCmV4cGlyZXNfYXQYCCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEioKB2RldmljZXMYCSADKAsyGS5rcmF0b3MuY29uc29sZS52MS5EZXZpY2UiQgoGRGV2aWNlEhIKCmlwX2FkZHJlc3MYASABKAkSEgoKdXNlcl9hZ2VudBgCIAEoCRIQCghsb2NhdGlvbhgDIAEoCSJRChNMaXN0U2Vzc2lvbnNSZXF1ZXN0EhMKC2FjdGl2ZV9vbmx5GAEgASgIEhEKCXBhZ2Vfc2l6ZRgCIAEoBRISCgpwYWdlX3Rva2VuGAMgASgJIl0KFExpc3RTZXNzaW9uc1Jlc3BvbnNlEiwKCHNlc3Npb25zGAEgAygLMhoua3JhdG9zLmNvbnNvbGUudjEuU2Vzc2lvbhIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkiQAoVUmV2b2tlU2Vzc2lvbnNSZXF1ZXN0EhIKCnNlc3Npb25faWQYASABKAkSEwoLaWRlbnRpdHlfaWQYAiABKAkiGAoWUmV2b2tlU2Vzc2lvbnNSZXNwb25zZSKFAgoHTWVzc2FnZRIKCgJpZBgBIAEoCRIOCgZzdGF0dXMYAiABKAkSDwoHY2hhbm5lbBgDIAEoCRIRCglyZWNpcGllbnQYBCABKAkSFQoNdGVtcGxhdGVfdHlwZRgFIAEoCRISCgpzZW5kX2NvdW50GAYgASgFEi4KCmNyZWF0ZWRfYXQYByABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi4KCnVwZGF0ZWRfYXQYCCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi8KCmRpc3BhdGNoZXMYCSADKAsyGy5rcmF0b3MuY29uc29sZS52MS5EaXNwYXRjaCJZCghEaXNwYXRjaBIOCgZzdGF0dXMYASABKAkSDQoFZXJyb3IYAiABKAkSLgoKY3JlYXRlZF9hdBgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiXwoTTGlzdE1lc3NhZ2VzUmVxdWVzdBIOCgZzdGF0dXMYASABKAkSEQoJcmVjaXBpZW50GAIgASgJEhEKCXBhZ2Vfc2l6ZRgDIAEoBRISCgpwYWdlX3Rva2VuGAQgASgJIl0KFExpc3RNZXNzYWdlc1Jlc3BvbnNlEiwKCG1lc3NhZ2VzGAEgAygLMhoua3JhdG9zLmNvbnNvbGUudjEuTWVzc2FnZRIXCg9uZXh0X3BhZ2VfdG9rZW4YAiABKAkiLwoRR2V0TWVzc2FnZVJlcXVlc3QSCgoCaWQYASABKAkSDgoGcmV2ZWFsGAIgASgIInIKEkdldE1lc3NhZ2VSZXNwb25zZRIrCgdtZXNzYWdlGAEgASgLMhoua3JhdG9zLmNvbnNvbGUudjEuTWVzc2FnZRIPCgdzdWJqZWN0GAIgASgJEgwKBGJvZHkYAyABKAkSEAoIcmVkYWN0ZWQYBCABKAgiFAoSTGlzdFNjaGVtYXNSZXF1ZXN0IkEKE0xpc3RTY2hlbWFzUmVzcG9uc2USKgoHc2NoZW1hcxgBIAMoCzIZLmtyYXRvcy5jb25zb2xlLnYxLlNjaGVtYSIpCgZTY2hlbWESCgoCaWQYASABKAkSEwoLc2NoZW1hX2pzb24YAiABKAkiSAoZU2V0QWRkcmVzc1ZlcmlmaWVkUmVxdWVzdBIKCgJpZBgBIAEoCRINCgV2YWx1ZRgCIAEoCRIQCgh2ZXJpZmllZBgDIAEoCCJLChpTZXRBZGRyZXNzVmVyaWZpZWRSZXNwb25zZRItCghpZGVudGl0eRgBIAEoCzIbLmtyYXRvcy5jb25zb2xlLnYxLklkZW50aXR5IjIKF0ltcG9ydElkZW50aXRpZXNSZXF1ZXN0EhcKD2lkZW50aXRpZXNfanNvbhgBIAEoCSJMChhJbXBvcnRJZGVudGl0aWVzUmVzcG9uc2USMAoHcmVzdWx0cxgBIAMoCzIfLmtyYXRvcy5jb25zb2xlLnYxLkltcG9ydFJlc3VsdCJCCgxJbXBvcnRSZXN1bHQSDgoGYWN0aW9uGAEgASgJEhMKC2lkZW50aXR5X2lkGAIgASgJEg0KBWVycm9yGAMgASgJIiIKFEV4dGVuZFNlc3Npb25SZXF1ZXN0EgoKAmlkGAEgASgJIkQKFUV4dGVuZFNlc3Npb25SZXNwb25zZRIrCgdzZXNzaW9uGAEgASgLMhoua3JhdG9zLmNvbnNvbGUudjEuU2Vzc2lvbiIRCg9HZXRGbG93c1JlcXVlc3QigwEKEEdldEZsb3dzUmVzcG9uc2USKgoFZmxvd3MYASADKAsyGy5rcmF0b3MuY29uc29sZS52MS5GbG93Q2FyZBIsCghmaW5kaW5ncxgCIAMoCzIaLmtyYXRvcy5jb25zb2xlLnYxLkZpbmRpbmcSFQoNZGVsaXZlcl9ib3VuZBgDIAEoCCKBAQoIRmxvd0NhcmQSDAoEZmxvdxgBIAEoCRIqCgVob29rcxgCIAMoCzIbLmtyYXRvcy5jb25zb2xlLnYxLkZsb3dIb29rEg0KBWV2ZW50GAMgASgJEiwKCGZpbmRpbmdzGAQgAygLMhoua3JhdG9zLmNvbnNvbGUudjEuRmluZGluZyKsAQoIRmxvd0hvb2sSDAoEbmFtZRgBIAEoCRIMCgR3aGVuGAIgASgJEg0KBWJvdW5kGAMgASgIEhEKCWZhaWxfb3BlbhgEIAEoCBINCgVjYWxscxgFIAEoBBIQCghmYWlsdXJlcxgGIAEoBBIUCgxsYXN0X291dGNvbWUYByABKAkSKwoHbGFzdF9hdBgIIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiNQoHRmluZGluZxINCgVsZXZlbBgBIAEoCRIMCgR0ZXh0GAIgASgJEg0KBWZpZWxkGAMgASgJIh4KDlRyeUZsb3dSZXF1ZXN0EgwKBGZsb3cYASABKAkicQoPVHJ5Rmxvd1Jlc3BvbnNlEhEKCWZsb3dfanNvbhgBIAEoCRIqCgVub2RlcxgCIAMoCzIbLmtyYXRvcy5jb25zb2xlLnYxLkZvcm1Ob2RlEhAKCG1lc3NhZ2VzGAMgAygJEg0KBWVycm9yGAQgASgJIncKCEZvcm1Ob2RlEg0KBWdyb3VwGAEgASgJEgwKBG5hbWUYAiABKAkSDAoEdHlwZRgDIAEoCRIQCghyZXF1aXJlZBgEIAEoCBINCgVsYWJlbBgFIAEoCRINCgV2YWx1ZRgGIAEoCRIQCghtZXNzYWdlcxgHIAMoCTLrDgoMQWRtaW5TZXJ2aWNlElYKCUdldFN0YXR1cxIjLmtyYXRvcy5jb25zb2xlLnYxLkdldFN0YXR1c1JlcXVlc3QaJC5rcmF0b3MuY29uc29sZS52MS5HZXRTdGF0dXNSZXNwb25zZRJZCgpHZXRPdmVybGF5EiQua3JhdG9zLmNvbnNvbGUudjEuR2V0T3ZlcmxheVJlcXVlc3QaJS5rcmF0b3MuY29uc29sZS52MS5HZXRPdmVybGF5UmVzcG9uc2USUwoIR2V0Rmxvd3MSIi5rcmF0b3MuY29uc29sZS52MS5HZXRGbG93c1JlcXVlc3QaIy5rcmF0b3MuY29uc29sZS52MS5HZXRGbG93c1Jlc3BvbnNlElAKB1RyeUZsb3cSIS5rcmF0b3MuY29uc29sZS52MS5UcnlGbG93UmVxdWVzdBoiLmtyYXRvcy5jb25zb2xlLnYxLlRyeUZsb3dSZXNwb25zZRJlCg5MaXN0SWRlbnRpdGllcxIoLmtyYXRvcy5jb25zb2xlLnYxLkxpc3RJZGVudGl0aWVzUmVxdWVzdBopLmtyYXRvcy5jb25zb2xlLnYxLkxpc3RJZGVudGl0aWVzUmVzcG9uc2USXAoLR2V0SWRlbnRpdHkSJS5rcmF0b3MuY29uc29sZS52MS5HZXRJZGVudGl0eVJlcXVlc3QaJi5rcmF0b3MuY29uc29sZS52MS5HZXRJZGVudGl0eVJlc3BvbnNlEmUKDkNyZWF0ZUlkZW50aXR5Eigua3JhdG9zLmNvbnNvbGUudjEuQ3JlYXRlSWRlbnRpdHlSZXF1ZXN0Gikua3JhdG9zLmNvbnNvbGUudjEuQ3JlYXRlSWRlbnRpdHlSZXNwb25zZRJlCg5VcGRhdGVJZGVudGl0eRIoLmtyYXRvcy5jb25zb2xlLnYxLlVwZGF0ZUlkZW50aXR5UmVxdWVzdBopLmtyYXRvcy5jb25zb2xlLnYxLlVwZGF0ZUlkZW50aXR5UmVzcG9uc2USZQoORGVsZXRlSWRlbnRpdHkSKC5rcmF0b3MuY29uc29sZS52MS5EZWxldGVJZGVudGl0eVJlcXVlc3QaKS5rcmF0b3MuY29uc29sZS52MS5EZWxldGVJZGVudGl0eVJlc3BvbnNlEm4KEURlbGV0ZUNyZWRlbnRpYWxzEisua3JhdG9zLmNvbnNvbGUudjEuRGVsZXRlQ3JlZGVudGlhbHNSZXF1ZXN0Giwua3JhdG9zLmNvbnNvbGUudjEuRGVsZXRlQ3JlZGVudGlhbHNSZXNwb25zZRJxChJDcmVhdGVSZWNvdmVyeUNvZGUSLC5rcmF0b3MuY29uc29sZS52MS5DcmVhdGVSZWNvdmVyeUNvZGVSZXF1ZXN0Gi0ua3JhdG9zLmNvbnNvbGUudjEuQ3JlYXRlUmVjb3ZlcnlDb2RlUmVzcG9uc2UScQoSU2V0QWRkcmVzc1ZlcmlmaWVkEiwua3JhdG9zLmNvbnNvbGUudjEuU2V0QWRkcmVzc1ZlcmlmaWVkUmVxdWVzdBotLmtyYXRvcy5jb25zb2xlLnYxLlNldEFkZHJlc3NWZXJpZmllZFJlc3BvbnNlEmsKEEltcG9ydElkZW50aXRpZXMSKi5rcmF0b3MuY29uc29sZS52MS5JbXBvcnRJZGVudGl0aWVzUmVxdWVzdBorLmtyYXRvcy5jb25zb2xlLnYxLkltcG9ydElkZW50aXRpZXNSZXNwb25zZRJfCgxMaXN0U2Vzc2lvbnMSJi5rcmF0b3MuY29uc29sZS52MS5MaXN0U2Vzc2lvbnNSZXF1ZXN0Gicua3JhdG9zLmNvbnNvbGUudjEuTGlzdFNlc3Npb25zUmVzcG9uc2USZQoOUmV2b2tlU2Vzc2lvbnMSKC5rcmF0b3MuY29uc29sZS52MS5SZXZva2VTZXNzaW9uc1JlcXVlc3QaKS5rcmF0b3MuY29uc29sZS52MS5SZXZva2VTZXNzaW9uc1Jlc3BvbnNlEmIKDUV4dGVuZFNlc3Npb24SJy5rcmF0b3MuY29uc29sZS52MS5FeHRlbmRTZXNzaW9uUmVxdWVzdBooLmtyYXRvcy5jb25zb2xlLnYxLkV4dGVuZFNlc3Npb25SZXNwb25zZRJfCgxMaXN0TWVzc2FnZXMSJi5rcmF0b3MuY29uc29sZS52MS5MaXN0TWVzc2FnZXNSZXF1ZXN0Gicua3JhdG9zLmNvbnNvbGUudjEuTGlzdE1lc3NhZ2VzUmVzcG9uc2USWQoKR2V0TWVzc2FnZRIkLmtyYXRvcy5jb25zb2xlLnYxLkdldE1lc3NhZ2VSZXF1ZXN0GiUua3JhdG9zLmNvbnNvbGUudjEuR2V0TWVzc2FnZVJlc3BvbnNlElwKC0xpc3RTY2hlbWFzEiUua3JhdG9zLmNvbnNvbGUudjEuTGlzdFNjaGVtYXNSZXF1ZXN0GiYua3JhdG9zLmNvbnNvbGUudjEuTGlzdFNjaGVtYXNSZXNwb25zZUJUWlJnaXRodWIuY29tL2JhY2twbGFuZS1sYWJzL2JhY2twbGFuZS1rcmF0b3MvcHJvdG8va3JhdG9zL2NvbnNvbGUvdjE7a3JhdG9zY29uc29sZXYxYgZwcm90bzM", [file_google_protobuf_timestamp]);
+  fileDesc("CiNwcm90by9rcmF0b3MvY29uc29sZS92MS9hZG1pbi5wcm90bxIRa3JhdG9zLmNvbnNvbGUudjEiEgoQR2V0U3RhdHVzUmVxdWVzdCK8AgoRR2V0U3RhdHVzUmVzcG9uc2USEQoJYWRtaW5fdXJsGAEgASgJEhIKCnB1YmxpY191cmwYAiABKAkSDwoHdmVyc2lvbhgDIAEoCRIPCgdwcm9ibGVtGAQgASgJEisKB292ZXJsYXkYBSABKAsyGi5rcmF0b3MuY29uc29sZS52MS5PdmVybGF5EisKBWhvb2tzGAYgAygLMhwua3JhdG9zLmNvbnNvbGUudjEuSG9va1BvaW50EjIKCWNhbGxiYWNrcxgHIAMoCzIfLmtyYXRvcy5jb25zb2xlLnYxLkNhbGxiYWNrU3RhdBIOCgZldmVudHMYCCABKAgSFQoNY2FsbGJhY2tzX3VybBgJIAEoCRIpCgZ0b2tlbnMYCiABKAsyGS5rcmF0b3MuY29uc29sZS52MS5Ub2tlbnMiVgoGVG9rZW5zEg8KB2VuYWJsZWQYASABKAgSEAoIdGVtcGxhdGUYAiABKAkSEQoJa2V5c19wYXRoGAMgASgJEhYKDmRlZmF1bHRfY2xhaW1zGAQgASgJImQKB092ZXJsYXkSDAoEcGF0aBgBIAEoCRIMCgRoYXNoGAIgASgJEi4KCndyaXR0ZW5fYXQYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEg0KBWVycm9yGAQgASgJIlAKCUhvb2tQb2ludBIMCgRuYW1lGAEgASgJEhMKC2Rlc2NyaXB0aW9uGAIgASgJEg0KBWJvdW5kGAMgASgIEhEKCWZhaWxfb3BlbhgEIAEoCCKuAQoMQ2FsbGJhY2tTdGF0Eg0KBXBvaW50GAEgASgJEg0KBWNhbGxzGAIgASgEEhAKCGZhaWx1cmVzGAMgASgEEisKB2xhc3RfYXQYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEhQKDGxhc3Rfb3V0Y29tZRgFIAEoCRISCgpsYXN0X2Vycm9yGAYgASgJEhcKD2xhc3RfbGF0ZW5jeV9tcxgHIAEoASITChFHZXRPdmVybGF5UmVxdWVzdCI0ChJHZXRPdmVybGF5UmVzcG9uc2USDwoHY29udGVudBgBIAEoCRINCgVlcnJvchgCIAEoCSKyAwoISWRlbnRpdHkSCgoCaWQYASABKAkSEQoJc2NoZW1hX2lkGAIgASgJEg0KBXN0YXRlGAMgASgJEhMKC3RyYWl0c19qc29uGAQgASgJEhwKFG1ldGFkYXRhX3B1YmxpY19qc29uGAUgASgJEhsKE21ldGFkYXRhX2FkbWluX2pzb24YBiABKAkSEwoLZXh0ZXJuYWxfaWQYByABKAkSOAoUdmVyaWZpYWJsZV9hZGRyZXNzZXMYCCADKAsyGi5rcmF0b3MuY29uc29sZS52MS5BZGRyZXNzEjYKEnJlY292ZXJ5X2FkZHJlc3NlcxgJIAMoCzIaLmtyYXRvcy5jb25zb2xlLnYxLkFkZHJlc3MSMgoLY3JlZGVudGlhbHMYCiADKAsyHS5rcmF0b3MuY29uc29sZS52MS5DcmVkZW50aWFsEi4KCmNyZWF0ZWRfYXQYCyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEi4KCnVwZGF0ZWRfYXQYDCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEg0KBWxhYmVsGA0gASgJIkcKB0FkZHJlc3MSDQoFdmFsdWUYASABKAkSCwoDdmlhGAIgASgJEhAKCHZlcmlmaWVkGAMgASgIEg4KBnN0YXR1cxgEIAEoCSJfCgpDcmVkZW50aWFsEgwKBHR5cGUYASABKAkSEwoLaWRlbnRpZmllcnMYAiADKAkSLgoKY3JlYXRlZF9hdBgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiTQoVTGlzdElkZW50aXRpZXNSZXF1ZXN0Eg0KBXF1ZXJ5GAEgASgJEhEKCXBhZ2Vfc2l6ZRgCIAEoBRISCgpwYWdlX3Rva2VuGAMgASgJImIKFkxpc3RJZGVudGl0aWVzUmVzcG9uc2USLwoKaWRlbnRpdGllcxgBIAMoCzIbLmtyYXRvcy5jb25zb2xlLnYxLklkZW50aXR5EhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSIgChJHZXRJZGVudGl0eVJlcXVlc3QSCgoCaWQYASABKAkicgoTR2V0SWRlbnRpdHlSZXNwb25zZRItCghpZGVudGl0eRgBIAEoCzIbLmtyYXRvcy5jb25zb2xlLnYxLklkZW50aXR5EiwKCHNlc3Npb25zGAIgAygLMhoua3JhdG9zLmNvbnNvbGUudjEuU2Vzc2lvbiKwAQoVQ3JlYXRlSWRlbnRpdHlSZXF1ZXN0EhEKCXNjaGVtYV9pZBgBIAEoCRITCgt0cmFpdHNfanNvbhgCIAEoCRINCgVzdGF0ZRgDIAEoCRIQCghwYXNzd29yZBgEIAEoCRIcChRtZXRhZGF0YV9wdWJsaWNfanNvbhgFIAEoCRIbChNtZXRhZGF0YV9hZG1pbl9qc29uGAYgASgJEhMKC2V4dGVybmFsX2lkGAcgASgJIkcKFkNyZWF0ZUlkZW50aXR5UmVzcG9uc2USLQoIaWRlbnRpdHkYASABKAsyGy5rcmF0b3MuY29uc29sZS52MS5JZGVudGl0eSKVAQoVVXBkYXRlSWRlbnRpdHlSZXF1ZXN0EgoKAmlkGAEgASgJEhEKCXNjaGVtYV9pZBgCIAEoCRITCgt0cmFpdHNfanNvbhgDIAEoCRINCgVzdGF0ZRgEIAEoCRIcChRtZXRhZGF0YV9wdWJsaWNfanNvbhgFIAEoCRIbChNtZXRhZGF0YV9hZG1pbl9qc29uGAYgASgJIkcKFlVwZGF0ZUlkZW50aXR5UmVzcG9uc2USLQoIaWRlbnRpdHkYASABKAsyGy5rcmF0b3MuY29uc29sZS52MS5JZGVudGl0eSIjChVEZWxldGVJZGVudGl0eVJlcXVlc3QSCgoCaWQYASABKAkiGAoWRGVsZXRlSWRlbnRpdHlSZXNwb25zZSJIChhEZWxldGVDcmVkZW50aWFsc1JlcXVlc3QSCgoCaWQYASABKAkSDAoEdHlwZRgCIAEoCRISCgppZGVudGlmaWVyGAMgASgJIhsKGURlbGV0ZUNyZWRlbnRpYWxzUmVzcG9uc2UiXAoZQ3JlYXRlUmVjb3ZlcnlDb2RlUmVxdWVzdBIKCgJpZBgBIAEoCRISCgpleHBpcmVzX2luGAIgASgJEgwKBGxpbmsYAyABKAgSEQoJZmxvd190eXBlGAQgASgJImgKGkNyZWF0ZVJlY292ZXJ5Q29kZVJlc3BvbnNlEgwKBGNvZGUYASABKAkSDAoEbGluaxgCIAEoCRIuCgpleHBpcmVzX2F0GAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCKCAgoHU2Vzc2lvbhIKCgJpZBgBIAEoCRIOCgZhY3RpdmUYAiABKAgSEwoLaWRlbnRpdHlfaWQYAyABKAkSFgoOaWRlbnRpdHlfbGFiZWwYBCABKAkSCwoDYWFsGAUgASgJEg8KB21ldGhvZHMYBiADKAkSNAoQYXV0aGVudGljYXRlZF9hdBgHIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKZXhwaXJlc19hdBgIIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASKgoHZGV2aWNlcxgJIAMoCzIZLmtyYXRvcy5jb25zb2xlLnYxLkRldmljZSJCCgZEZXZpY2USEgoKaXBfYWRkcmVzcxgBIAEoCRISCgp1c2VyX2FnZW50GAIgASgJEhAKCGxvY2F0aW9uGAMgASgJIlEKE0xpc3RTZXNzaW9uc1JlcXVlc3QSEwoLYWN0aXZlX29ubHkYASABKAgSEQoJcGFnZV9zaXplGAIgASgFEhIKCnBhZ2VfdG9rZW4YAyABKAkiXQoUTGlzdFNlc3Npb25zUmVzcG9uc2USLAoIc2Vzc2lvbnMYASADKAsyGi5rcmF0b3MuY29uc29sZS52MS5TZXNzaW9uEhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSJAChVSZXZva2VTZXNzaW9uc1JlcXVlc3QSEgoKc2Vzc2lvbl9pZBgBIAEoCRITCgtpZGVudGl0eV9pZBgCIAEoCSIYChZSZXZva2VTZXNzaW9uc1Jlc3BvbnNlIoUCCgdNZXNzYWdlEgoKAmlkGAEgASgJEg4KBnN0YXR1cxgCIAEoCRIPCgdjaGFubmVsGAMgASgJEhEKCXJlY2lwaWVudBgEIAEoCRIVCg10ZW1wbGF0ZV90eXBlGAUgASgJEhIKCnNlbmRfY291bnQYBiABKAUSLgoKY3JlYXRlZF9hdBgHIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLgoKdXBkYXRlZF9hdBgIIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASLwoKZGlzcGF0Y2hlcxgJIAMoCzIbLmtyYXRvcy5jb25zb2xlLnYxLkRpc3BhdGNoIlkKCERpc3BhdGNoEg4KBnN0YXR1cxgBIAEoCRINCgVlcnJvchgCIAEoCRIuCgpjcmVhdGVkX2F0GAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCJfChNMaXN0TWVzc2FnZXNSZXF1ZXN0Eg4KBnN0YXR1cxgBIAEoCRIRCglyZWNpcGllbnQYAiABKAkSEQoJcGFnZV9zaXplGAMgASgFEhIKCnBhZ2VfdG9rZW4YBCABKAkiXQoUTGlzdE1lc3NhZ2VzUmVzcG9uc2USLAoIbWVzc2FnZXMYASADKAsyGi5rcmF0b3MuY29uc29sZS52MS5NZXNzYWdlEhcKD25leHRfcGFnZV90b2tlbhgCIAEoCSIvChFHZXRNZXNzYWdlUmVxdWVzdBIKCgJpZBgBIAEoCRIOCgZyZXZlYWwYAiABKAgicgoSR2V0TWVzc2FnZVJlc3BvbnNlEisKB21lc3NhZ2UYASABKAsyGi5rcmF0b3MuY29uc29sZS52MS5NZXNzYWdlEg8KB3N1YmplY3QYAiABKAkSDAoEYm9keRgDIAEoCRIQCghyZWRhY3RlZBgEIAEoCCIUChJMaXN0U2NoZW1hc1JlcXVlc3QiQQoTTGlzdFNjaGVtYXNSZXNwb25zZRIqCgdzY2hlbWFzGAEgAygLMhkua3JhdG9zLmNvbnNvbGUudjEuU2NoZW1hIikKBlNjaGVtYRIKCgJpZBgBIAEoCRITCgtzY2hlbWFfanNvbhgCIAEoCSJIChlTZXRBZGRyZXNzVmVyaWZpZWRSZXF1ZXN0EgoKAmlkGAEgASgJEg0KBXZhbHVlGAIgASgJEhAKCHZlcmlmaWVkGAMgASgIIksKGlNldEFkZHJlc3NWZXJpZmllZFJlc3BvbnNlEi0KCGlkZW50aXR5GAEgASgLMhsua3JhdG9zLmNvbnNvbGUudjEuSWRlbnRpdHkiMgoXSW1wb3J0SWRlbnRpdGllc1JlcXVlc3QSFwoPaWRlbnRpdGllc19qc29uGAEgASgJIkwKGEltcG9ydElkZW50aXRpZXNSZXNwb25zZRIwCgdyZXN1bHRzGAEgAygLMh8ua3JhdG9zLmNvbnNvbGUudjEuSW1wb3J0UmVzdWx0IkIKDEltcG9ydFJlc3VsdBIOCgZhY3Rpb24YASABKAkSEwoLaWRlbnRpdHlfaWQYAiABKAkSDQoFZXJyb3IYAyABKAkiIgoURXh0ZW5kU2Vzc2lvblJlcXVlc3QSCgoCaWQYASABKAkiRAoVRXh0ZW5kU2Vzc2lvblJlc3BvbnNlEisKB3Nlc3Npb24YASABKAsyGi5rcmF0b3MuY29uc29sZS52MS5TZXNzaW9uIhEKD0dldEZsb3dzUmVxdWVzdCKDAQoQR2V0Rmxvd3NSZXNwb25zZRIqCgVmbG93cxgBIAMoCzIbLmtyYXRvcy5jb25zb2xlLnYxLkZsb3dDYXJkEiwKCGZpbmRpbmdzGAIgAygLMhoua3JhdG9zLmNvbnNvbGUudjEuRmluZGluZxIVCg1kZWxpdmVyX2JvdW5kGAMgASgIIoEBCghGbG93Q2FyZBIMCgRmbG93GAEgASgJEioKBWhvb2tzGAIgAygLMhsua3JhdG9zLmNvbnNvbGUudjEuRmxvd0hvb2sSDQoFZXZlbnQYAyABKAkSLAoIZmluZGluZ3MYBCADKAsyGi5rcmF0b3MuY29uc29sZS52MS5GaW5kaW5nIqwBCghGbG93SG9vaxIMCgRuYW1lGAEgASgJEgwKBHdoZW4YAiABKAkSDQoFYm91bmQYAyABKAgSEQoJZmFpbF9vcGVuGAQgASgIEg0KBWNhbGxzGAUgASgEEhAKCGZhaWx1cmVzGAYgASgEEhQKDGxhc3Rfb3V0Y29tZRgHIAEoCRIrCgdsYXN0X2F0GAggASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcCI1CgdGaW5kaW5nEg0KBWxldmVsGAEgASgJEgwKBHRleHQYAiABKAkSDQoFZmllbGQYAyABKAkiHgoOVHJ5Rmxvd1JlcXVlc3QSDAoEZmxvdxgBIAEoCSJxCg9UcnlGbG93UmVzcG9uc2USEQoJZmxvd19qc29uGAEgASgJEioKBW5vZGVzGAIgAygLMhsua3JhdG9zLmNvbnNvbGUudjEuRm9ybU5vZGUSEAoIbWVzc2FnZXMYAyADKAkSDQoFZXJyb3IYBCABKAkidwoIRm9ybU5vZGUSDQoFZ3JvdXAYASABKAkSDAoEbmFtZRgCIAEoCRIMCgR0eXBlGAMgASgJEhAKCHJlcXVpcmVkGAQgASgIEg0KBWxhYmVsGAUgASgJEg0KBXZhbHVlGAYgASgJEhAKCG1lc3NhZ2VzGAcgAygJMusOCgxBZG1pblNlcnZpY2USVgoJR2V0U3RhdHVzEiMua3JhdG9zLmNvbnNvbGUudjEuR2V0U3RhdHVzUmVxdWVzdBokLmtyYXRvcy5jb25zb2xlLnYxLkdldFN0YXR1c1Jlc3BvbnNlElkKCkdldE92ZXJsYXkSJC5rcmF0b3MuY29uc29sZS52MS5HZXRPdmVybGF5UmVxdWVzdBolLmtyYXRvcy5jb25zb2xlLnYxLkdldE92ZXJsYXlSZXNwb25zZRJTCghHZXRGbG93cxIiLmtyYXRvcy5jb25zb2xlLnYxLkdldEZsb3dzUmVxdWVzdBojLmtyYXRvcy5jb25zb2xlLnYxLkdldEZsb3dzUmVzcG9uc2USUAoHVHJ5RmxvdxIhLmtyYXRvcy5jb25zb2xlLnYxLlRyeUZsb3dSZXF1ZXN0GiIua3JhdG9zLmNvbnNvbGUudjEuVHJ5Rmxvd1Jlc3BvbnNlEmUKDkxpc3RJZGVudGl0aWVzEigua3JhdG9zLmNvbnNvbGUudjEuTGlzdElkZW50aXRpZXNSZXF1ZXN0Gikua3JhdG9zLmNvbnNvbGUudjEuTGlzdElkZW50aXRpZXNSZXNwb25zZRJcCgtHZXRJZGVudGl0eRIlLmtyYXRvcy5jb25zb2xlLnYxLkdldElkZW50aXR5UmVxdWVzdBomLmtyYXRvcy5jb25zb2xlLnYxLkdldElkZW50aXR5UmVzcG9uc2USZQoOQ3JlYXRlSWRlbnRpdHkSKC5rcmF0b3MuY29uc29sZS52MS5DcmVhdGVJZGVudGl0eVJlcXVlc3QaKS5rcmF0b3MuY29uc29sZS52MS5DcmVhdGVJZGVudGl0eVJlc3BvbnNlEmUKDlVwZGF0ZUlkZW50aXR5Eigua3JhdG9zLmNvbnNvbGUudjEuVXBkYXRlSWRlbnRpdHlSZXF1ZXN0Gikua3JhdG9zLmNvbnNvbGUudjEuVXBkYXRlSWRlbnRpdHlSZXNwb25zZRJlCg5EZWxldGVJZGVudGl0eRIoLmtyYXRvcy5jb25zb2xlLnYxLkRlbGV0ZUlkZW50aXR5UmVxdWVzdBopLmtyYXRvcy5jb25zb2xlLnYxLkRlbGV0ZUlkZW50aXR5UmVzcG9uc2USbgoRRGVsZXRlQ3JlZGVudGlhbHMSKy5rcmF0b3MuY29uc29sZS52MS5EZWxldGVDcmVkZW50aWFsc1JlcXVlc3QaLC5rcmF0b3MuY29uc29sZS52MS5EZWxldGVDcmVkZW50aWFsc1Jlc3BvbnNlEnEKEkNyZWF0ZVJlY292ZXJ5Q29kZRIsLmtyYXRvcy5jb25zb2xlLnYxLkNyZWF0ZVJlY292ZXJ5Q29kZVJlcXVlc3QaLS5rcmF0b3MuY29uc29sZS52MS5DcmVhdGVSZWNvdmVyeUNvZGVSZXNwb25zZRJxChJTZXRBZGRyZXNzVmVyaWZpZWQSLC5rcmF0b3MuY29uc29sZS52MS5TZXRBZGRyZXNzVmVyaWZpZWRSZXF1ZXN0Gi0ua3JhdG9zLmNvbnNvbGUudjEuU2V0QWRkcmVzc1ZlcmlmaWVkUmVzcG9uc2USawoQSW1wb3J0SWRlbnRpdGllcxIqLmtyYXRvcy5jb25zb2xlLnYxLkltcG9ydElkZW50aXRpZXNSZXF1ZXN0Gisua3JhdG9zLmNvbnNvbGUudjEuSW1wb3J0SWRlbnRpdGllc1Jlc3BvbnNlEl8KDExpc3RTZXNzaW9ucxImLmtyYXRvcy5jb25zb2xlLnYxLkxpc3RTZXNzaW9uc1JlcXVlc3QaJy5rcmF0b3MuY29uc29sZS52MS5MaXN0U2Vzc2lvbnNSZXNwb25zZRJlCg5SZXZva2VTZXNzaW9ucxIoLmtyYXRvcy5jb25zb2xlLnYxLlJldm9rZVNlc3Npb25zUmVxdWVzdBopLmtyYXRvcy5jb25zb2xlLnYxLlJldm9rZVNlc3Npb25zUmVzcG9uc2USYgoNRXh0ZW5kU2Vzc2lvbhInLmtyYXRvcy5jb25zb2xlLnYxLkV4dGVuZFNlc3Npb25SZXF1ZXN0Gigua3JhdG9zLmNvbnNvbGUudjEuRXh0ZW5kU2Vzc2lvblJlc3BvbnNlEl8KDExpc3RNZXNzYWdlcxImLmtyYXRvcy5jb25zb2xlLnYxLkxpc3RNZXNzYWdlc1JlcXVlc3QaJy5rcmF0b3MuY29uc29sZS52MS5MaXN0TWVzc2FnZXNSZXNwb25zZRJZCgpHZXRNZXNzYWdlEiQua3JhdG9zLmNvbnNvbGUudjEuR2V0TWVzc2FnZVJlcXVlc3QaJS5rcmF0b3MuY29uc29sZS52MS5HZXRNZXNzYWdlUmVzcG9uc2USXAoLTGlzdFNjaGVtYXMSJS5rcmF0b3MuY29uc29sZS52MS5MaXN0U2NoZW1hc1JlcXVlc3QaJi5rcmF0b3MuY29uc29sZS52MS5MaXN0U2NoZW1hc1Jlc3BvbnNlQlRaUmdpdGh1Yi5jb20vYmFja3BsYW5lLWxhYnMvYmFja3BsYW5lLWtyYXRvcy9wcm90by9rcmF0b3MvY29uc29sZS92MTtrcmF0b3Njb25zb2xldjFiBnByb3RvMw", [file_google_protobuf_timestamp]);
 
 /**
  * @generated from message kratos.console.v1.GetStatusRequest
@@ -81,6 +81,11 @@ export type GetStatusResponse = Message$1<"kratos.console.v1.GetStatusResponse">
    * @generated from field: string callbacks_url = 9;
    */
   callbacksUrl: string;
+
+  /**
+   * @generated from field: kratos.console.v1.Tokens tokens = 10;
+   */
+  tokens?: Tokens | undefined;
 };
 
 /**
@@ -89,6 +94,49 @@ export type GetStatusResponse = Message$1<"kratos.console.v1.GetStatusResponse">
  */
 export const GetStatusResponseSchema: GenMessage<GetStatusResponse> = /*@__PURE__*/
   messageDesc(file_proto_kratos_console_v1_admin, 1);
+
+/**
+ * Tokens are the session tokens: Kratos signs them with token_key, services
+ * verify them with the public keys this service serves.
+ *
+ * @generated from message kratos.console.v1.Tokens
+ */
+export type Tokens = Message$1<"kratos.console.v1.Tokens"> & {
+  /**
+   * enabled: token_key is set, Kratos issues tokens.
+   *
+   * @generated from field: bool enabled = 1;
+   */
+  enabled: boolean;
+
+  /**
+   * template clients name: /sessions/whoami?tokenize_as=<template>.
+   *
+   * @generated from field: string template = 2;
+   */
+  template: string;
+
+  /**
+   * keys_path is where this service serves the public keys (its public port).
+   *
+   * @generated from field: string keys_path = 3;
+   */
+  keysPath: string;
+
+  /**
+   * default_claims is the Jsonnet used when the settings name none.
+   *
+   * @generated from field: string default_claims = 4;
+   */
+  defaultClaims: string;
+};
+
+/**
+ * Describes the message kratos.console.v1.Tokens.
+ * Use `create(TokensSchema)` to create a new message.
+ */
+export const TokensSchema: GenMessage<Tokens> = /*@__PURE__*/
+  messageDesc(file_proto_kratos_console_v1_admin, 2);
 
 /**
  * @generated from message kratos.console.v1.Overlay
@@ -124,7 +172,7 @@ export type Overlay = Message$1<"kratos.console.v1.Overlay"> & {
  * Use `create(OverlaySchema)` to create a new message.
  */
 export const OverlaySchema: GenMessage<Overlay> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 2);
+  messageDesc(file_proto_kratos_console_v1_admin, 3);
 
 /**
  * @generated from message kratos.console.v1.HookPoint
@@ -158,7 +206,7 @@ export type HookPoint = Message$1<"kratos.console.v1.HookPoint"> & {
  * Use `create(HookPointSchema)` to create a new message.
  */
 export const HookPointSchema: GenMessage<HookPoint> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 3);
+  messageDesc(file_proto_kratos_console_v1_admin, 4);
 
 /**
  * @generated from message kratos.console.v1.CallbackStat
@@ -207,7 +255,7 @@ export type CallbackStat = Message$1<"kratos.console.v1.CallbackStat"> & {
  * Use `create(CallbackStatSchema)` to create a new message.
  */
 export const CallbackStatSchema: GenMessage<CallbackStat> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 4);
+  messageDesc(file_proto_kratos_console_v1_admin, 5);
 
 /**
  * @generated from message kratos.console.v1.GetOverlayRequest
@@ -220,7 +268,7 @@ export type GetOverlayRequest = Message$1<"kratos.console.v1.GetOverlayRequest">
  * Use `create(GetOverlayRequestSchema)` to create a new message.
  */
 export const GetOverlayRequestSchema: GenMessage<GetOverlayRequest> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 5);
+  messageDesc(file_proto_kratos_console_v1_admin, 6);
 
 /**
  * @generated from message kratos.console.v1.GetOverlayResponse
@@ -246,7 +294,7 @@ export type GetOverlayResponse = Message$1<"kratos.console.v1.GetOverlayResponse
  * Use `create(GetOverlayResponseSchema)` to create a new message.
  */
 export const GetOverlayResponseSchema: GenMessage<GetOverlayResponse> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 6);
+  messageDesc(file_proto_kratos_console_v1_admin, 7);
 
 /**
  * @generated from message kratos.console.v1.Identity
@@ -329,7 +377,7 @@ export type Identity = Message$1<"kratos.console.v1.Identity"> & {
  * Use `create(IdentitySchema)` to create a new message.
  */
 export const IdentitySchema: GenMessage<Identity> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 7);
+  messageDesc(file_proto_kratos_console_v1_admin, 8);
 
 /**
  * @generated from message kratos.console.v1.Address
@@ -361,7 +409,7 @@ export type Address = Message$1<"kratos.console.v1.Address"> & {
  * Use `create(AddressSchema)` to create a new message.
  */
 export const AddressSchema: GenMessage<Address> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 8);
+  messageDesc(file_proto_kratos_console_v1_admin, 9);
 
 /**
  * @generated from message kratos.console.v1.Credential
@@ -388,7 +436,7 @@ export type Credential = Message$1<"kratos.console.v1.Credential"> & {
  * Use `create(CredentialSchema)` to create a new message.
  */
 export const CredentialSchema: GenMessage<Credential> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 9);
+  messageDesc(file_proto_kratos_console_v1_admin, 10);
 
 /**
  * @generated from message kratos.console.v1.ListIdentitiesRequest
@@ -417,7 +465,7 @@ export type ListIdentitiesRequest = Message$1<"kratos.console.v1.ListIdentitiesR
  * Use `create(ListIdentitiesRequestSchema)` to create a new message.
  */
 export const ListIdentitiesRequestSchema: GenMessage<ListIdentitiesRequest> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 10);
+  messageDesc(file_proto_kratos_console_v1_admin, 11);
 
 /**
  * @generated from message kratos.console.v1.ListIdentitiesResponse
@@ -439,7 +487,7 @@ export type ListIdentitiesResponse = Message$1<"kratos.console.v1.ListIdentities
  * Use `create(ListIdentitiesResponseSchema)` to create a new message.
  */
 export const ListIdentitiesResponseSchema: GenMessage<ListIdentitiesResponse> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 11);
+  messageDesc(file_proto_kratos_console_v1_admin, 12);
 
 /**
  * @generated from message kratos.console.v1.GetIdentityRequest
@@ -456,7 +504,7 @@ export type GetIdentityRequest = Message$1<"kratos.console.v1.GetIdentityRequest
  * Use `create(GetIdentityRequestSchema)` to create a new message.
  */
 export const GetIdentityRequestSchema: GenMessage<GetIdentityRequest> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 12);
+  messageDesc(file_proto_kratos_console_v1_admin, 13);
 
 /**
  * @generated from message kratos.console.v1.GetIdentityResponse
@@ -478,7 +526,7 @@ export type GetIdentityResponse = Message$1<"kratos.console.v1.GetIdentityRespon
  * Use `create(GetIdentityResponseSchema)` to create a new message.
  */
 export const GetIdentityResponseSchema: GenMessage<GetIdentityResponse> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 13);
+  messageDesc(file_proto_kratos_console_v1_admin, 14);
 
 /**
  * @generated from message kratos.console.v1.CreateIdentityRequest
@@ -525,7 +573,7 @@ export type CreateIdentityRequest = Message$1<"kratos.console.v1.CreateIdentityR
  * Use `create(CreateIdentityRequestSchema)` to create a new message.
  */
 export const CreateIdentityRequestSchema: GenMessage<CreateIdentityRequest> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 14);
+  messageDesc(file_proto_kratos_console_v1_admin, 15);
 
 /**
  * @generated from message kratos.console.v1.CreateIdentityResponse
@@ -542,7 +590,7 @@ export type CreateIdentityResponse = Message$1<"kratos.console.v1.CreateIdentity
  * Use `create(CreateIdentityResponseSchema)` to create a new message.
  */
 export const CreateIdentityResponseSchema: GenMessage<CreateIdentityResponse> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 15);
+  messageDesc(file_proto_kratos_console_v1_admin, 16);
 
 /**
  * @generated from message kratos.console.v1.UpdateIdentityRequest
@@ -584,7 +632,7 @@ export type UpdateIdentityRequest = Message$1<"kratos.console.v1.UpdateIdentityR
  * Use `create(UpdateIdentityRequestSchema)` to create a new message.
  */
 export const UpdateIdentityRequestSchema: GenMessage<UpdateIdentityRequest> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 16);
+  messageDesc(file_proto_kratos_console_v1_admin, 17);
 
 /**
  * @generated from message kratos.console.v1.UpdateIdentityResponse
@@ -601,7 +649,7 @@ export type UpdateIdentityResponse = Message$1<"kratos.console.v1.UpdateIdentity
  * Use `create(UpdateIdentityResponseSchema)` to create a new message.
  */
 export const UpdateIdentityResponseSchema: GenMessage<UpdateIdentityResponse> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 17);
+  messageDesc(file_proto_kratos_console_v1_admin, 18);
 
 /**
  * @generated from message kratos.console.v1.DeleteIdentityRequest
@@ -618,7 +666,7 @@ export type DeleteIdentityRequest = Message$1<"kratos.console.v1.DeleteIdentityR
  * Use `create(DeleteIdentityRequestSchema)` to create a new message.
  */
 export const DeleteIdentityRequestSchema: GenMessage<DeleteIdentityRequest> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 18);
+  messageDesc(file_proto_kratos_console_v1_admin, 19);
 
 /**
  * @generated from message kratos.console.v1.DeleteIdentityResponse
@@ -631,7 +679,7 @@ export type DeleteIdentityResponse = Message$1<"kratos.console.v1.DeleteIdentity
  * Use `create(DeleteIdentityResponseSchema)` to create a new message.
  */
 export const DeleteIdentityResponseSchema: GenMessage<DeleteIdentityResponse> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 19);
+  messageDesc(file_proto_kratos_console_v1_admin, 20);
 
 /**
  * @generated from message kratos.console.v1.DeleteCredentialsRequest
@@ -658,7 +706,7 @@ export type DeleteCredentialsRequest = Message$1<"kratos.console.v1.DeleteCreden
  * Use `create(DeleteCredentialsRequestSchema)` to create a new message.
  */
 export const DeleteCredentialsRequestSchema: GenMessage<DeleteCredentialsRequest> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 20);
+  messageDesc(file_proto_kratos_console_v1_admin, 21);
 
 /**
  * @generated from message kratos.console.v1.DeleteCredentialsResponse
@@ -671,7 +719,7 @@ export type DeleteCredentialsResponse = Message$1<"kratos.console.v1.DeleteCrede
  * Use `create(DeleteCredentialsResponseSchema)` to create a new message.
  */
 export const DeleteCredentialsResponseSchema: GenMessage<DeleteCredentialsResponse> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 21);
+  messageDesc(file_proto_kratos_console_v1_admin, 22);
 
 /**
  * @generated from message kratos.console.v1.CreateRecoveryCodeRequest
@@ -709,7 +757,7 @@ export type CreateRecoveryCodeRequest = Message$1<"kratos.console.v1.CreateRecov
  * Use `create(CreateRecoveryCodeRequestSchema)` to create a new message.
  */
 export const CreateRecoveryCodeRequestSchema: GenMessage<CreateRecoveryCodeRequest> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 22);
+  messageDesc(file_proto_kratos_console_v1_admin, 23);
 
 /**
  * @generated from message kratos.console.v1.CreateRecoveryCodeResponse
@@ -736,7 +784,7 @@ export type CreateRecoveryCodeResponse = Message$1<"kratos.console.v1.CreateReco
  * Use `create(CreateRecoveryCodeResponseSchema)` to create a new message.
  */
 export const CreateRecoveryCodeResponseSchema: GenMessage<CreateRecoveryCodeResponse> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 23);
+  messageDesc(file_proto_kratos_console_v1_admin, 24);
 
 /**
  * @generated from message kratos.console.v1.Session
@@ -793,7 +841,7 @@ export type Session = Message$1<"kratos.console.v1.Session"> & {
  * Use `create(SessionSchema)` to create a new message.
  */
 export const SessionSchema: GenMessage<Session> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 24);
+  messageDesc(file_proto_kratos_console_v1_admin, 25);
 
 /**
  * @generated from message kratos.console.v1.Device
@@ -820,7 +868,7 @@ export type Device = Message$1<"kratos.console.v1.Device"> & {
  * Use `create(DeviceSchema)` to create a new message.
  */
 export const DeviceSchema: GenMessage<Device> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 25);
+  messageDesc(file_proto_kratos_console_v1_admin, 26);
 
 /**
  * @generated from message kratos.console.v1.ListSessionsRequest
@@ -847,7 +895,7 @@ export type ListSessionsRequest = Message$1<"kratos.console.v1.ListSessionsReque
  * Use `create(ListSessionsRequestSchema)` to create a new message.
  */
 export const ListSessionsRequestSchema: GenMessage<ListSessionsRequest> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 26);
+  messageDesc(file_proto_kratos_console_v1_admin, 27);
 
 /**
  * @generated from message kratos.console.v1.ListSessionsResponse
@@ -869,7 +917,7 @@ export type ListSessionsResponse = Message$1<"kratos.console.v1.ListSessionsResp
  * Use `create(ListSessionsResponseSchema)` to create a new message.
  */
 export const ListSessionsResponseSchema: GenMessage<ListSessionsResponse> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 27);
+  messageDesc(file_proto_kratos_console_v1_admin, 28);
 
 /**
  * @generated from message kratos.console.v1.RevokeSessionsRequest
@@ -891,7 +939,7 @@ export type RevokeSessionsRequest = Message$1<"kratos.console.v1.RevokeSessionsR
  * Use `create(RevokeSessionsRequestSchema)` to create a new message.
  */
 export const RevokeSessionsRequestSchema: GenMessage<RevokeSessionsRequest> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 28);
+  messageDesc(file_proto_kratos_console_v1_admin, 29);
 
 /**
  * @generated from message kratos.console.v1.RevokeSessionsResponse
@@ -904,7 +952,7 @@ export type RevokeSessionsResponse = Message$1<"kratos.console.v1.RevokeSessions
  * Use `create(RevokeSessionsResponseSchema)` to create a new message.
  */
 export const RevokeSessionsResponseSchema: GenMessage<RevokeSessionsResponse> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 29);
+  messageDesc(file_proto_kratos_console_v1_admin, 30);
 
 /**
  * @generated from message kratos.console.v1.Message
@@ -961,7 +1009,7 @@ export type Message = Message$1<"kratos.console.v1.Message"> & {
  * Use `create(MessageSchema)` to create a new message.
  */
 export const MessageSchema: GenMessage<Message> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 30);
+  messageDesc(file_proto_kratos_console_v1_admin, 31);
 
 /**
  * @generated from message kratos.console.v1.Dispatch
@@ -988,7 +1036,7 @@ export type Dispatch = Message$1<"kratos.console.v1.Dispatch"> & {
  * Use `create(DispatchSchema)` to create a new message.
  */
 export const DispatchSchema: GenMessage<Dispatch> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 31);
+  messageDesc(file_proto_kratos_console_v1_admin, 32);
 
 /**
  * @generated from message kratos.console.v1.ListMessagesRequest
@@ -1020,7 +1068,7 @@ export type ListMessagesRequest = Message$1<"kratos.console.v1.ListMessagesReque
  * Use `create(ListMessagesRequestSchema)` to create a new message.
  */
 export const ListMessagesRequestSchema: GenMessage<ListMessagesRequest> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 32);
+  messageDesc(file_proto_kratos_console_v1_admin, 33);
 
 /**
  * @generated from message kratos.console.v1.ListMessagesResponse
@@ -1042,7 +1090,7 @@ export type ListMessagesResponse = Message$1<"kratos.console.v1.ListMessagesResp
  * Use `create(ListMessagesResponseSchema)` to create a new message.
  */
 export const ListMessagesResponseSchema: GenMessage<ListMessagesResponse> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 33);
+  messageDesc(file_proto_kratos_console_v1_admin, 34);
 
 /**
  * @generated from message kratos.console.v1.GetMessageRequest
@@ -1064,7 +1112,7 @@ export type GetMessageRequest = Message$1<"kratos.console.v1.GetMessageRequest">
  * Use `create(GetMessageRequestSchema)` to create a new message.
  */
 export const GetMessageRequestSchema: GenMessage<GetMessageRequest> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 34);
+  messageDesc(file_proto_kratos_console_v1_admin, 35);
 
 /**
  * @generated from message kratos.console.v1.GetMessageResponse
@@ -1099,7 +1147,7 @@ export type GetMessageResponse = Message$1<"kratos.console.v1.GetMessageResponse
  * Use `create(GetMessageResponseSchema)` to create a new message.
  */
 export const GetMessageResponseSchema: GenMessage<GetMessageResponse> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 35);
+  messageDesc(file_proto_kratos_console_v1_admin, 36);
 
 /**
  * @generated from message kratos.console.v1.ListSchemasRequest
@@ -1112,7 +1160,7 @@ export type ListSchemasRequest = Message$1<"kratos.console.v1.ListSchemasRequest
  * Use `create(ListSchemasRequestSchema)` to create a new message.
  */
 export const ListSchemasRequestSchema: GenMessage<ListSchemasRequest> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 36);
+  messageDesc(file_proto_kratos_console_v1_admin, 37);
 
 /**
  * @generated from message kratos.console.v1.ListSchemasResponse
@@ -1129,7 +1177,7 @@ export type ListSchemasResponse = Message$1<"kratos.console.v1.ListSchemasRespon
  * Use `create(ListSchemasResponseSchema)` to create a new message.
  */
 export const ListSchemasResponseSchema: GenMessage<ListSchemasResponse> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 37);
+  messageDesc(file_proto_kratos_console_v1_admin, 38);
 
 /**
  * @generated from message kratos.console.v1.Schema
@@ -1151,7 +1199,7 @@ export type Schema = Message$1<"kratos.console.v1.Schema"> & {
  * Use `create(SchemaSchema)` to create a new message.
  */
 export const SchemaSchema: GenMessage<Schema> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 38);
+  messageDesc(file_proto_kratos_console_v1_admin, 39);
 
 /**
  * @generated from message kratos.console.v1.SetAddressVerifiedRequest
@@ -1178,7 +1226,7 @@ export type SetAddressVerifiedRequest = Message$1<"kratos.console.v1.SetAddressV
  * Use `create(SetAddressVerifiedRequestSchema)` to create a new message.
  */
 export const SetAddressVerifiedRequestSchema: GenMessage<SetAddressVerifiedRequest> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 39);
+  messageDesc(file_proto_kratos_console_v1_admin, 40);
 
 /**
  * @generated from message kratos.console.v1.SetAddressVerifiedResponse
@@ -1195,7 +1243,7 @@ export type SetAddressVerifiedResponse = Message$1<"kratos.console.v1.SetAddress
  * Use `create(SetAddressVerifiedResponseSchema)` to create a new message.
  */
 export const SetAddressVerifiedResponseSchema: GenMessage<SetAddressVerifiedResponse> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 40);
+  messageDesc(file_proto_kratos_console_v1_admin, 41);
 
 /**
  * @generated from message kratos.console.v1.ImportIdentitiesRequest
@@ -1214,7 +1262,7 @@ export type ImportIdentitiesRequest = Message$1<"kratos.console.v1.ImportIdentit
  * Use `create(ImportIdentitiesRequestSchema)` to create a new message.
  */
 export const ImportIdentitiesRequestSchema: GenMessage<ImportIdentitiesRequest> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 41);
+  messageDesc(file_proto_kratos_console_v1_admin, 42);
 
 /**
  * @generated from message kratos.console.v1.ImportIdentitiesResponse
@@ -1231,7 +1279,7 @@ export type ImportIdentitiesResponse = Message$1<"kratos.console.v1.ImportIdenti
  * Use `create(ImportIdentitiesResponseSchema)` to create a new message.
  */
 export const ImportIdentitiesResponseSchema: GenMessage<ImportIdentitiesResponse> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 42);
+  messageDesc(file_proto_kratos_console_v1_admin, 43);
 
 /**
  * @generated from message kratos.console.v1.ImportResult
@@ -1258,7 +1306,7 @@ export type ImportResult = Message$1<"kratos.console.v1.ImportResult"> & {
  * Use `create(ImportResultSchema)` to create a new message.
  */
 export const ImportResultSchema: GenMessage<ImportResult> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 43);
+  messageDesc(file_proto_kratos_console_v1_admin, 44);
 
 /**
  * @generated from message kratos.console.v1.ExtendSessionRequest
@@ -1275,7 +1323,7 @@ export type ExtendSessionRequest = Message$1<"kratos.console.v1.ExtendSessionReq
  * Use `create(ExtendSessionRequestSchema)` to create a new message.
  */
 export const ExtendSessionRequestSchema: GenMessage<ExtendSessionRequest> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 44);
+  messageDesc(file_proto_kratos_console_v1_admin, 45);
 
 /**
  * @generated from message kratos.console.v1.ExtendSessionResponse
@@ -1292,7 +1340,7 @@ export type ExtendSessionResponse = Message$1<"kratos.console.v1.ExtendSessionRe
  * Use `create(ExtendSessionResponseSchema)` to create a new message.
  */
 export const ExtendSessionResponseSchema: GenMessage<ExtendSessionResponse> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 45);
+  messageDesc(file_proto_kratos_console_v1_admin, 46);
 
 /**
  * @generated from message kratos.console.v1.GetFlowsRequest
@@ -1305,7 +1353,7 @@ export type GetFlowsRequest = Message$1<"kratos.console.v1.GetFlowsRequest"> & {
  * Use `create(GetFlowsRequestSchema)` to create a new message.
  */
 export const GetFlowsRequestSchema: GenMessage<GetFlowsRequest> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 46);
+  messageDesc(file_proto_kratos_console_v1_admin, 47);
 
 /**
  * @generated from message kratos.console.v1.GetFlowsResponse
@@ -1337,7 +1385,7 @@ export type GetFlowsResponse = Message$1<"kratos.console.v1.GetFlowsResponse"> &
  * Use `create(GetFlowsResponseSchema)` to create a new message.
  */
 export const GetFlowsResponseSchema: GenMessage<GetFlowsResponse> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 47);
+  messageDesc(file_proto_kratos_console_v1_admin, 48);
 
 /**
  * @generated from message kratos.console.v1.FlowCard
@@ -1373,7 +1421,7 @@ export type FlowCard = Message$1<"kratos.console.v1.FlowCard"> & {
  * Use `create(FlowCardSchema)` to create a new message.
  */
 export const FlowCardSchema: GenMessage<FlowCard> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 48);
+  messageDesc(file_proto_kratos_console_v1_admin, 49);
 
 /**
  * @generated from message kratos.console.v1.FlowHook
@@ -1429,7 +1477,7 @@ export type FlowHook = Message$1<"kratos.console.v1.FlowHook"> & {
  * Use `create(FlowHookSchema)` to create a new message.
  */
 export const FlowHookSchema: GenMessage<FlowHook> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 49);
+  messageDesc(file_proto_kratos_console_v1_admin, 50);
 
 /**
  * @generated from message kratos.console.v1.Finding
@@ -1460,7 +1508,7 @@ export type Finding = Message$1<"kratos.console.v1.Finding"> & {
  * Use `create(FindingSchema)` to create a new message.
  */
 export const FindingSchema: GenMessage<Finding> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 50);
+  messageDesc(file_proto_kratos_console_v1_admin, 51);
 
 /**
  * @generated from message kratos.console.v1.TryFlowRequest
@@ -1477,7 +1525,7 @@ export type TryFlowRequest = Message$1<"kratos.console.v1.TryFlowRequest"> & {
  * Use `create(TryFlowRequestSchema)` to create a new message.
  */
 export const TryFlowRequestSchema: GenMessage<TryFlowRequest> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 51);
+  messageDesc(file_proto_kratos_console_v1_admin, 52);
 
 /**
  * @generated from message kratos.console.v1.TryFlowResponse
@@ -1515,7 +1563,7 @@ export type TryFlowResponse = Message$1<"kratos.console.v1.TryFlowResponse"> & {
  * Use `create(TryFlowResponseSchema)` to create a new message.
  */
 export const TryFlowResponseSchema: GenMessage<TryFlowResponse> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 52);
+  messageDesc(file_proto_kratos_console_v1_admin, 53);
 
 /**
  * @generated from message kratos.console.v1.FormNode
@@ -1566,7 +1614,7 @@ export type FormNode = Message$1<"kratos.console.v1.FormNode"> & {
  * Use `create(FormNodeSchema)` to create a new message.
  */
 export const FormNodeSchema: GenMessage<FormNode> = /*@__PURE__*/
-  messageDesc(file_proto_kratos_console_v1_admin, 53);
+  messageDesc(file_proto_kratos_console_v1_admin, 54);
 
 /**
  * AdminService is the console module's API: the Kratos installation's
