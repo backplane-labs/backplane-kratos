@@ -3,7 +3,7 @@ module github.com/backplane-labs/backplane-kratos
 go 1.26.0
 
 require (
-	github.com/backplane-labs/backplane v0.6.15
+	github.com/backplane-labs/backplane v0.6.16
 	github.com/go-jose/go-jose/v4 v4.1.6
 	github.com/google/uuid v1.6.0
 	github.com/gopherex/xlog v1.2.1
@@ -49,7 +49,7 @@ require (
 	github.com/gopherex/xshutdown v1.1.0 // indirect
 	github.com/gopherex/xtrace v1.1.0 // indirect
 	github.com/gopherex/xtrace/contrib/libs/xlog v1.1.0 // indirect
-	github.com/gopherex/xtrace/contrib/sdk v1.1.0 // indirect
+	github.com/gopherex/xtrace/contrib/sdk v1.1.1 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.2 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.29.0 // indirect
 	github.com/hashicorp/consul/api v1.33.4 // indirect
