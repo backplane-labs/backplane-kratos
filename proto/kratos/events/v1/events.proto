@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package kratos.events.v1;
+
+import "google/protobuf/struct.proto";
+
+option go_package = "github.com/backplane-labs/backplane-kratos/proto/kratos/events/v1;kratoseventsv1";
+
+// FlowEvent is a completed self-service flow: kratos.Registered,
+// kratos.LoggedIn, kratos.SettingsChanged, kratos.Recovered,
+// kratos.Verified. The event's key is the identity.
+message FlowEvent {
+  // Identity that completed the flow.
+  string identity_id = 1;
+  // Identity schema of the identity.
+  string schema_id = 2;
+  // Method the flow completed with: password, oidc, code, webauthn, ...
+  string method = 3;
+  // Kratos's id of the flow.
+  string flow_id = 4;
+  // Traits of the identity as Kratos holds them.
+  google.protobuf.Struct traits = 5;
+}
+
+// IdentityEvent is an identity changed through backplane-kratos (wiring or
+// console): kratos.IdentityCreated, kratos.IdentityUpdated,
+// kratos.IdentityDeleted. A deleted identity carries its id only.
+message IdentityEvent {
+  // Identity the change is about.
+  string identity_id = 1;
+  // Identity schema of the identity.
+  string schema_id = 2;
+  // Traits of the identity after the change.
+  google.protobuf.Struct traits = 3;
+  // Who changed it: wiring or console.
+  string by = 4;
+}
+
+// SessionsRevoked (kratos.SessionsRevoked): one session was revoked
+// (session_id), or every session of an identity (identity_id, session_id
+// empty).
+message SessionsRevoked {
+  // Identity whose sessions were revoked; empty when one session was.
+  string identity_id = 1;
+  // Session revoked; empty when every session of the identity was.
+  string session_id = 2;
+  // Who revoked them: wiring or console.
+  string by = 3;
+}

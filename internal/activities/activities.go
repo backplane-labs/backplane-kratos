@@ -16,7 +16,9 @@ import (
 
 	"github.com/gopherex/xlog"
 
+	"github.com/backplane-labs/backplane-kratos/internal/events"
 	"github.com/backplane-labs/backplane-kratos/internal/ory"
+	kratoseventsv1 "github.com/backplane-labs/backplane-kratos/proto/kratos/events/v1"
 )
 
 const timeout = 15 * time.Second
@@ -34,22 +36,12 @@ type Activities struct {
 }
 
 // IdentityEvent is an identity created, updated or deleted through the
-// admin API (here or in the console).
-type IdentityEvent struct {
-	IdentityID string          `json:"identity_id"`
-	SchemaID   string          `json:"schema_id,omitempty"`
-	Traits     json.RawMessage `json:"traits,omitempty"`
-	// By is "wiring" or "console".
-	By string `json:"by"`
-}
+// activities.
+type IdentityEvent = *kratoseventsv1.IdentityEvent
 
-// SessionsRevoked: sessions of an identity were revoked (one, or all
-// when SessionID is empty).
-type SessionsRevoked struct {
-	IdentityID string `json:"identity_id,omitempty"`
-	SessionID  string `json:"session_id,omitempty"`
-	By         string `json:"by"`
-}
+// SessionsRevoked: sessions of an identity were revoked (one, or all when
+// its session id is empty).
+type SessionsRevoked = *kratoseventsv1.SessionsRevoked
 
 // New declares the activities and events under parent.
 func New(parent deps.Scope, kratos ory.Client) *Activities {
@@ -143,9 +135,16 @@ func failure(err error) error {
 	return activity.NonRetryable(err)
 }
 
+// identityEvent is the event of a change wiring made to id.
+func identityEvent(id ory.Identity) IdentityEvent {
+	return &kratoseventsv1.IdentityEvent{
+		IdentityId: id.ID, SchemaId: id.SchemaID, Traits: events.Traits(id.Traits), By: "wiring",
+	}
+}
+
 func (a *Activities) publish(ctx context.Context, ref event.Ref[IdentityEvent], ev IdentityEvent) {
-	if err := ref.Publish(ctx, ev, event.Key(ev.IdentityID)); err != nil {
-		a.Log().Ctx().Warn(ctx, "identity event not published", xlog.String("identity", ev.IdentityID), xlog.Err(err))
+	if err := ref.Publish(ctx, ev, event.Key(ev.GetIdentityId())); err != nil {
+		a.Log().Ctx().Warn(ctx, "identity event not published", xlog.String("identity", ev.GetIdentityId()), xlog.Err(err))
 	}
 }
 
@@ -270,11 +269,7 @@ func (a *Activities) createIdentity(ctx context.Context, in IdentityIn) (ory.Ide
 		return out, failure(err)
 	}
 
-	a.publish(
-		ctx,
-		a.created,
-		IdentityEvent{IdentityID: out.ID, SchemaID: out.SchemaID, Traits: out.Traits, By: "wiring"},
-	)
+	a.publish(ctx, a.created, identityEvent(out))
 
 	return out, nil
 }
@@ -309,11 +304,7 @@ func (a *Activities) updateIdentity(ctx context.Context, in IdentityIn) (ory.Ide
 		return out, failure(err)
 	}
 
-	a.publish(
-		ctx,
-		a.updated,
-		IdentityEvent{IdentityID: out.ID, SchemaID: out.SchemaID, Traits: out.Traits, By: "wiring"},
-	)
+	a.publish(ctx, a.updated, identityEvent(out))
 
 	return out, nil
 }
@@ -330,11 +321,7 @@ func (a *Activities) patchIdentity(ctx context.Context, in PatchIn) (ory.Identit
 		return out, failure(err)
 	}
 
-	a.publish(
-		ctx,
-		a.updated,
-		IdentityEvent{IdentityID: out.ID, SchemaID: out.SchemaID, Traits: out.Traits, By: "wiring"},
-	)
+	a.publish(ctx, a.updated, identityEvent(out))
 
 	return out, nil
 }
@@ -356,7 +343,7 @@ func (a *Activities) deleteIdentity(ctx context.Context, in IDIn) (Empty, error)
 		return Empty{}, failure(err)
 	}
 
-	a.publish(ctx, a.deleted, IdentityEvent{IdentityID: in.ID, By: "wiring"})
+	a.publish(ctx, a.deleted, &kratoseventsv1.IdentityEvent{IdentityId: in.ID, By: "wiring"})
 
 	return Empty{}, nil
 }
@@ -432,7 +419,7 @@ func (a *Activities) revokeSessions(ctx context.Context, in RevokeIn) (Empty, er
 		return Empty{}, failure(err)
 	}
 
-	ev := SessionsRevoked{IdentityID: in.IdentityID, SessionID: in.SessionID, By: "wiring"}
+	ev := &kratoseventsv1.SessionsRevoked{IdentityId: in.IdentityID, SessionId: in.SessionID, By: "wiring"}
 	if err := a.revoked.Publish(ctx, ev); err != nil {
 		a.Log().Ctx().Warn(ctx, "sessions event not published", xlog.Err(err))
 	}
@@ -547,7 +534,7 @@ func (a *Activities) importIdentities(ctx context.Context, in ImportIn) (ImportO
 
 	for _, r := range results {
 		if r.Action == "create" && r.Identity != "" {
-			a.publish(ctx, a.created, IdentityEvent{IdentityID: r.Identity, By: "wiring"})
+			a.publish(ctx, a.created, &kratoseventsv1.IdentityEvent{IdentityId: r.Identity, By: "wiring"})
 		}
 	}
 

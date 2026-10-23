@@ -246,7 +246,7 @@ func TestFlowEvent(t *testing.T) {
 	}
 
 	events := backplanetest.Events(h, f.Event("registration"))
-	if len(events) != 1 || events[0].IdentityID == "" || events[0].Method != "password" {
+	if len(events) != 1 || events[0].GetIdentityId() == "" || events[0].GetMethod() != "password" {
 		t.Fatalf("events: %+v", events)
 	}
 }

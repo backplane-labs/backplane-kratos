@@ -23,7 +23,9 @@ import (
 
 	"github.com/gopherex/xlog"
 
+	"github.com/backplane-labs/backplane-kratos/internal/events"
 	"github.com/backplane-labs/backplane-kratos/internal/overlay"
+	kratoseventsv1 "github.com/backplane-labs/backplane-kratos/proto/kratos/events/v1"
 )
 
 // Timeouts of the hooks: Kratos waits for flow hooks while a user waits.
@@ -486,7 +488,9 @@ func (f *Flows) event(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ev := FlowEvent{IdentityID: id.ID, SchemaID: id.SchemaID, Method: method, FlowID: c.Flow.ID, Traits: id.Traits}
+	ev := &kratoseventsv1.FlowEvent{
+		IdentityId: id.ID, SchemaId: id.SchemaID, Method: method, FlowId: c.Flow.ID, Traits: events.Traits(id.Traits),
+	}
 
 	// Kratos does not wait for this answer: the event is best effort.
 	if err := ref.Publish(r.Context(), ev, event.Key(id.ID), event.ID(flow+"-"+c.Flow.ID+"-"+method)); err != nil {

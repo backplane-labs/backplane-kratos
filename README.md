@@ -20,6 +20,13 @@ service sits next to it and turns it into parts of Wiring:
   `CheckSession`, `GetSession`, `CreateRecoveryCode`, `ListMessages`,
   `ImportIdentities`; changes publish
   `IdentityCreated/Updated/Deleted` and `SessionsRevoked`.
+- **Event contract**: the payloads are proto messages in
+  `proto/kratos/events/v1` (Go: `github.com/backplane-labs/backplane-kratos/proto/kratos/events/v1`),
+  in protojson with proto field names: `FlowEvent`, `IdentityEvent`,
+  `SessionsRevoked`.
+- **Readiness without Kratos**: Kratos calls this service (webhooks), so the
+  service is ready without it; Kratos's admin API is probed for the console's
+  health only. Kratos can depend on it with `service_healthy`.
 - **Console module**: Kratos's state and every hook point, identities (traits
   editor checked against the identity schema, credentials, verified addresses,
   sessions with extend and revoke, recovery codes and links), a batch import,

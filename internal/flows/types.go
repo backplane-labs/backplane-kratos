@@ -4,7 +4,11 @@
 // completed flows (events).
 package flows
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	kratoseventsv1 "github.com/backplane-labs/backplane-kratos/proto/kratos/events/v1"
+)
 
 // DeliverIn is a message Kratos's courier hands over: deliver it.
 type DeliverIn struct {
@@ -93,10 +97,4 @@ type IdentityPatch struct {
 
 // FlowEvent is a completed flow: Registered, LoggedIn, SettingsChanged,
 // Recovered, Verified.
-type FlowEvent struct {
-	IdentityID string          `json:"identity_id"`
-	SchemaID   string          `json:"schema_id,omitempty"`
-	Method     string          `json:"method,omitempty"`
-	FlowID     string          `json:"flow_id,omitempty"`
-	Traits     json.RawMessage `json:"traits,omitempty"`
-}
+type FlowEvent = *kratoseventsv1.FlowEvent

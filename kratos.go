@@ -130,7 +130,10 @@ var ErrNoKey = errors.New("kratos: callbacks.key or backplane.internal_secret is
 
 // State is the service's tree.
 type State struct {
-	Kratos     deps.Dependency[ory.Client]
+	// Kratos is the installation, probed for the console's health but not
+	// part of readiness: Kratos calls this service (webhooks), so it starts
+	// after it is ready.
+	Kratos     deps.Optional[ory.Client]
 	Flows      *flows.Flows
 	Applier    *apply.Applier
 	Activities *activities.Activities
@@ -195,7 +198,7 @@ func newState(root backplane.Root[Config]) (*State, error) {
 	}
 
 	st := &State{
-		Kratos:    deps.NewDependency[ory.Client](root, dependency{client: client}),
+		Kratos:    installation(root, client),
 		callbacks: cfg.Callbacks.Listen,
 		settings:  cfg.Settings,
 	}
@@ -227,7 +230,14 @@ func newState(root backplane.Root[Config]) (*State, error) {
 	return st, nil
 }
 
-// dependency is the Kratos installation: ready while its admin API is.
+// installation is the Kratos installation under parent: probed, never part
+// of readiness.
+func installation(parent deps.Scope, client ory.Client) deps.Optional[ory.Client] {
+	return deps.NewOptional[ory.Client](parent, dependency{client: client}, deps.ProbeOptional())
+}
+
+// dependency is the Kratos installation: present while its admin API is
+// ready.
 type dependency struct{ client ory.Client }
 
 func (dependency) Name() string { return "kratos" }

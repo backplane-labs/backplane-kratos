@@ -388,7 +388,7 @@ func TestRegisteredEvent(t *testing.T) {
 
 	waitFor(t, "Registered published", func() bool {
 		for _, ev := range backplanetest.Events(e.h, e.flows.Event(overlay.FlowRegistration)) {
-			if strings.Contains(string(ev.Traits), email) {
+			if strings.Contains(ev.GetTraits().String(), email) {
 				return true
 			}
 		}
@@ -452,7 +452,7 @@ func TestActivities(t *testing.T) {
 	}
 
 	deleted := backplanetest.Events(e.h, e.activities.IdentityEvent("IdentityDeleted"))
-	if len(deleted) != 1 || deleted[0].IdentityID != created.ID {
+	if len(deleted) != 1 || deleted[0].GetIdentityId() != created.ID {
 		t.Fatalf("deleted event: %+v", deleted)
 	}
 }
