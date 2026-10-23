@@ -1,0 +1,39 @@
+{
+  "name": "@backplane-labs/kratos-events",
+  "version": "0.0.0",
+  "description": "backplane-kratos event payloads (proto/kratos/events/v1) for protobuf-es v2",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/backplane-labs/backplane-kratos.git",
+    "directory": "events"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    "./kratos/*.js": {
+      "types": "./dist/kratos/*.d.ts",
+      "import": "./dist/kratos/*.js"
+    },
+    "./kratos/*": {
+      "types": "./dist/kratos/*.d.ts",
+      "import": "./dist/kratos/*.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p ."
+  },
+  "peerDependencies": {
+    "@bufbuild/protobuf": "^2.0.0"
+  },
+  "devDependencies": {
+    "@bufbuild/protobuf": "2.16.0",
+    "typescript": "5.9.3"
+  }
+}
