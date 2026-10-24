@@ -12,7 +12,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file kratos/events/v1/events.proto.
  */
 export const file_kratos_events_v1_events: GenFile = /*@__PURE__*/
-  fileDesc("Ch1rcmF0b3MvZXZlbnRzL3YxL2V2ZW50cy5wcm90bxIQa3JhdG9zLmV2ZW50cy52MSKpAQoJRmxvd0V2ZW50EhMKC2lkZW50aXR5X2lkGAEgASgJEhEKCXNjaGVtYV9pZBgCIAEoCRIOCgZtZXRob2QYAyABKAkSDwoHZmxvd19pZBgEIAEoCRInCgZ0cmFpdHMYBSABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0EioKB3Nlc3Npb24YBiABKAsyGS5rcmF0b3MuZXZlbnRzLnYxLlNlc3Npb24ikgEKB1Nlc3Npb24SCgoCaWQYASABKAkSNAoQYXV0aGVudGljYXRlZF9hdBgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASCwoDYWFsGAMgASgJEhIKCmlwX2FkZHJlc3MYBCABKAkSEgoKdXNlcl9hZ2VudBgFIAEoCRIQCghsb2NhdGlvbhgGIAEoCSJsCg1JZGVudGl0eUV2ZW50EhMKC2lkZW50aXR5X2lkGAEgASgJEhEKCXNjaGVtYV9pZBgCIAEoCRInCgZ0cmFpdHMYAyABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0EgoKAmJ5GAQgASgJIkYKD1Nlc3Npb25zUmV2b2tlZBITCgtpZGVudGl0eV9pZBgBIAEoCRISCgpzZXNzaW9uX2lkGAIgASgJEgoKAmJ5GAMgASgJQlJaUGdpdGh1Yi5jb20vYmFja3BsYW5lLWxhYnMvYmFja3BsYW5lLWtyYXRvcy9wcm90by9rcmF0b3MvZXZlbnRzL3YxO2tyYXRvc2V2ZW50c3YxYgZwcm90bzM", [file_google_protobuf_struct, file_google_protobuf_timestamp]);
+  fileDesc("Ch1rcmF0b3MvZXZlbnRzL3YxL2V2ZW50cy5wcm90bxIQa3JhdG9zLmV2ZW50cy52MSLdAQoJRmxvd0V2ZW50EhMKC2lkZW50aXR5X2lkGAEgASgJEhEKCXNjaGVtYV9pZBgCIAEoCRIOCgZtZXRob2QYAyABKAkSDwoHZmxvd19pZBgEIAEoCRInCgZ0cmFpdHMYBSABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0EioKB3Nlc3Npb24YBiABKAsyGS5rcmF0b3MuZXZlbnRzLnYxLlNlc3Npb24SMgoRdHJhbnNpZW50X3BheWxvYWQYByABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0IpIBCgdTZXNzaW9uEgoKAmlkGAEgASgJEjQKEGF1dGhlbnRpY2F0ZWRfYXQYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEgsKA2FhbBgDIAEoCRISCgppcF9hZGRyZXNzGAQgASgJEhIKCnVzZXJfYWdlbnQYBSABKAkSEAoIbG9jYXRpb24YBiABKAkibAoNSWRlbnRpdHlFdmVudBITCgtpZGVudGl0eV9pZBgBIAEoCRIRCglzY2hlbWFfaWQYAiABKAkSJwoGdHJhaXRzGAMgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdBIKCgJieRgEIAEoCSJGCg9TZXNzaW9uc1Jldm9rZWQSEwoLaWRlbnRpdHlfaWQYASABKAkSEgoKc2Vzc2lvbl9pZBgCIAEoCRIKCgJieRgDIAEoCUJSWlBnaXRodWIuY29tL2JhY2twbGFuZS1sYWJzL2JhY2twbGFuZS1rcmF0b3MvcHJvdG8va3JhdG9zL2V2ZW50cy92MTtrcmF0b3NldmVudHN2MWIGcHJvdG8z", [file_google_protobuf_struct, file_google_protobuf_timestamp]);
 
 /**
  * FlowEvent is a completed self-service flow: kratos.Registered,
@@ -64,6 +64,14 @@ export type FlowEvent = Message<"kratos.events.v1.FlowEvent"> & {
    * @generated from field: kratos.events.v1.Session session = 6;
    */
   session?: Session | undefined;
+
+  /**
+   * Transient payload the client sent with the flow, as the Deliver hook
+   * of the flow's code saw it; absent when there was none.
+   *
+   * @generated from field: google.protobuf.Struct transient_payload = 7;
+   */
+  transientPayload?: JsonObject | undefined;
 };
 
 /**

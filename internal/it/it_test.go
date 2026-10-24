@@ -417,7 +417,10 @@ func TestLoggedInEvent(t *testing.T) {
 	}
 
 	code, body := call(t, http.MethodPost, fmt.Sprintf("/self-service/login?flow=%v", flow["id"]),
-		map[string]any{"method": "password", "identifier": email, "password": password})
+		map[string]any{
+			"method": "password", "identifier": email, "password": password,
+			"transient_payload": map[string]any{"qr": "q-1"},
+		})
 	if code != http.StatusOK {
 		t.Fatalf("login: %d %v", code, body)
 	}
@@ -441,6 +444,10 @@ func TestLoggedInEvent(t *testing.T) {
 	s := got.GetSession()
 	if s.GetId() != session["id"] || s.GetAuthenticatedAt() == nil || s.GetAal() != "aal1" || s.GetUserAgent() == "" {
 		t.Fatalf("session %+v, want id %v", s, session["id"])
+	}
+
+	if qr := got.GetTransientPayload().GetFields()["qr"].GetStringValue(); qr != "q-1" {
+		t.Fatalf("transient payload: %+v", got.GetTransientPayload())
 	}
 }
 

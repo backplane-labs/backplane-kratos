@@ -1,5 +1,5 @@
 {
-  "flow": {"id": "8f6d5a52-6f1b-4c1e-9d4e-2b8f0c3a7e11", "type": "api"},
+  "flow": {"id": "8f6d5a52-6f1b-4c1e-9d4e-2b8f0c3a7e11", "type": "api", "transient_payload": {"qr": "q-1"}},
   "identity": {
     "id": "0c1d2e3f-4a5b-4c6d-8e7f-901a2b3c4d5e",
     "schema_id": "default",

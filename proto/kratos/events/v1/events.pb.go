@@ -40,9 +40,12 @@ type FlowEvent struct {
 	Traits *structpb.Struct `protobuf:"bytes,5,opt,name=traits,proto3" json:"traits,omitempty"`
 	// Session the login issued; set on kratos.LoggedIn, which is published
 	// only once Kratos has stored the session.
-	Session       *Session `protobuf:"bytes,6,opt,name=session,proto3" json:"session,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Session *Session `protobuf:"bytes,6,opt,name=session,proto3" json:"session,omitempty"`
+	// Transient payload the client sent with the flow, as the Deliver hook
+	// of the flow's code saw it; absent when there was none.
+	TransientPayload *structpb.Struct `protobuf:"bytes,7,opt,name=transient_payload,json=transientPayload,proto3" json:"transient_payload,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *FlowEvent) Reset() {
@@ -113,6 +116,13 @@ func (x *FlowEvent) GetTraits() *structpb.Struct {
 func (x *FlowEvent) GetSession() *Session {
 	if x != nil {
 		return x.Session
+	}
+	return nil
+}
+
+func (x *FlowEvent) GetTransientPayload() *structpb.Struct {
+	if x != nil {
+		return x.TransientPayload
 	}
 	return nil
 }
@@ -353,7 +363,7 @@ var File_proto_kratos_events_v1_events_proto protoreflect.FileDescriptor
 
 const file_proto_kratos_events_v1_events_proto_rawDesc = "" +
 	"\n" +
-	"#proto/kratos/events/v1/events.proto\x12\x10kratos.events.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xe0\x01\n" +
+	"#proto/kratos/events/v1/events.proto\x12\x10kratos.events.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa6\x02\n" +
 	"\tFlowEvent\x12\x1f\n" +
 	"\videntity_id\x18\x01 \x01(\tR\n" +
 	"identityId\x12\x1b\n" +
@@ -361,7 +371,8 @@ const file_proto_kratos_events_v1_events_proto_rawDesc = "" +
 	"\x06method\x18\x03 \x01(\tR\x06method\x12\x17\n" +
 	"\aflow_id\x18\x04 \x01(\tR\x06flowId\x12/\n" +
 	"\x06traits\x18\x05 \x01(\v2\x17.google.protobuf.StructR\x06traits\x123\n" +
-	"\asession\x18\x06 \x01(\v2\x19.kratos.events.v1.SessionR\asession\"\xcc\x01\n" +
+	"\asession\x18\x06 \x01(\v2\x19.kratos.events.v1.SessionR\asession\x12D\n" +
+	"\x11transient_payload\x18\a \x01(\v2\x17.google.protobuf.StructR\x10transientPayload\"\xcc\x01\n" +
 	"\aSession\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12E\n" +
 	"\x10authenticated_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x0fauthenticatedAt\x12\x10\n" +
@@ -408,13 +419,14 @@ var file_proto_kratos_events_v1_events_proto_goTypes = []any{
 var file_proto_kratos_events_v1_events_proto_depIdxs = []int32{
 	4, // 0: kratos.events.v1.FlowEvent.traits:type_name -> google.protobuf.Struct
 	1, // 1: kratos.events.v1.FlowEvent.session:type_name -> kratos.events.v1.Session
-	5, // 2: kratos.events.v1.Session.authenticated_at:type_name -> google.protobuf.Timestamp
-	4, // 3: kratos.events.v1.IdentityEvent.traits:type_name -> google.protobuf.Struct
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	4, // 2: kratos.events.v1.FlowEvent.transient_payload:type_name -> google.protobuf.Struct
+	5, // 3: kratos.events.v1.Session.authenticated_at:type_name -> google.protobuf.Timestamp
+	4, // 4: kratos.events.v1.IdentityEvent.traits:type_name -> google.protobuf.Struct
+	5, // [5:5] is the sub-list for method output_type
+	5, // [5:5] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_proto_kratos_events_v1_events_proto_init() }

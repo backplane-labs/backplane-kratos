@@ -510,6 +510,7 @@ func (f *Flows) event(w http.ResponseWriter, r *http.Request) {
 
 	flowEvent := &kratoseventsv1.FlowEvent{
 		IdentityId: id.ID, SchemaId: id.SchemaID, Method: method, FlowId: c.Flow.ID, Traits: events.Traits(id.Traits),
+		TransientPayload: events.Traits(c.Flow.TransientPayload),
 	}
 
 	// Kratos does not wait for this answer: the event is best effort.

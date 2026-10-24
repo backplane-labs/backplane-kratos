@@ -16,7 +16,10 @@ service sits next to it and turns it into parts of Wiring:
   `Recovered`, `Verified` for rules and reactors. Kratos runs its after-login
   hooks before it stores the session, so `LoggedIn` waits until the session
   is stored and carries it (id, `authenticated_at`, AAL, address, user agent);
-  a login whose session is never stored publishes nothing.
+  a login whose session is never stored publishes nothing. Every flow event
+  carries the flow's `transient_payload`, the same one its `Deliver` saw:
+  Kratos gives a courier message no flow id, so a client marker in the
+  payload is how a message and its completed flow are matched.
 - **Admin API → activities**: `GetIdentity`, `FindIdentities`,
   `CreateIdentity`, `UpdateIdentity`, `PatchIdentity`, `DeleteIdentity`,
   `DeleteCredentials`, `ListSessions`, `RevokeSessions`, `ExtendSession`,

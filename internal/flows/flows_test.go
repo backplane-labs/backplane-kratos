@@ -317,6 +317,10 @@ func TestLoggedInAfterSessionStored(t *testing.T) {
 		s.GetIpAddress() != "203.0.113.7" || s.GetUserAgent() != "test-agent" {
 		t.Fatalf("session: %+v", s)
 	}
+
+	if qr := events[0].GetTransientPayload().GetFields()["qr"].GetStringValue(); qr != "q-1" {
+		t.Fatalf("transient payload: %+v", events[0].GetTransientPayload())
+	}
 }
 
 // Without the key nothing is served.

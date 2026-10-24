@@ -24,6 +24,9 @@ message FlowEvent {
   // Session the login issued; set on kratos.LoggedIn, which is published
   // only once Kratos has stored the session.
   Session session = 6;
+  // Transient payload the client sent with the flow, as the Deliver hook
+  // of the flow's code saw it; absent when there was none.
+  google.protobuf.Struct transient_payload = 7;
 }
 
 // Session is a Kratos session as a login issued it.
