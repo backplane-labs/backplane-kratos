@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package kratos.events.v1;
+
+option go_package = "github.com/backplane-labs/backplane-kratos/proto/kratos/events/v1;kratoseventsv1";
+
+// LoginSection is the section kratos.login (backplane sections): how
+// identities sign up and sign in, as the operator set Kratos in the
+// console. It follows the settings live and holds no secrets.
+message LoginSection {
+  // Registration accepts new identities.
+  bool registration_enabled = 1;
+  // Registration form style: profile_first or unified.
+  string registration_style = 2;
+  // Login form style: unified or identifier_first.
+  string login_style = 3;
+  // Methods that sign in on their own: password, code, webauthn, passkey,
+  // oidc.
+  repeated string first_factors = 4;
+  // Methods offered as a second factor: totp, lookup_secret, webauthn,
+  // code.
+  repeated string second_factors = 5;
+  // OIDC providers sign-in offers; empty unless oidc is a first factor.
+  repeated OIDCProvider oidc_providers = 6;
+  // AAL a session needs for whoami: highest_available or aal1.
+  string session_required_aal = 7;
+  // AAL the settings flow needs: highest_available or aal1.
+  string settings_required_aal = 8;
+  // A login is refused before an address is verified (password logins).
+  bool require_verified_address = 9;
+  // The recovery and verification flows are on.
+  bool recovery_enabled = 10;
+  bool verification_enabled = 11;
+}
+
+// OIDCProvider is an upstream identity provider sign-in offers.
+message OIDCProvider {
+  // Stable id: part of the callback URL; what a client submits.
+  string id = 1;
+  // Kind: generic, google, github, apple, microsoft, ...
+  string provider = 2;
+  // Label to show.
+  string label = 3;
+}

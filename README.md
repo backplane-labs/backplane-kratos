@@ -20,6 +20,11 @@ service sits next to it and turns it into parts of Wiring:
   carries the flow's `transient_payload`, the same one its `Deliver` saw:
   Kratos gives a courier message no flow id, so a client marker in the
   payload is how a message and its completed flow are matched.
+- **Section `kratos.login`** (backplane live section): how identities sign
+  up and sign in — registration on or off, first and second factors, OIDC
+  providers (id, kind, label), required AALs, recovery and verification —
+  following the console settings, without secrets. Services follow it with
+  `sections.Follow[*kratoseventsv1.LoginSection](root, "kratos.login")`.
 - **Admin API → activities**: `GetIdentity`, `FindIdentities`,
   `CreateIdentity`, `UpdateIdentity`, `PatchIdentity`, `DeleteIdentity`,
   `DeleteCredentials`, `ListSessions`, `RevokeSessions`, `ExtendSession`,

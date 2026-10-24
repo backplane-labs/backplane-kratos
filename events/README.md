@@ -1,7 +1,8 @@
 # @backplane-labs/kratos-events
 
 TypeScript (protobuf-es v2) of backplane-kratos's event payloads,
-`proto/kratos/events/v1`: `FlowEvent`, `IdentityEvent`, `SessionsRevoked`.
+`proto/kratos/events/v1`: `FlowEvent`, `IdentityEvent`, `SessionsRevoked`,
+and the section `LoginSection` (`login_pb.js`).
 Released with backplane-kratos, same version.
 
 ```ts

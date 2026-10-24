@@ -28,6 +28,7 @@ import (
 	"github.com/backplane-labs/backplane-kratos/internal/activities"
 	"github.com/backplane-labs/backplane-kratos/internal/admin"
 	"github.com/backplane-labs/backplane-kratos/internal/apply"
+	"github.com/backplane-labs/backplane-kratos/internal/events"
 	"github.com/backplane-labs/backplane-kratos/internal/flows"
 	"github.com/backplane-labs/backplane-kratos/internal/jwks"
 	"github.com/backplane-labs/backplane-kratos/internal/ory"
@@ -203,6 +204,7 @@ func newState(root backplane.Root[Config]) (*State, error) {
 		settings:  cfg.Settings,
 	}
 	st.Flows = flows.New(root, key, cfg.FailOpen, client)
+	events.OfferLogin(root, cfg.Settings)
 
 	mode, err := strconv.ParseUint(cfg.OverlayMode, 8, 32)
 	if err != nil || mode > 0o777 {
