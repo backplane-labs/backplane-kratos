@@ -4,14 +4,15 @@
 
 import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
-import { file_google_protobuf_struct } from "@bufbuild/protobuf/wkt";
+import type { Timestamp } from "@bufbuild/protobuf/wkt";
+import { file_google_protobuf_struct, file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
 import type { JsonObject, Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file kratos/events/v1/events.proto.
  */
 export const file_kratos_events_v1_events: GenFile = /*@__PURE__*/
-  fileDesc("Ch1rcmF0b3MvZXZlbnRzL3YxL2V2ZW50cy5wcm90bxIQa3JhdG9zLmV2ZW50cy52MSJ9CglGbG93RXZlbnQSEwoLaWRlbnRpdHlfaWQYASABKAkSEQoJc2NoZW1hX2lkGAIgASgJEg4KBm1ldGhvZBgDIAEoCRIPCgdmbG93X2lkGAQgASgJEicKBnRyYWl0cxgFIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QibAoNSWRlbnRpdHlFdmVudBITCgtpZGVudGl0eV9pZBgBIAEoCRIRCglzY2hlbWFfaWQYAiABKAkSJwoGdHJhaXRzGAMgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdBIKCgJieRgEIAEoCSJGCg9TZXNzaW9uc1Jldm9rZWQSEwoLaWRlbnRpdHlfaWQYASABKAkSEgoKc2Vzc2lvbl9pZBgCIAEoCRIKCgJieRgDIAEoCUJSWlBnaXRodWIuY29tL2JhY2twbGFuZS1sYWJzL2JhY2twbGFuZS1rcmF0b3MvcHJvdG8va3JhdG9zL2V2ZW50cy92MTtrcmF0b3NldmVudHN2MWIGcHJvdG8z", [file_google_protobuf_struct]);
+  fileDesc("Ch1rcmF0b3MvZXZlbnRzL3YxL2V2ZW50cy5wcm90bxIQa3JhdG9zLmV2ZW50cy52MSKpAQoJRmxvd0V2ZW50EhMKC2lkZW50aXR5X2lkGAEgASgJEhEKCXNjaGVtYV9pZBgCIAEoCRIOCgZtZXRob2QYAyABKAkSDwoHZmxvd19pZBgEIAEoCRInCgZ0cmFpdHMYBSABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0EioKB3Nlc3Npb24YBiABKAsyGS5rcmF0b3MuZXZlbnRzLnYxLlNlc3Npb24ikgEKB1Nlc3Npb24SCgoCaWQYASABKAkSNAoQYXV0aGVudGljYXRlZF9hdBgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASCwoDYWFsGAMgASgJEhIKCmlwX2FkZHJlc3MYBCABKAkSEgoKdXNlcl9hZ2VudBgFIAEoCRIQCghsb2NhdGlvbhgGIAEoCSJsCg1JZGVudGl0eUV2ZW50EhMKC2lkZW50aXR5X2lkGAEgASgJEhEKCXNjaGVtYV9pZBgCIAEoCRInCgZ0cmFpdHMYAyABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0EgoKAmJ5GAQgASgJIkYKD1Nlc3Npb25zUmV2b2tlZBITCgtpZGVudGl0eV9pZBgBIAEoCRISCgpzZXNzaW9uX2lkGAIgASgJEgoKAmJ5GAMgASgJQlJaUGdpdGh1Yi5jb20vYmFja3BsYW5lLWxhYnMvYmFja3BsYW5lLWtyYXRvcy9wcm90by9rcmF0b3MvZXZlbnRzL3YxO2tyYXRvc2V2ZW50c3YxYgZwcm90bzM", [file_google_protobuf_struct, file_google_protobuf_timestamp]);
 
 /**
  * FlowEvent is a completed self-service flow: kratos.Registered,
@@ -55,6 +56,14 @@ export type FlowEvent = Message<"kratos.events.v1.FlowEvent"> & {
    * @generated from field: google.protobuf.Struct traits = 5;
    */
   traits?: JsonObject | undefined;
+
+  /**
+   * Session the login issued; set on kratos.LoggedIn, which is published
+   * only once Kratos has stored the session.
+   *
+   * @generated from field: kratos.events.v1.Session session = 6;
+   */
+  session?: Session | undefined;
 };
 
 /**
@@ -63,6 +72,62 @@ export type FlowEvent = Message<"kratos.events.v1.FlowEvent"> & {
  */
 export const FlowEventSchema: GenMessage<FlowEvent> = /*@__PURE__*/
   messageDesc(file_kratos_events_v1_events, 0);
+
+/**
+ * Session is a Kratos session as a login issued it.
+ *
+ * @generated from message kratos.events.v1.Session
+ */
+export type Session = Message<"kratos.events.v1.Session"> & {
+  /**
+   * Kratos's id of the session.
+   *
+   * @generated from field: string id = 1;
+   */
+  id: string;
+
+  /**
+   * When the identity authenticated.
+   *
+   * @generated from field: google.protobuf.Timestamp authenticated_at = 2;
+   */
+  authenticatedAt?: Timestamp | undefined;
+
+  /**
+   * Authenticator assurance level: aal1, aal2.
+   *
+   * @generated from field: string aal = 3;
+   */
+  aal: string;
+
+  /**
+   * Address the login came from, as Kratos saw it.
+   *
+   * @generated from field: string ip_address = 4;
+   */
+  ipAddress: string;
+
+  /**
+   * User agent of the login.
+   *
+   * @generated from field: string user_agent = 5;
+   */
+  userAgent: string;
+
+  /**
+   * Location Kratos derived from the request, if any.
+   *
+   * @generated from field: string location = 6;
+   */
+  location: string;
+};
+
+/**
+ * Describes the message kratos.events.v1.Session.
+ * Use `create(SessionSchema)` to create a new message.
+ */
+export const SessionSchema: GenMessage<Session> = /*@__PURE__*/
+  messageDesc(file_kratos_events_v1_events, 1);
 
 /**
  * IdentityEvent is an identity changed through backplane-kratos (wiring or
@@ -106,7 +171,7 @@ export type IdentityEvent = Message<"kratos.events.v1.IdentityEvent"> & {
  * Use `create(IdentityEventSchema)` to create a new message.
  */
 export const IdentityEventSchema: GenMessage<IdentityEvent> = /*@__PURE__*/
-  messageDesc(file_kratos_events_v1_events, 1);
+  messageDesc(file_kratos_events_v1_events, 2);
 
 /**
  * SessionsRevoked (kratos.SessionsRevoked): one session was revoked
@@ -143,5 +208,5 @@ export type SessionsRevoked = Message<"kratos.events.v1.SessionsRevoked"> & {
  * Use `create(SessionsRevokedSchema)` to create a new message.
  */
 export const SessionsRevokedSchema: GenMessage<SessionsRevoked> = /*@__PURE__*/
-  messageDesc(file_kratos_events_v1_events, 2);
+  messageDesc(file_kratos_events_v1_events, 3);
 

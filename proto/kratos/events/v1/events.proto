@@ -3,6 +3,7 @@ syntax = "proto3";
 package kratos.events.v1;
 
 import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/backplane-labs/backplane-kratos/proto/kratos/events/v1;kratoseventsv1";
 
@@ -20,6 +21,25 @@ message FlowEvent {
   string flow_id = 4;
   // Traits of the identity as Kratos holds them.
   google.protobuf.Struct traits = 5;
+  // Session the login issued; set on kratos.LoggedIn, which is published
+  // only once Kratos has stored the session.
+  Session session = 6;
+}
+
+// Session is a Kratos session as a login issued it.
+message Session {
+  // Kratos's id of the session.
+  string id = 1;
+  // When the identity authenticated.
+  google.protobuf.Timestamp authenticated_at = 2;
+  // Authenticator assurance level: aal1, aal2.
+  string aal = 3;
+  // Address the login came from, as Kratos saw it.
+  string ip_address = 4;
+  // User agent of the login.
+  string user_agent = 5;
+  // Location Kratos derived from the request, if any.
+  string location = 6;
 }
 
 // IdentityEvent is an identity changed through backplane-kratos (wiring or

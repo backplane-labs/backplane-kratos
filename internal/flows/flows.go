@@ -20,10 +20,12 @@ import (
 	"github.com/backplane-labs/backplane/pkg/backplane/deps"
 	"github.com/backplane-labs/backplane/pkg/backplane/event"
 	"github.com/backplane-labs/backplane/pkg/backplane/hook"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/gopherex/xlog"
 
 	"github.com/backplane-labs/backplane-kratos/internal/events"
+	"github.com/backplane-labs/backplane-kratos/internal/ory"
 	"github.com/backplane-labs/backplane-kratos/internal/overlay"
 	kratoseventsv1 "github.com/backplane-labs/backplane-kratos/proto/kratos/events/v1"
 )
@@ -33,7 +35,20 @@ const (
 	flowTimeout    = 5 * time.Second
 	deliverTimeout = 30 * time.Second
 	maxCallback    = 4 << 20
+
+	// storedWait bounds the wait for a login's session to be stored.
+	storedWait = 30 * time.Second
+	// storedPoll is the first pause between looks for it; it doubles.
+	storedPoll = 10 * time.Millisecond
 )
+
+// errNotStored: the login's session never appeared in Kratos.
+var errNotStored = errors.New("session of the login not stored")
+
+// Sessions reads an identity's sessions from Kratos.
+type Sessions interface {
+	ListIdentitySessions(ctx context.Context, id string, f ory.SessionFilter) (ory.Page[ory.Session], error)
+}
 
 // outcomeUnbound: the hook had no binding; the flow continued.
 const outcomeUnbound = "unbound"
@@ -47,6 +62,7 @@ type Flows struct {
 
 	key      string
 	failOpen config.Live[[]string]
+	sessions Sessions
 
 	deliver hook.Ref[DeliverIn, DeliverOut]
 	points  map[string]hook.Ref[FlowIn, FlowOut] // by hook name
@@ -84,10 +100,11 @@ func eventName(flow string) string {
 }
 
 // New declares the hooks and events under parent; key authenticates
-// Kratos; hooks named in failOpen let the flow continue when they fail.
-func New(parent deps.Scope, key string, failOpen config.Live[[]string]) *Flows {
+// Kratos; hooks named in failOpen let the flow continue when they fail;
+// sessions confirms a login's session is stored before LoggedIn.
+func New(parent deps.Scope, key string, failOpen config.Live[[]string], sessions Sessions) *Flows {
 	f := &Flows{
-		Component: deps.NewComponent(parent, "flows"), key: key, failOpen: failOpen,
+		Component: deps.NewComponent(parent, "flows"), key: key, failOpen: failOpen, sessions: sessions,
 		points: map[string]hook.Ref[FlowIn, FlowOut]{}, events: map[string]event.Ref[FlowEvent]{},
 		stats: map[string]*Stat{},
 	}
@@ -214,7 +231,10 @@ type kratosCtx struct {
 		Type             string          `json:"type"`
 		TransientPayload json.RawMessage `json:"transient_payload"`
 	} `json:"flow"`
-	Identity       json.RawMessage     `json:"identity"`
+	Identity json.RawMessage `json:"identity"`
+	// Session of a login; Kratos stores it, giving it its id, only after
+	// the hooks ran.
+	Session        *ory.Session        `json:"session"`
 	RequestHeaders map[string][]string `json:"request_headers"`
 	RequestMethod  string              `json:"request_method"`
 	RequestURL     string              `json:"request_url"`
@@ -488,19 +508,90 @@ func (f *Flows) event(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ev := &kratoseventsv1.FlowEvent{
+	flowEvent := &kratoseventsv1.FlowEvent{
 		IdentityId: id.ID, SchemaId: id.SchemaID, Method: method, FlowId: c.Flow.ID, Traits: events.Traits(id.Traits),
 	}
 
 	// Kratos does not wait for this answer: the event is best effort.
-	if err := ref.Publish(r.Context(), ev, event.Key(id.ID), event.ID(flow+"-"+c.Flow.ID+"-"+method)); err != nil {
-		f.record(point, start, "failed", err)
-		f.Log().Ctx().Warn(r.Context(), "flow event not published", xlog.String("flow", flow), xlog.Err(err))
+	if flow == overlay.FlowLogin && c.Session != nil && c.Session.AuthenticatedAt != nil {
+		// LoggedIn means the session exists: wait for Kratos to store it.
+		go f.publishLogin(context.WithoutCancel(r.Context()), ref, flowEvent, *c.Session, point, start)
 	} else {
-		f.record(point, start, "published", nil)
+		f.publish(r.Context(), ref, flowEvent, flow, point, start)
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func (f *Flows) publish(
+	ctx context.Context, ref event.Ref[FlowEvent], flowEvent FlowEvent, flow, point string, start time.Time,
+) {
+	if err := ref.Publish(ctx, flowEvent, event.Key(flowEvent.GetIdentityId()),
+		event.ID(flow+"-"+flowEvent.GetFlowId()+"-"+flowEvent.GetMethod())); err != nil {
+		f.record(point, start, "failed", err)
+		f.Log().Ctx().Warn(ctx, "flow event not published", xlog.String("flow", flow), xlog.Err(err))
+
+		return
+	}
+
+	f.record(point, start, "published", nil)
+}
+
+// publishLogin publishes LoggedIn with the login's session once Kratos has
+// stored it; a session never stored (the login failed after the hooks)
+// publishes nothing.
+func (f *Flows) publishLogin(ctx context.Context, ref event.Ref[FlowEvent], flowEvent FlowEvent, s ory.Session,
+	point string, start time.Time,
+) {
+	ctx, cancel := context.WithTimeout(ctx, storedWait)
+	defer cancel()
+
+	stored, err := f.stored(ctx, flowEvent.GetIdentityId(), *s.AuthenticatedAt)
+	if err != nil {
+		f.record(point, start, "not_stored", err)
+		f.Log().Ctx().Warn(ctx, "login event not published",
+			xlog.String("identity", flowEvent.GetIdentityId()), xlog.Err(err))
+
+		return
+	}
+
+	session := &kratoseventsv1.Session{
+		Id: stored.ID, AuthenticatedAt: timestamppb.New(*stored.AuthenticatedAt), Aal: s.AuthenticatorAssuranceLevel,
+	}
+	if len(s.Devices) > 0 {
+		d := s.Devices[len(s.Devices)-1]
+		session.IpAddress, session.UserAgent, session.Location = d.IPAddress, d.UserAgent, d.Location
+	}
+
+	flowEvent.Session = session
+
+	f.publish(ctx, ref, flowEvent, overlay.FlowLogin, point, start)
+}
+
+// stored waits for the identity's session authenticated then: Kratos keeps
+// timestamps to the microsecond.
+func (f *Flows) stored(ctx context.Context, identity string, authenticated time.Time) (ory.Session, error) {
+	active := true
+	pause := storedPoll
+
+	for {
+		page, err := f.sessions.ListIdentitySessions(ctx, identity, ory.SessionFilter{Active: &active})
+		if err == nil {
+			for _, s := range page.Items {
+				if s.AuthenticatedAt != nil && s.AuthenticatedAt.Sub(authenticated).Abs() < time.Millisecond {
+					return s, nil
+				}
+			}
+		}
+
+		select {
+		case <-ctx.Done():
+			return ory.Session{}, errors.Join(errNotStored, err)
+		case <-time.After(pause):
+		}
+
+		pause = min(pause<<1, time.Second)
+	}
 }
 
 // DeliverRef, Point and Event are the declared refs (tests, wiring code).

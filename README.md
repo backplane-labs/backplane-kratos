@@ -13,7 +13,10 @@ service sits next to it and turns it into parts of Wiring:
   the flow continue, deny it with messages on the form, or — after
   registration and settings — replace traits and metadata.
 - **Completed flows → events** `Registered`, `LoggedIn`, `SettingsChanged`,
-  `Recovered`, `Verified` for rules and reactors.
+  `Recovered`, `Verified` for rules and reactors. Kratos runs its after-login
+  hooks before it stores the session, so `LoggedIn` waits until the session
+  is stored and carries it (id, `authenticated_at`, AAL, address, user agent);
+  a login whose session is never stored publishes nothing.
 - **Admin API → activities**: `GetIdentity`, `FindIdentities`,
   `CreateIdentity`, `UpdateIdentity`, `PatchIdentity`, `DeleteIdentity`,
   `DeleteCredentials`, `ListSessions`, `RevokeSessions`, `ExtendSession`,

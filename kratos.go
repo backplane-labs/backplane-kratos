@@ -202,7 +202,7 @@ func newState(root backplane.Root[Config]) (*State, error) {
 		callbacks: cfg.Callbacks.Listen,
 		settings:  cfg.Settings,
 	}
-	st.Flows = flows.New(root, key, cfg.FailOpen)
+	st.Flows = flows.New(root, key, cfg.FailOpen, client)
 
 	mode, err := strconv.ParseUint(cfg.OverlayMode, 8, 32)
 	if err != nil || mode > 0o777 {

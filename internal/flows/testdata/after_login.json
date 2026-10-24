@@ -1,0 +1,17 @@
+{
+  "flow": {"id": "8f6d5a52-6f1b-4c1e-9d4e-2b8f0c3a7e11", "type": "api"},
+  "identity": {
+    "id": "0c1d2e3f-4a5b-4c6d-8e7f-901a2b3c4d5e",
+    "schema_id": "default",
+    "traits": {"email": "login@example.com"}
+  },
+  "session": {
+    "id": "00000000-0000-0000-0000-000000000000",
+    "active": true,
+    "authenticated_at": "2026-10-24T03:35:04.320712345Z",
+    "authenticator_assurance_level": "aal1",
+    "devices": [{"id": "00000000-0000-0000-0000-000000000000", "ip_address": "203.0.113.7", "user_agent": "test-agent", "location": ""}]
+  },
+  "request_url": "http://127.0.0.1:4433/self-service/login?flow=8f6d5a52-6f1b-4c1e-9d4e-2b8f0c3a7e11",
+  "request_method": "POST"
+}

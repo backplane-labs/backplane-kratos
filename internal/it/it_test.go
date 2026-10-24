@@ -26,6 +26,7 @@ import (
 	"github.com/backplane-labs/backplane-kratos/internal/flows"
 	"github.com/backplane-labs/backplane-kratos/internal/ory"
 	"github.com/backplane-labs/backplane-kratos/internal/overlay"
+	kratoseventsv1 "github.com/backplane-labs/backplane-kratos/proto/kratos/events/v1"
 )
 
 const (
@@ -118,7 +119,7 @@ func startKeyed(t *testing.T, tokenKey string, edit func(*overlay.Settings), bin
 	}
 
 	e := env{h: h, kratos: client, settings: config.LiveOf(settings), tokenKey: config.LiveOf(config.Secret(tokenKey))}
-	e.flows = flows.New(h.Root(), key, config.LiveOf([]string(nil)))
+	e.flows = flows.New(h.Root(), key, config.LiveOf([]string(nil)), client)
 	e.activities = activities.New(h.Root(), client)
 	apply.New(h.Root(), path, 0o644, e.settings, apply.Secrets{
 		OIDC: config.LiveOf(
@@ -395,6 +396,52 @@ func TestRegisteredEvent(t *testing.T) {
 
 		return false
 	})
+}
+
+// A login publishes LoggedIn once Kratos has stored its session, and the
+// event carries it.
+func TestLoggedInEvent(t *testing.T) {
+	t.Parallel()
+
+	e := start(t, nil)
+
+	email := unique("login")
+
+	if status, body := register(t, email); status != http.StatusOK {
+		t.Fatalf("registration: %d %v", status, body)
+	}
+
+	code, flow := call(t, http.MethodGet, "/self-service/login/api", nil)
+	if code != http.StatusOK {
+		t.Fatalf("login flow: %d", code)
+	}
+
+	code, body := call(t, http.MethodPost, fmt.Sprintf("/self-service/login?flow=%v", flow["id"]),
+		map[string]any{"method": "password", "identifier": email, "password": password})
+	if code != http.StatusOK {
+		t.Fatalf("login: %d %v", code, body)
+	}
+
+	session, _ := body["session"].(map[string]any)
+
+	var got *kratoseventsv1.FlowEvent
+
+	waitFor(t, "LoggedIn published", func() bool {
+		for _, ev := range backplanetest.Events(e.h, e.flows.Event(overlay.FlowLogin)) {
+			if strings.Contains(ev.GetTraits().String(), email) {
+				got = ev
+
+				return true
+			}
+		}
+
+		return false
+	})
+
+	s := got.GetSession()
+	if s.GetId() != session["id"] || s.GetAuthenticatedAt() == nil || s.GetAal() != "aal1" || s.GetUserAgent() == "" {
+		t.Fatalf("session %+v, want id %v", s, session["id"])
+	}
 }
 
 // The admin activities against the real admin API.

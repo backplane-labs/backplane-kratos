@@ -10,6 +10,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	structpb "google.golang.org/protobuf/types/known/structpb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -36,7 +37,10 @@ type FlowEvent struct {
 	// Kratos's id of the flow.
 	FlowId string `protobuf:"bytes,4,opt,name=flow_id,json=flowId,proto3" json:"flow_id,omitempty"`
 	// Traits of the identity as Kratos holds them.
-	Traits        *structpb.Struct `protobuf:"bytes,5,opt,name=traits,proto3" json:"traits,omitempty"`
+	Traits *structpb.Struct `protobuf:"bytes,5,opt,name=traits,proto3" json:"traits,omitempty"`
+	// Session the login issued; set on kratos.LoggedIn, which is published
+	// only once Kratos has stored the session.
+	Session       *Session `protobuf:"bytes,6,opt,name=session,proto3" json:"session,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -106,6 +110,104 @@ func (x *FlowEvent) GetTraits() *structpb.Struct {
 	return nil
 }
 
+func (x *FlowEvent) GetSession() *Session {
+	if x != nil {
+		return x.Session
+	}
+	return nil
+}
+
+// Session is a Kratos session as a login issued it.
+type Session struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Kratos's id of the session.
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// When the identity authenticated.
+	AuthenticatedAt *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=authenticated_at,json=authenticatedAt,proto3" json:"authenticated_at,omitempty"`
+	// Authenticator assurance level: aal1, aal2.
+	Aal string `protobuf:"bytes,3,opt,name=aal,proto3" json:"aal,omitempty"`
+	// Address the login came from, as Kratos saw it.
+	IpAddress string `protobuf:"bytes,4,opt,name=ip_address,json=ipAddress,proto3" json:"ip_address,omitempty"`
+	// User agent of the login.
+	UserAgent string `protobuf:"bytes,5,opt,name=user_agent,json=userAgent,proto3" json:"user_agent,omitempty"`
+	// Location Kratos derived from the request, if any.
+	Location      string `protobuf:"bytes,6,opt,name=location,proto3" json:"location,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Session) Reset() {
+	*x = Session{}
+	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Session) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Session) ProtoMessage() {}
+
+func (x *Session) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Session.ProtoReflect.Descriptor instead.
+func (*Session) Descriptor() ([]byte, []int) {
+	return file_proto_kratos_events_v1_events_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *Session) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Session) GetAuthenticatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.AuthenticatedAt
+	}
+	return nil
+}
+
+func (x *Session) GetAal() string {
+	if x != nil {
+		return x.Aal
+	}
+	return ""
+}
+
+func (x *Session) GetIpAddress() string {
+	if x != nil {
+		return x.IpAddress
+	}
+	return ""
+}
+
+func (x *Session) GetUserAgent() string {
+	if x != nil {
+		return x.UserAgent
+	}
+	return ""
+}
+
+func (x *Session) GetLocation() string {
+	if x != nil {
+		return x.Location
+	}
+	return ""
+}
+
 // IdentityEvent is an identity changed through backplane-kratos (wiring or
 // console): kratos.IdentityCreated, kratos.IdentityUpdated,
 // kratos.IdentityDeleted. A deleted identity carries its id only.
@@ -125,7 +227,7 @@ type IdentityEvent struct {
 
 func (x *IdentityEvent) Reset() {
 	*x = IdentityEvent{}
-	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[1]
+	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -137,7 +239,7 @@ func (x *IdentityEvent) String() string {
 func (*IdentityEvent) ProtoMessage() {}
 
 func (x *IdentityEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[1]
+	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -150,7 +252,7 @@ func (x *IdentityEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IdentityEvent.ProtoReflect.Descriptor instead.
 func (*IdentityEvent) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_events_v1_events_proto_rawDescGZIP(), []int{1}
+	return file_proto_kratos_events_v1_events_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *IdentityEvent) GetIdentityId() string {
@@ -198,7 +300,7 @@ type SessionsRevoked struct {
 
 func (x *SessionsRevoked) Reset() {
 	*x = SessionsRevoked{}
-	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[2]
+	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -210,7 +312,7 @@ func (x *SessionsRevoked) String() string {
 func (*SessionsRevoked) ProtoMessage() {}
 
 func (x *SessionsRevoked) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[2]
+	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -223,7 +325,7 @@ func (x *SessionsRevoked) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionsRevoked.ProtoReflect.Descriptor instead.
 func (*SessionsRevoked) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_events_v1_events_proto_rawDescGZIP(), []int{2}
+	return file_proto_kratos_events_v1_events_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *SessionsRevoked) GetIdentityId() string {
@@ -251,14 +353,24 @@ var File_proto_kratos_events_v1_events_proto protoreflect.FileDescriptor
 
 const file_proto_kratos_events_v1_events_proto_rawDesc = "" +
 	"\n" +
-	"#proto/kratos/events/v1/events.proto\x12\x10kratos.events.v1\x1a\x1cgoogle/protobuf/struct.proto\"\xab\x01\n" +
+	"#proto/kratos/events/v1/events.proto\x12\x10kratos.events.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xe0\x01\n" +
 	"\tFlowEvent\x12\x1f\n" +
 	"\videntity_id\x18\x01 \x01(\tR\n" +
 	"identityId\x12\x1b\n" +
 	"\tschema_id\x18\x02 \x01(\tR\bschemaId\x12\x16\n" +
 	"\x06method\x18\x03 \x01(\tR\x06method\x12\x17\n" +
 	"\aflow_id\x18\x04 \x01(\tR\x06flowId\x12/\n" +
-	"\x06traits\x18\x05 \x01(\v2\x17.google.protobuf.StructR\x06traits\"\x8e\x01\n" +
+	"\x06traits\x18\x05 \x01(\v2\x17.google.protobuf.StructR\x06traits\x123\n" +
+	"\asession\x18\x06 \x01(\v2\x19.kratos.events.v1.SessionR\asession\"\xcc\x01\n" +
+	"\aSession\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12E\n" +
+	"\x10authenticated_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x0fauthenticatedAt\x12\x10\n" +
+	"\x03aal\x18\x03 \x01(\tR\x03aal\x12\x1d\n" +
+	"\n" +
+	"ip_address\x18\x04 \x01(\tR\tipAddress\x12\x1d\n" +
+	"\n" +
+	"user_agent\x18\x05 \x01(\tR\tuserAgent\x12\x1a\n" +
+	"\blocation\x18\x06 \x01(\tR\blocation\"\x8e\x01\n" +
 	"\rIdentityEvent\x12\x1f\n" +
 	"\videntity_id\x18\x01 \x01(\tR\n" +
 	"identityId\x12\x1b\n" +
@@ -284,21 +396,25 @@ func file_proto_kratos_events_v1_events_proto_rawDescGZIP() []byte {
 	return file_proto_kratos_events_v1_events_proto_rawDescData
 }
 
-var file_proto_kratos_events_v1_events_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_proto_kratos_events_v1_events_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_proto_kratos_events_v1_events_proto_goTypes = []any{
-	(*FlowEvent)(nil),       // 0: kratos.events.v1.FlowEvent
-	(*IdentityEvent)(nil),   // 1: kratos.events.v1.IdentityEvent
-	(*SessionsRevoked)(nil), // 2: kratos.events.v1.SessionsRevoked
-	(*structpb.Struct)(nil), // 3: google.protobuf.Struct
+	(*FlowEvent)(nil),             // 0: kratos.events.v1.FlowEvent
+	(*Session)(nil),               // 1: kratos.events.v1.Session
+	(*IdentityEvent)(nil),         // 2: kratos.events.v1.IdentityEvent
+	(*SessionsRevoked)(nil),       // 3: kratos.events.v1.SessionsRevoked
+	(*structpb.Struct)(nil),       // 4: google.protobuf.Struct
+	(*timestamppb.Timestamp)(nil), // 5: google.protobuf.Timestamp
 }
 var file_proto_kratos_events_v1_events_proto_depIdxs = []int32{
-	3, // 0: kratos.events.v1.FlowEvent.traits:type_name -> google.protobuf.Struct
-	3, // 1: kratos.events.v1.IdentityEvent.traits:type_name -> google.protobuf.Struct
-	2, // [2:2] is the sub-list for method output_type
-	2, // [2:2] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	4, // 0: kratos.events.v1.FlowEvent.traits:type_name -> google.protobuf.Struct
+	1, // 1: kratos.events.v1.FlowEvent.session:type_name -> kratos.events.v1.Session
+	5, // 2: kratos.events.v1.Session.authenticated_at:type_name -> google.protobuf.Timestamp
+	4, // 3: kratos.events.v1.IdentityEvent.traits:type_name -> google.protobuf.Struct
+	4, // [4:4] is the sub-list for method output_type
+	4, // [4:4] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_proto_kratos_events_v1_events_proto_init() }
@@ -312,7 +428,7 @@ func file_proto_kratos_events_v1_events_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_kratos_events_v1_events_proto_rawDesc), len(file_proto_kratos_events_v1_events_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
