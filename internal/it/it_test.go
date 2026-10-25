@@ -442,14 +442,19 @@ func TestRegisteredEvent(t *testing.T) {
 
 	email := unique("event")
 
-	if status, body := register(t, email); status != http.StatusOK {
+	status, body := register(t, email)
+	if status != http.StatusOK {
 		t.Fatalf("registration: %d %v", status, body)
 	}
 
-	waitFor(t, "Registered published", func() bool {
+	// The registration signs the identity in: Registered carries the
+	// session Kratos issued with it.
+	issued, _ := body["session"].(map[string]any)
+
+	waitFor(t, "Registered published with the session", func() bool {
 		for _, ev := range backplanetest.Events(e.h, e.flows.Event(overlay.FlowRegistration)) {
 			if strings.Contains(ev.GetTraits().String(), email) {
-				return true
+				return ev.GetSession().GetId() != "" && ev.GetSession().GetId() == issued["id"]
 			}
 		}
 

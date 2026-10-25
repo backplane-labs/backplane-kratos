@@ -75,6 +75,10 @@ func PointName(when, flow string) string {
 	return HookName(when, flow)
 }
 
+// SessionQuery marks the events callback of a registration that signs the
+// identity in.
+const SessionQuery = "session"
+
 // DeliverHook is the hook the courier calls.
 const DeliverHook = "Deliver"
 
@@ -261,6 +265,18 @@ func (r renderer) before(flow string) []any {
 	return hooks
 }
 
+// eventsPath is the events callback of a flow's method. A registration
+// whose session hook (below it) signs the identity in is marked: its
+// Registered waits for that session and carries it.
+func (r renderer) eventsPath(flow, method string) string {
+	path := "/events/" + flow + "/" + method
+	if flow == FlowRegistration && r.s.Registration.LoginAfter {
+		path += "?" + SessionQuery + "=1"
+	}
+
+	return path
+}
+
 func (r renderer) after(flow, method string) []any {
 	hooks := []any{}
 	if r.bound(HookName("after", flow)) {
@@ -273,7 +289,7 @@ func (r renderer) after(flow, method string) []any {
 	}
 
 	if r.w.Events {
-		hooks = append(hooks, r.webHook("/events/"+flow+"/"+method, ignored))
+		hooks = append(hooks, r.webHook(r.eventsPath(flow, method), ignored))
 	}
 
 	s := r.s

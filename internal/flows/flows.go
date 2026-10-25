@@ -549,10 +549,20 @@ func (f *Flows) event(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Kratos does not wait for this answer: the event is best effort.
-	if flow == overlay.FlowLogin && c.Session != nil && c.Session.AuthenticatedAt != nil {
+	switch {
+	case flow == overlay.FlowLogin && c.Session != nil && c.Session.AuthenticatedAt != nil:
 		// LoggedIn means the session exists: wait for Kratos to store it.
-		go f.publishLogin(context.WithoutCancel(r.Context()), ref, flowEvent, *c.Session, point, start)
-	} else {
+		login := *c.Session
+		go f.publishSession(context.WithoutCancel(r.Context()), ref, flowEvent, flow, point, start, &login,
+			func(s ory.Session) bool {
+				return s.AuthenticatedAt.Sub(*login.AuthenticatedAt).Abs() < time.Millisecond
+			})
+	case flow == overlay.FlowRegistration && r.URL.Query().Get(overlay.SessionQuery) == "1":
+		// The session hook after this one signs the new identity in: its
+		// only session is the registration's.
+		go f.publishSession(context.WithoutCancel(r.Context()), ref, flowEvent, flow, point, start, nil,
+			func(ory.Session) bool { return true })
+	default:
 		f.publish(r.Context(), ref, flowEvent, flow, point, start)
 	}
 
@@ -576,37 +586,44 @@ func (f *Flows) publish(
 // publishLogin publishes LoggedIn with the login's session once Kratos has
 // stored it; a session never stored (the login failed after the hooks)
 // publishes nothing.
-func (f *Flows) publishLogin(ctx context.Context, ref event.Ref[FlowEvent], flowEvent FlowEvent, s ory.Session,
-	point string, start time.Time,
+// publishSession publishes flowEvent once Kratos stored the session that
+// matches, with it; details (AAL, devices) come from known, the flow's own
+// session, when there is one, else from the stored one.
+func (f *Flows) publishSession(ctx context.Context, ref event.Ref[FlowEvent], flowEvent FlowEvent,
+	flow, point string, start time.Time, known *ory.Session, match func(ory.Session) bool,
 ) {
 	ctx, cancel := context.WithTimeout(ctx, storedWait)
 	defer cancel()
 
-	stored, err := f.stored(ctx, flowEvent.GetIdentityId(), *s.AuthenticatedAt)
+	stored, err := f.stored(ctx, flowEvent.GetIdentityId(), match)
 	if err != nil {
 		f.record(point, start, "not_stored", err)
-		f.Log().Ctx().Warn(ctx, "login event not published",
+		f.Log().Ctx().Warn(ctx, "flow event not published: no session stored", xlog.String("flow", flow),
 			xlog.String("identity", flowEvent.GetIdentityId()), xlog.Err(err))
 
 		return
 	}
 
-	session := &kratoseventsv1.Session{
-		Id: stored.ID, AuthenticatedAt: timestamppb.New(*stored.AuthenticatedAt), Aal: s.AuthenticatorAssuranceLevel,
+	details := stored
+	if known != nil {
+		details = *known
 	}
-	if len(s.Devices) > 0 {
-		d := s.Devices[len(s.Devices)-1]
+
+	session := &kratoseventsv1.Session{
+		Id: stored.ID, AuthenticatedAt: timestamppb.New(*stored.AuthenticatedAt), Aal: details.AuthenticatorAssuranceLevel,
+	}
+	if len(details.Devices) > 0 {
+		d := details.Devices[len(details.Devices)-1]
 		session.IpAddress, session.UserAgent, session.Location = d.IPAddress, d.UserAgent, d.Location
 	}
 
 	flowEvent.Session = session
 
-	f.publish(ctx, ref, flowEvent, overlay.FlowLogin, point, start)
+	f.publish(ctx, ref, flowEvent, flow, point, start)
 }
 
-// stored waits for the identity's session authenticated then: Kratos keeps
-// timestamps to the microsecond.
-func (f *Flows) stored(ctx context.Context, identity string, authenticated time.Time) (ory.Session, error) {
+// stored waits for an active session of the identity that matches.
+func (f *Flows) stored(ctx context.Context, identity string, match func(ory.Session) bool) (ory.Session, error) {
 	active := true
 	pause := storedPoll
 
@@ -614,7 +631,7 @@ func (f *Flows) stored(ctx context.Context, identity string, authenticated time.
 		page, err := f.sessions.ListIdentitySessions(ctx, identity, ory.SessionFilter{Active: &active})
 		if err == nil {
 			for _, s := range page.Items {
-				if s.AuthenticatedAt != nil && s.AuthenticatedAt.Sub(authenticated).Abs() < time.Millisecond {
+				if s.AuthenticatedAt != nil && match(s) {
 					return s, nil
 				}
 			}
