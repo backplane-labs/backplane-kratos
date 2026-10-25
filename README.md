@@ -12,6 +12,13 @@ service sits next to it and turns it into parts of Wiring:
   (registration, login, settings, recovery, verification). A binding can let
   the flow continue, deny it with messages on the form, or — after
   registration and settings — replace traits and metadata.
+  `kratos.AfterRegistration` runs before Kratos stores the identity, so its
+  `req.identity` has no id yet.
+- **Stored registration → hook `kratos.AfterRegistrationStored`**. Kratos
+  calls it after it stores the identity and waits for the answer.
+  `req.identity.id` is final, so it is the place to record anything keyed by
+  the new identity (e.g. legal evidence). An error or a denial fails the
+  flow, but the identity stays stored.
 - **Completed flows → events** `Registered`, `LoggedIn`, `SettingsChanged`,
   `Recovered`, `Verified` for rules and reactors. Kratos runs its after-login
   hooks before it stores the session, so `LoggedIn` waits until the session

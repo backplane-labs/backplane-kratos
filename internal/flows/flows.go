@@ -20,6 +20,7 @@ import (
 	"github.com/backplane-labs/backplane/pkg/backplane/deps"
 	"github.com/backplane-labs/backplane/pkg/backplane/event"
 	"github.com/backplane-labs/backplane/pkg/backplane/hook"
+	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/gopherex/xlog"
@@ -117,6 +118,12 @@ func New(parent deps.Scope, key string, failOpen config.Live[[]string], sessions
 			name := overlay.HookName(when, flow)
 			f.points[name] = hook.Declare[FlowIn, FlowOut](f, name, hook.DefaultTimeout(flowTimeout),
 				hook.Describe(describePoint(when, flow)))
+		}
+
+		if flow == overlay.FlowRegistration {
+			f.points[overlay.StoredHook] = hook.Declare[FlowIn, FlowOut](f, overlay.StoredHook,
+				hook.DefaultTimeout(flowTimeout), hook.Describe("Kratos stored the identity of a registration: "+
+					"its id is final; an error or a denial fails the flow, the identity stays stored"))
 		}
 
 		f.events[flow] = event.Declare[FlowEvent](f, eventName(flow),
@@ -350,6 +357,29 @@ func (c kratosCtx) flowIn(flow, method string) FlowIn {
 	return in
 }
 
+// withoutID drops the nil id Kratos sends for an identity it has not
+// stored yet, so that nothing records it as the identity's.
+func withoutID(identity json.RawMessage) json.RawMessage {
+	var fields map[string]json.RawMessage
+	if json.Unmarshal(identity, &fields) != nil {
+		return identity
+	}
+
+	var id uuid.UUID
+	if raw, ok := fields["id"]; !ok || json.Unmarshal(raw, &id) != nil || id != uuid.Nil {
+		return identity
+	}
+
+	delete(fields, "id")
+
+	out, err := json.Marshal(fields)
+	if err != nil {
+		return identity
+	}
+
+	return out
+}
+
 // kratosMessages is Kratos's interrupt body.
 type kratosMessages struct {
 	Messages []kratosField `json:"messages"`
@@ -411,11 +441,11 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 
 func (f *Flows) hook(w http.ResponseWriter, r *http.Request) {
 	when, flow, method := r.PathValue("when"), r.PathValue("flow"), r.PathValue("method")
-	name := overlay.HookName(when, flow)
+	name := overlay.PointName(when, flow)
 	start, point := time.Now(), "hooks/"+when+"/"+flow
 
 	ref, ok := f.points[name]
-	if !ok || (when != "before" && when != "after") {
+	if !ok || (when != "before" && when != "after" && (when != overlay.Stored || flow != overlay.FlowRegistration)) {
 		http.NotFound(w, r)
 
 		return
@@ -436,7 +466,12 @@ func (f *Flows) hook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	out, err := ref.Call(r.Context(), c.flowIn(flow, method))
+	in := c.flowIn(flow, method)
+	if name == overlay.HookName("after", overlay.FlowRegistration) {
+		in.Identity = withoutID(in.Identity)
+	}
+
+	out, err := ref.Call(r.Context(), in)
 	status, body, outcome := f.verdict(name, when, flow, out, err)
 
 	if err != nil && outcome != outcomeUnbound {

@@ -53,8 +53,8 @@ type FlowIn struct {
 	// FlowID and FlowType ("api" or "browser").
 	FlowID   string `json:"flow_id,omitempty"`
 	FlowType string `json:"flow_type,omitempty"`
-	// Identity of the flow (after points); its id is set but, at
-	// AfterRegistration, it is not stored yet.
+	// Identity of the flow (after points). At AfterRegistration it is not
+	// stored yet and has no id; AfterRegistrationStored has the final one.
 	Identity         json.RawMessage `json:"identity,omitempty"`
 	TransientPayload json.RawMessage `json:"transient_payload,omitempty"`
 	RequestURL       string          `json:"request_url,omitempty"`

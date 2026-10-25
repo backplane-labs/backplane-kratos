@@ -2,6 +2,7 @@ package overlay_test
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -108,8 +109,13 @@ func TestRenderValid(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// After, stored (awaited past the store), events, then the session.
 	hooks := at(t, doc, "selfservice.flows.registration.after.password.hooks").([]any)
-	if len(hooks) != 4 || hooks[2].(map[string]any)["hook"] != "session" {
+	stored, _ := hooks[1].(map[string]any)["config"].(map[string]any)
+
+	if len(hooks) != 5 || hooks[3].(map[string]any)["hook"] != "session" ||
+		stored["url"] != "http://127.0.0.1:8090/hooks/stored/registration/password" ||
+		fmt.Sprint(stored["response"]) != "map[parse:false]" {
 		t.Fatalf("registration hooks: %v", hooks)
 	}
 

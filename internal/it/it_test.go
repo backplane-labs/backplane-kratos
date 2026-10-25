@@ -350,6 +350,65 @@ func TestAfterRegistrationDenies(t *testing.T) {
 	}
 }
 
+// AfterRegistrationStored runs once Kratos stored the identity: it has the
+// final id, which AfterRegistration, ahead of the store, has not.
+func TestAfterRegistrationStored(t *testing.T) {
+	t.Parallel()
+
+	ids := make(chan [2]string, 2)
+	idOf := func(in flows.FlowIn) string {
+		var identity struct {
+			ID string `json:"id"`
+		}
+
+		_ = json.Unmarshal(in.Identity, &identity)
+
+		return identity.ID
+	}
+
+	start(t, func(h *backplanetest.Harness, f *flows.Flows) {
+		backplanetest.Answer(h, f.Point("AfterRegistration"),
+			func(_ context.Context, in flows.FlowIn) (flows.FlowOut, error) {
+				ids <- [2]string{"after", idOf(in)}
+
+				return flows.FlowOut{}, nil
+			})
+		backplanetest.Answer(h, f.Point(overlay.StoredHook),
+			func(_ context.Context, in flows.FlowIn) (flows.FlowOut, error) {
+				ids <- [2]string{"stored", idOf(in)}
+
+				return flows.FlowOut{}, nil
+			})
+	})
+
+	status, body := register(t, unique("stored"))
+	if status != http.StatusOK {
+		t.Fatalf("registration: %d %v", status, body)
+	}
+
+	identity, _ := body["identity"].(map[string]any)
+	created, _ := identity["id"].(string)
+
+	seen := map[string]string{}
+
+	for range 2 {
+		select {
+		case id := <-ids:
+			seen[id[0]] = id[1]
+		case <-time.After(10 * time.Second):
+			t.Fatalf("hooks seen: %v", seen)
+		}
+	}
+
+	if seen["stored"] != created || created == "" {
+		t.Fatalf("stored hook id %q, identity %q", seen["stored"], created)
+	}
+
+	if seen["after"] != "" {
+		t.Fatalf("AfterRegistration id %q: the identity is not stored yet", seen["after"])
+	}
+}
+
 // Turning registration off in the settings reaches Kratos.
 func TestRegistrationToggle(t *testing.T) {
 	t.Parallel()

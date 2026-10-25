@@ -60,6 +60,21 @@ func HookName(when, flow string) string {
 	return strings.ToUpper(when[:1]) + when[1:] + strings.ToUpper(flow[:1]) + flow[1:]
 }
 
+// Stored is the point of a registration after Kratos stored the identity.
+const Stored = "stored"
+
+// StoredHook is the backplane hook of Stored: the identity's id is final.
+const StoredHook = "AfterRegistrationStored"
+
+// PointName is the backplane hook of a flow point: HookName, or StoredHook.
+func PointName(when, flow string) string {
+	if when == Stored {
+		return StoredHook
+	}
+
+	return HookName(when, flow)
+}
+
 // DeliverHook is the hook the courier calls.
 const DeliverHook = "Deliver"
 
@@ -199,11 +214,28 @@ func (r renderer) selfservice() {
 	r.methods()
 }
 
-// webHook is a callback entry; parse: Kratos waits for the answer and
-// applies it, else it fires and forgets.
-func (r renderer) webHook(path string, parse bool) map[string]any {
+// How Kratos treats a web hook's answer.
+type answer int
+
+const (
+	// parsed: Kratos waits and applies the answer; on registration and
+	// settings it runs before the identity is stored.
+	parsed answer = iota
+	// awaited: Kratos waits for a success after storing the identity.
+	awaited
+	// ignored: Kratos fires and forgets, after storing the identity.
+	ignored
+)
+
+// webHook is a callback entry.
+func (r renderer) webHook(path string, a answer) map[string]any {
 	response := map[string]any{"parse": true}
-	if !parse {
+
+	switch a {
+	case parsed:
+	case awaited:
+		response = map[string]any{"parse": false}
+	case ignored:
 		response = map[string]any{"ignore": true}
 	}
 
@@ -223,7 +255,7 @@ func (r renderer) bound(hook string) bool { return r.w.Bound != nil && r.w.Bound
 func (r renderer) before(flow string) []any {
 	hooks := []any{}
 	if r.bound(HookName("before", flow)) {
-		hooks = append(hooks, r.webHook("/hooks/before/"+flow+"/"+GenericMethod, true))
+		hooks = append(hooks, r.webHook("/hooks/before/"+flow+"/"+GenericMethod, parsed))
 	}
 
 	return hooks
@@ -232,11 +264,16 @@ func (r renderer) before(flow string) []any {
 func (r renderer) after(flow, method string) []any {
 	hooks := []any{}
 	if r.bound(HookName("after", flow)) {
-		hooks = append(hooks, r.webHook("/hooks/after/"+flow+"/"+method, true))
+		hooks = append(hooks, r.webHook("/hooks/after/"+flow+"/"+method, parsed))
+	}
+
+	// Ahead of the session hook, which ends the flow.
+	if flow == FlowRegistration && r.bound(StoredHook) {
+		hooks = append(hooks, r.webHook("/hooks/"+Stored+"/"+flow+"/"+method, awaited))
 	}
 
 	if r.w.Events {
-		hooks = append(hooks, r.webHook("/events/"+flow+"/"+method, false))
+		hooks = append(hooks, r.webHook("/events/"+flow+"/"+method, ignored))
 	}
 
 	s := r.s
