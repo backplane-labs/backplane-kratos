@@ -161,7 +161,7 @@ func Run(ctx context.Context) error {
 
 	st := svc.State()
 
-	svc.HTTP("/", st.Flows.Handler(), api.Listen(st.callbacks))
+	svc.HTTP("/", st.Flows.Handler(), api.Listen("callbacks", st.callbacks))
 	svc.HTTP("/.well-known/", jwks.Handler(st.settings))
 	svc.Internal(func(r grpc.ServiceRegistrar) { kratosconsolev1.RegisterAdminServiceServer(r, st.Admin) })
 
