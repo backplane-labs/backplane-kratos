@@ -135,7 +135,10 @@ func New(parent deps.Scope, key string, failOpen config.Live[[]string], sessions
 
 func describePoint(when, flow string) string {
 	if when == "before" {
-		return "Kratos is starting a " + flow + " flow: deny it or let it continue"
+		// Kratos runs it before the flow exists: there is no form to show
+		// messages on, so a deny fails the flow's creation with an error.
+		return "Kratos is starting a " + flow + " flow: refuse to start it (the client gets an error, " +
+			"not form messages) or let it continue"
 	}
 
 	switch flow {

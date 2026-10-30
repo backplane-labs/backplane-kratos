@@ -11,7 +11,11 @@ service sits next to it and turns it into parts of Wiring:
 - **Self-service flows → hooks `kratos.Before<Flow>` / `kratos.After<Flow>`**
   (registration, login, settings, recovery, verification). A binding can let
   the flow continue, deny it with messages on the form, or — after
-  registration and settings — replace traits and metadata.
+  registration and settings — replace traits and metadata. A `Before<Flow>`
+  hook runs before Kratos creates the flow, so there is no form yet: a deny
+  there makes the flow's creation fail with an error (Kratos answers it as a
+  server error), not form messages. To refuse a step with messages the user
+  sees, deny at `After<Flow>`.
   `kratos.AfterRegistration` runs before Kratos stores the identity, so its
   `req.identity` has no id yet. `req.session` is the acting session as
   Kratos sends it — id, active, `authenticator_assurance_level`,
