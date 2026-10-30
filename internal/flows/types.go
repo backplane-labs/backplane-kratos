@@ -7,6 +7,7 @@ package flows
 import (
 	"encoding/json"
 
+	"github.com/backplane-labs/backplane-kratos/internal/ory"
 	kratoseventsv1 "github.com/backplane-labs/backplane-kratos/proto/kratos/events/v1"
 )
 
@@ -55,7 +56,13 @@ type FlowIn struct {
 	FlowType string `json:"flow_type,omitempty"`
 	// Identity of the flow (after points). At AfterRegistration it is not
 	// stored yet and has no id; AfterRegistrationStored has the final one.
-	Identity         json.RawMessage `json:"identity,omitempty"`
+	Identity json.RawMessage `json:"identity,omitempty"`
+	// Session acting in the flow, as Kratos sends it: at BeforeSettings and
+	// AfterSettings the signed-in one; after login and registration the new
+	// one, which Kratos stores only after the hooks, so its id (and its
+	// devices' ids) are empty there. Absent where Kratos sends none. No
+	// token or cookie.
+	Session          ory.Session     `json:"session,omitzero"`
 	TransientPayload json.RawMessage `json:"transient_payload,omitempty"`
 	RequestURL       string          `json:"request_url,omitempty"`
 	RequestMethod    string          `json:"request_method,omitempty"`

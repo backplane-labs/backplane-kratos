@@ -354,7 +354,37 @@ func (c kratosCtx) flowIn(flow, method string) FlowIn {
 		in.Identity = nil
 	}
 
+	if c.Session != nil {
+		in.Session = unstored(*c.Session)
+	}
+
 	return in
+}
+
+// unstored drops the nil ids of a session Kratos has not stored yet (and of
+// its devices), so that nothing keys a record by them.
+func unstored(s ory.Session) ory.Session {
+	stored := func(id string) string {
+		if id == uuid.Nil.String() {
+			return ""
+		}
+
+		return id
+	}
+
+	s.ID = stored(s.ID)
+
+	if len(s.Devices) > 0 {
+		devices := make([]ory.Device, len(s.Devices))
+		for i, d := range s.Devices {
+			d.ID = stored(d.ID)
+			devices[i] = d
+		}
+
+		s.Devices = devices
+	}
+
+	return s
 }
 
 // withoutID drops the nil id Kratos sends for an identity it has not

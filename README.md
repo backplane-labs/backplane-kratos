@@ -13,7 +13,15 @@ service sits next to it and turns it into parts of Wiring:
   the flow continue, deny it with messages on the form, or — after
   registration and settings — replace traits and metadata.
   `kratos.AfterRegistration` runs before Kratos stores the identity, so its
-  `req.identity` has no id yet.
+  `req.identity` has no id yet. `req.session` is the acting session as
+  Kratos sends it — id, active, `authenticator_assurance_level`,
+  `authenticated_at`, `issued_at`, `expires_at`, `authentication_methods`
+  (method, aal, provider, completed_at) and `devices` — with no token or
+  cookie: at `kratos.BeforeSettings`/`AfterSettings` the signed-in session,
+  so a binding can refuse a settings change for a session the product does
+  not trust (by `req.session.id`) or one without a second factor; after login
+  and registration the new session, whose id is empty because Kratos stores
+  it only after the hooks.
 - **Stored registration → hook `kratos.AfterRegistrationStored`**. Kratos
   calls it after it stores the identity and waits for the answer.
   `req.identity.id` is final, so it is the place to record anything keyed by

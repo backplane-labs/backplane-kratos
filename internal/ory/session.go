@@ -22,6 +22,11 @@ type Session struct {
 	Identity                    *Identity              `json:"identity,omitempty"`
 }
 
+// IsZero: no session.
+func (s Session) IsZero() bool {
+	return s.ID == "" && s.AuthenticatedAt == nil && s.AuthenticatorAssuranceLevel == "" && len(s.Devices) == 0
+}
+
 // AuthenticationMethod completed in a session.
 type AuthenticationMethod struct {
 	Method      string     `json:"method"`

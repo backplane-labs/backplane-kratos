@@ -251,6 +251,74 @@ func TestFlowVerdicts(t *testing.T) {
 	}
 }
 
+// The acting session reaches the hook whole; one Kratos has not stored yet
+// (after login) carries no id.
+func TestFlowSession(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name, point, path, fixture string
+		check                      func(t *testing.T, s ory.Session)
+	}{
+		{
+			name: "settings: the stored session", point: "BeforeSettings",
+			path: "/hooks/before/settings/" + overlay.GenericMethod, fixture: "before_settings.json",
+			check: func(t *testing.T, s ory.Session) {
+				t.Helper()
+
+				if s.ID != "7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c0d" || !s.Active || s.AuthenticatorAssuranceLevel != "aal2" ||
+					s.AuthenticatedAt == nil || s.ExpiresAt == nil || len(s.AuthenticationMethods) != 2 ||
+					s.AuthenticationMethods[1].Method != "totp" || s.AuthenticationMethods[1].CompletedAt == nil ||
+					len(s.Devices) != 1 || s.Devices[0].IPAddress != "203.0.113.9" {
+					t.Fatalf("session %+v", s)
+				}
+			},
+		},
+		{
+			name: "login: not stored yet, no id", point: "AfterLogin",
+			path: "/hooks/after/login/password", fixture: "after_login.json",
+			check: func(t *testing.T, s ory.Session) {
+				t.Helper()
+
+				if s.ID != "" || s.AuthenticatorAssuranceLevel != "aal1" || len(s.Devices) != 1 || s.Devices[0].ID != "" ||
+					s.Devices[0].IPAddress != "203.0.113.7" {
+					t.Fatalf("session %+v", s)
+				}
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			h, f, srv := harness(t)
+
+			var got flows.FlowIn
+
+			backplanetest.Answer(h, f.Point(tc.point), func(_ context.Context, in flows.FlowIn) (flows.FlowOut, error) {
+				got = in
+
+				return flows.FlowOut{}, nil
+			})
+
+			if code, body := post(t, srv, tc.path, tc.fixture); code != http.StatusOK {
+				t.Fatalf("status %d: %v", code, body)
+			}
+
+			if got.Session.IsZero() {
+				t.Fatal("no session")
+			}
+
+			tc.check(t, got.Session)
+
+			if raw := mustJSON(t, got); strings.Contains(raw, "ory_kratos_session") {
+				t.Fatal("the session cookie reached the hook")
+			}
+		})
+	}
+}
+
 // An unbound point lets the flow continue without calling backplane.
 func TestFlowUnbound(t *testing.T) {
 	t.Parallel()

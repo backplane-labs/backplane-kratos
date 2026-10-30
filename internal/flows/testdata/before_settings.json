@@ -1,0 +1,24 @@
+{
+  "flow": {"id": "5b7c1e2a-3d4f-4a6b-8c9d-0e1f2a3b4c5d", "type": "browser"},
+  "identity": {
+    "id": "0c1d2e3f-4a5b-4c6d-8e7f-901a2b3c4d5e",
+    "schema_id": "default",
+    "traits": {"email": "settings@example.com"}
+  },
+  "session": {
+    "id": "7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c0d",
+    "active": true,
+    "authenticated_at": "2026-10-30T09:00:00Z",
+    "issued_at": "2026-10-30T09:00:00Z",
+    "expires_at": "2026-11-29T09:00:00Z",
+    "authenticator_assurance_level": "aal2",
+    "authentication_methods": [
+      {"method": "password", "aal": "aal1", "completed_at": "2026-10-30T09:00:00Z"},
+      {"method": "totp", "aal": "aal2", "completed_at": "2026-10-30T09:00:05Z"}
+    ],
+    "devices": [{"id": "1b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e", "ip_address": "203.0.113.9", "user_agent": "browser"}]
+  },
+  "request_headers": {"Cookie": ["ory_kratos_session=secret"], "User-Agent": ["browser"]},
+  "request_url": "http://127.0.0.1:4433/self-service/settings?flow=5b7c1e2a-3d4f-4a6b-8c9d-0e1f2a3b4c5d",
+  "request_method": "POST"
+}
