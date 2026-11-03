@@ -21,7 +21,6 @@ import (
 	"github.com/backplane-labs/backplane/pkg/backplane/event"
 	"github.com/backplane-labs/backplane/pkg/backplane/hook"
 	"github.com/google/uuid"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/gopherex/xlog"
 
@@ -46,9 +45,12 @@ const (
 // errNotStored: the login's session never appeared in Kratos.
 var errNotStored = errors.New("session of the login not stored")
 
-// Sessions reads an identity's sessions from Kratos.
+// Sessions reads sessions from Kratos.
 type Sessions interface {
 	ListIdentitySessions(ctx context.Context, id string, f ory.SessionFilter) (ory.Page[ory.Session], error)
+	// WhoAmI is the session of a token or a cookie header.
+	WhoAmI(ctx context.Context, token, cookie string) (ory.Session, error)
+	GetSession(ctx context.Context, id string) (ory.Session, error)
 }
 
 // outcomeUnbound: the hook had no binding; the flow continued.
@@ -68,6 +70,7 @@ type Flows struct {
 	deliver hook.Ref[DeliverIn, DeliverOut]
 	points  map[string]hook.Ref[FlowIn, FlowOut] // by hook name
 	events  map[string]event.Ref[FlowEvent]      // by flow
+	logout  event.Ref[FlowEvent]
 
 	mu    sync.Mutex
 	stats map[string]*Stat
@@ -129,6 +132,9 @@ func New(parent deps.Scope, key string, failOpen config.Live[[]string], sessions
 		f.events[flow] = event.Declare[FlowEvent](f, eventName(flow),
 			event.Describe("an identity completed the "+flow+" flow"))
 	}
+
+	f.logout = event.Declare[FlowEvent](f, "LoggedOut",
+		event.Describe("an identity signed out: Kratos ended the session of a self-service logout"))
 
 	return f
 }
@@ -649,15 +655,8 @@ func (f *Flows) publishSession(ctx context.Context, ref event.Ref[FlowEvent], fl
 		details = *known
 	}
 
-	session := &kratoseventsv1.Session{
-		Id: stored.ID, AuthenticatedAt: timestamppb.New(*stored.AuthenticatedAt), Aal: details.AuthenticatorAssuranceLevel,
-	}
-	if len(details.Devices) > 0 {
-		d := details.Devices[len(details.Devices)-1]
-		session.IpAddress, session.UserAgent, session.Location = d.IPAddress, d.UserAgent, d.Location
-	}
-
-	flowEvent.Session = session
+	details.ID, details.AuthenticatedAt = stored.ID, stored.AuthenticatedAt
+	flowEvent.Session = sessionEvent(details)
 
 	f.publish(ctx, ref, flowEvent, flow, point, start)
 }
@@ -695,3 +694,6 @@ func (f *Flows) Point(name string) hook.Ref[FlowIn, FlowOut] { return f.points[n
 
 // Event is a flow's completion event.
 func (f *Flows) Event(flow string) event.Ref[FlowEvent] { return f.events[flow] }
+
+// LoggedOut is the event of a self-service logout.
+func (f *Flows) LoggedOut() event.Ref[FlowEvent] { return f.logout }

@@ -11,6 +11,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"os"
 	"strings"
@@ -559,6 +560,67 @@ func TestSettingsChangedEvent(t *testing.T) {
 	if was, is := got.GetPreviousTraits().GetFields()["email"].GetStringValue(),
 		got.GetTraits().GetFields()["email"].GetStringValue(); was != before || is != after {
 		t.Fatalf("previous %q, traits %q; want %q, %q", was, is, before, after)
+	}
+}
+
+// A logout through the service reaches Kratos, which ends the session,
+// and publishes LoggedOut with it.
+func TestLoggedOutEvent(t *testing.T) {
+	t.Parallel()
+
+	e := start(t, nil)
+
+	public, err := url.Parse(publicURL)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	proxy := httptest.NewServer(e.flows.Logout(public, nil))
+	t.Cleanup(proxy.Close)
+
+	email := unique("logout")
+
+	status, body := register(t, email)
+	if status != http.StatusOK {
+		t.Fatalf("registration: %d %v", status, body)
+	}
+
+	token, _ := body["session_token"].(string)
+	session, _ := body["session"].(map[string]any)
+
+	raw, err := json.Marshal(map[string]string{"session_token": token})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodDelete, proxy.URL+"/self-service/logout/api",
+		bytes.NewReader(raw))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_ = res.Body.Close()
+
+	if res.StatusCode != http.StatusNoContent {
+		t.Fatalf("logout: %d", res.StatusCode)
+	}
+
+	got := backplanetest.Events(e.h, e.flows.LoggedOut())
+	if len(got) != 1 || got[0].GetSession().GetId() != session["id"] ||
+		!strings.Contains(got[0].GetTraits().String(), email) {
+		t.Fatalf("LoggedOut %+v, want session %v", got, session["id"])
+	}
+
+	// The session is over.
+	if code, _ := callAs(t, token, http.MethodGet, "/sessions/whoami", nil); code != http.StatusUnauthorized {
+		t.Fatalf("whoami after logout: %d", code)
 	}
 }
 

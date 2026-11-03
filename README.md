@@ -46,6 +46,19 @@ service sits next to it and turns it into parts of Wiring:
   change as the signed-in session held them (Kratos changes a copy of the
   identity), so a product can notify the old address of an email change
   without keeping a copy. They equal `traits` when the flow changed no trait.
+- **Self-service logout → event `LoggedOut`**. Kratos has no logout hooks, so
+  this service serves Kratos's logout endpoints (`/self-service/logout`,
+  `/self-service/logout/browser`, `/self-service/logout/api`) on its HTTP
+  port and passes every request to Kratos's public URL unchanged. Route that
+  path prefix of Kratos's public host to this service. Before forwarding a
+  browser logout (`GET /self-service/logout?token=`, with the session
+  cookie) or an API one (`DELETE /self-service/logout/api`), it asks Kratos
+  whose session it is. Once Kratos has ended that session, it publishes
+  `LoggedOut`: a flow event with the identity, its traits, `method: logout`
+  and the session (id, `authenticated_at`, AAL, address, user agent). A
+  logout Kratos refuses, a browser logout without the session cookie, and a
+  logout that bypasses the route publish nothing. Delivery is best effort,
+  like every flow event.
 - **Section `kratos.login`** (backplane live section): how identities sign
   up and sign in — registration on or off, first and second factors, OIDC
   providers (id, kind, label), required AALs, recovery and verification —

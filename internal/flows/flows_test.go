@@ -53,7 +53,29 @@ type sessions struct {
 	hidden int
 	asked  int
 	stored []ory.Session
+
+	// who answers WhoAmI (none: 401), after GetSession; seen are the
+	// tokens and cookies WhoAmI was asked about.
+	who   *ory.Session
+	after ory.Session
+	seen  []string
 }
+
+func (s *sessions) WhoAmI(_ context.Context, token, cookie string) (ory.Session, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.seen = append(s.seen, token+cookie)
+	if s.who == nil {
+		return ory.Session{}, errNoSession
+	}
+
+	return *s.who, nil
+}
+
+func (s *sessions) GetSession(context.Context, string) (ory.Session, error) { return s.after, nil }
+
+var errNoSession = errors.New("401")
 
 func (s *sessions) ListIdentitySessions(context.Context, string, ory.SessionFilter) (ory.Page[ory.Session], error) {
 	s.mu.Lock()

@@ -12,6 +12,8 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"time"
@@ -142,6 +144,7 @@ type State struct {
 
 	callbacks string                        // listen address of the callbacks
 	settings  config.Live[overlay.Settings] // the tokens' public keys among them
+	logout    http.Handler                  // Kratos's logout endpoints, proxied
 }
 
 // Main runs backplane-kratos until a signal stops it, exiting on error.
@@ -163,6 +166,7 @@ func Run(ctx context.Context) error {
 
 	svc.HTTP("/", st.Flows.Handler(), api.Listen("callbacks", st.callbacks))
 	svc.HTTP("/.well-known/", jwks.Handler(st.settings))
+	svc.HTTP(flows.LogoutPath, st.logout)
 	svc.Internal(func(r grpc.ServiceRegistrar) { kratosconsolev1.RegisterAdminServiceServer(r, st.Admin) })
 
 	if bundle := ui.Bundle(); bundle != nil {
@@ -205,6 +209,13 @@ func newState(root backplane.Root[Config]) (*State, error) {
 	}
 	st.Flows = flows.New(root, key, cfg.FailOpen, client)
 	events.OfferLogin(root, cfg.Settings)
+
+	public, err := url.Parse(client.PublicURL())
+	if err != nil {
+		return nil, fmt.Errorf("kratos: public url: %w", err)
+	}
+
+	st.logout = st.Flows.Logout(public, headers)
 
 	mode, err := strconv.ParseUint(cfg.OverlayMode, 8, 32)
 	if err != nil || mode > 0o777 {

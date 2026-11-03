@@ -50,3 +50,12 @@ deployment:
         httpGet: {path: /healthz/startup, port: 9400}
         periodSeconds: 1
         failureThreshold: 120
+
+# Logout goes through backplane-kratos (event kratos.LoggedOut): the ingress
+# of Kratos's public host routes this one prefix to the sidecar's public port
+# (BACKPLANE_PUBLIC_PORT, 8080), which passes it on to Kratos. The backend is
+# a Service of your own selecting the Kratos pods on port 8080:
+#
+#   - path: /self-service/logout
+#     pathType: Prefix
+#     backend: {service: {name: <service on the pods' 8080>, port: {number: 8080}}}
