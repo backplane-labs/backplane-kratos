@@ -515,6 +515,53 @@ func TestLoggedInEvent(t *testing.T) {
 	}
 }
 
+// An email change publishes SettingsChanged with the traits before and
+// after it.
+func TestSettingsChangedEvent(t *testing.T) {
+	t.Parallel()
+
+	e := start(t, nil)
+
+	before, after := unique("old"), unique("new")
+
+	status, body := register(t, before)
+	if status != http.StatusOK {
+		t.Fatalf("registration: %d %v", status, body)
+	}
+
+	token, _ := body["session_token"].(string)
+
+	status, flow := callAs(t, token, http.MethodGet, "/self-service/settings/api", nil)
+	if status != http.StatusOK {
+		t.Fatalf("settings flow: %d %v", status, flow)
+	}
+
+	status, body = callAs(t, token, http.MethodPost, fmt.Sprintf("/self-service/settings?flow=%v", flow["id"]),
+		map[string]any{"method": "profile", "traits": map[string]any{"email": after}})
+	if status != http.StatusOK {
+		t.Fatalf("email change: %d %v", status, body)
+	}
+
+	var got *kratoseventsv1.FlowEvent
+
+	waitFor(t, "SettingsChanged published", func() bool {
+		for _, ev := range backplanetest.Events(e.h, e.flows.Event(overlay.FlowSettings)) {
+			if ev.GetFlowId() == flow["id"] {
+				got = ev
+
+				return true
+			}
+		}
+
+		return false
+	})
+
+	if was, is := got.GetPreviousTraits().GetFields()["email"].GetStringValue(),
+		got.GetTraits().GetFields()["email"].GetStringValue(); was != before || is != after {
+		t.Fatalf("previous %q, traits %q; want %q, %q", was, is, before, after)
+	}
+}
+
 // The admin activities against the real admin API.
 func TestActivities(t *testing.T) {
 	t.Parallel()

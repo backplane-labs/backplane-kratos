@@ -42,6 +42,10 @@ service sits next to it and turns it into parts of Wiring:
   carries the flow's `transient_payload`, the same one its `Deliver` saw:
   Kratos gives a courier message no flow id, so a client marker in the
   payload is how a message and its completed flow are matched.
+  `SettingsChanged` also carries `previous_traits`, the traits before the
+  change as the signed-in session held them (Kratos changes a copy of the
+  identity), so a product can notify the old address of an email change
+  without keeping a copy. They equal `traits` when the flow changed no trait.
 - **Section `kratos.login`** (backplane live section): how identities sign
   up and sign in — registration on or off, first and second factors, OIDC
   providers (id, kind, label), required AALs, recovery and verification —

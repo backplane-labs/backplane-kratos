@@ -44,8 +44,12 @@ type FlowEvent struct {
 	// Transient payload the client sent with the flow, as the Deliver hook
 	// of the flow's code saw it; absent when there was none.
 	TransientPayload *structpb.Struct `protobuf:"bytes,7,opt,name=transient_payload,json=transientPayload,proto3" json:"transient_payload,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	// Traits of the identity before the flow changed them, as the signed-in
+	// session held them; set on kratos.SettingsChanged. Equal to traits when
+	// the flow changed no trait (a password, a passkey).
+	PreviousTraits *structpb.Struct `protobuf:"bytes,8,opt,name=previous_traits,json=previousTraits,proto3" json:"previous_traits,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *FlowEvent) Reset() {
@@ -123,6 +127,13 @@ func (x *FlowEvent) GetSession() *Session {
 func (x *FlowEvent) GetTransientPayload() *structpb.Struct {
 	if x != nil {
 		return x.TransientPayload
+	}
+	return nil
+}
+
+func (x *FlowEvent) GetPreviousTraits() *structpb.Struct {
+	if x != nil {
+		return x.PreviousTraits
 	}
 	return nil
 }
@@ -363,7 +374,7 @@ var File_proto_kratos_events_v1_events_proto protoreflect.FileDescriptor
 
 const file_proto_kratos_events_v1_events_proto_rawDesc = "" +
 	"\n" +
-	"#proto/kratos/events/v1/events.proto\x12\x10kratos.events.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa6\x02\n" +
+	"#proto/kratos/events/v1/events.proto\x12\x10kratos.events.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xe8\x02\n" +
 	"\tFlowEvent\x12\x1f\n" +
 	"\videntity_id\x18\x01 \x01(\tR\n" +
 	"identityId\x12\x1b\n" +
@@ -372,7 +383,8 @@ const file_proto_kratos_events_v1_events_proto_rawDesc = "" +
 	"\aflow_id\x18\x04 \x01(\tR\x06flowId\x12/\n" +
 	"\x06traits\x18\x05 \x01(\v2\x17.google.protobuf.StructR\x06traits\x123\n" +
 	"\asession\x18\x06 \x01(\v2\x19.kratos.events.v1.SessionR\asession\x12D\n" +
-	"\x11transient_payload\x18\a \x01(\v2\x17.google.protobuf.StructR\x10transientPayload\"\xcc\x01\n" +
+	"\x11transient_payload\x18\a \x01(\v2\x17.google.protobuf.StructR\x10transientPayload\x12@\n" +
+	"\x0fprevious_traits\x18\b \x01(\v2\x17.google.protobuf.StructR\x0epreviousTraits\"\xcc\x01\n" +
 	"\aSession\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12E\n" +
 	"\x10authenticated_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x0fauthenticatedAt\x12\x10\n" +
@@ -420,13 +432,14 @@ var file_proto_kratos_events_v1_events_proto_depIdxs = []int32{
 	4, // 0: kratos.events.v1.FlowEvent.traits:type_name -> google.protobuf.Struct
 	1, // 1: kratos.events.v1.FlowEvent.session:type_name -> kratos.events.v1.Session
 	4, // 2: kratos.events.v1.FlowEvent.transient_payload:type_name -> google.protobuf.Struct
-	5, // 3: kratos.events.v1.Session.authenticated_at:type_name -> google.protobuf.Timestamp
-	4, // 4: kratos.events.v1.IdentityEvent.traits:type_name -> google.protobuf.Struct
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	4, // 3: kratos.events.v1.FlowEvent.previous_traits:type_name -> google.protobuf.Struct
+	5, // 4: kratos.events.v1.Session.authenticated_at:type_name -> google.protobuf.Timestamp
+	4, // 5: kratos.events.v1.IdentityEvent.traits:type_name -> google.protobuf.Struct
+	6, // [6:6] is the sub-list for method output_type
+	6, // [6:6] is the sub-list for method input_type
+	6, // [6:6] is the sub-list for extension type_name
+	6, // [6:6] is the sub-list for extension extendee
+	0, // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_proto_kratos_events_v1_events_proto_init() }

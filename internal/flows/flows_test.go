@@ -346,8 +346,31 @@ func TestFlowEvent(t *testing.T) {
 	}
 
 	events := backplanetest.Events(h, f.Event("registration"))
-	if len(events) != 1 || events[0].GetIdentityId() == "" || events[0].GetMethod() != "password" {
+	if len(events) != 1 || events[0].GetIdentityId() == "" || events[0].GetMethod() != "password" ||
+		events[0].GetPreviousTraits() != nil {
 		t.Fatalf("events: %+v", events)
+	}
+}
+
+// SettingsChanged carries the traits before the change, from the
+// signed-in session.
+func TestSettingsChangedPrevious(t *testing.T) {
+	t.Parallel()
+
+	h, f, srv := harness(t)
+
+	if code, _ := post(t, srv, "/events/settings/profile", "after_settings.json"); code != http.StatusOK {
+		t.Fatalf("status %d", code)
+	}
+
+	events := backplanetest.Events(h, f.Event("settings"))
+	if len(events) != 1 {
+		t.Fatalf("events: %+v", events)
+	}
+
+	if was, is := events[0].GetPreviousTraits().GetFields()["email"].GetStringValue(),
+		events[0].GetTraits().GetFields()["email"].GetStringValue(); was != "old@example.com" || is != "new@example.com" {
+		t.Fatalf("previous %q, traits %q", was, is)
 	}
 }
 

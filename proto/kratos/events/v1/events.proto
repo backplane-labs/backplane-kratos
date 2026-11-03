@@ -27,6 +27,10 @@ message FlowEvent {
   // Transient payload the client sent with the flow, as the Deliver hook
   // of the flow's code saw it; absent when there was none.
   google.protobuf.Struct transient_payload = 7;
+  // Traits of the identity before the flow changed them, as the signed-in
+  // session held them; set on kratos.SettingsChanged. Equal to traits when
+  // the flow changed no trait (a password, a passkey).
+  google.protobuf.Struct previous_traits = 8;
 }
 
 // Session is a Kratos session as a login issued it.

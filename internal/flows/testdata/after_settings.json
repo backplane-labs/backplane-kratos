@@ -1,0 +1,21 @@
+{
+  "flow": {"id": "6c8d2f3b-4e5a-4b7c-9d0e-1f2a3b4c5d6e", "type": "api"},
+  "identity": {
+    "id": "0c1d2e3f-4a5b-4c6d-8e7f-901a2b3c4d5e",
+    "schema_id": "default",
+    "traits": {"email": "new@example.com"}
+  },
+  "session": {
+    "id": "7a8b9c0d-1e2f-4a3b-8c4d-5e6f7a8b9c0d",
+    "active": true,
+    "authenticated_at": "2026-10-30T09:00:00Z",
+    "authenticator_assurance_level": "aal1",
+    "identity": {
+      "id": "0c1d2e3f-4a5b-4c6d-8e7f-901a2b3c4d5e",
+      "schema_id": "default",
+      "traits": {"email": "old@example.com"}
+    }
+  },
+  "request_url": "http://127.0.0.1:4433/self-service/settings?flow=6c8d2f3b-4e5a-4b7c-9d0e-1f2a3b4c5d6e",
+  "request_method": "POST"
+}

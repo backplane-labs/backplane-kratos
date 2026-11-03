@@ -581,6 +581,13 @@ func (f *Flows) event(w http.ResponseWriter, r *http.Request) {
 		TransientPayload: events.Traits(c.Flow.TransientPayload),
 	}
 
+	// Kratos loads the settings flow's session before the change and
+	// changes a copy of its identity: the session still holds the traits
+	// as they were.
+	if flow == overlay.FlowSettings && c.Session != nil && c.Session.Identity != nil {
+		flowEvent.PreviousTraits = events.Traits(c.Session.Identity.Traits)
+	}
+
 	// Kratos does not wait for this answer: the event is best effort.
 	switch {
 	case flow == overlay.FlowLogin && c.Session != nil && c.Session.AuthenticatedAt != nil:
