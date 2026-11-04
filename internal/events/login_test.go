@@ -1,13 +1,18 @@
 package events_test
 
 import (
+	"context"
+	"errors"
 	"slices"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/backplane-labs/backplane/pkg/backplane/backplanetest"
 	"github.com/backplane-labs/backplane/pkg/backplane/config"
 
 	"github.com/backplane-labs/backplane-kratos/internal/events"
+	"github.com/backplane-labs/backplane-kratos/internal/ory"
 	"github.com/backplane-labs/backplane-kratos/internal/overlay"
 	kratoseventsv1 "github.com/backplane-labs/backplane-kratos/proto/kratos/events/v1"
 )
@@ -42,7 +47,7 @@ func TestOfferLogin(t *testing.T) {
 	}{Settings: config.LiveOf(s)}
 
 	h := backplanetest.New(t, backplanetest.Name("kratos"))
-	events.OfferLogin(h.Root(), cfg.Settings)
+	events.NewLogin(h.Root(), cfg.Settings, &kratosSchemas{}, time.Hour)
 
 	got := offered(t, h)
 	if !got.GetRegistrationEnabled() || !slices.Equal(got.GetFirstFactors(), []string{"password", "oidc"}) ||
@@ -58,5 +63,87 @@ func TestOfferLogin(t *testing.T) {
 	got = offered(t, h)
 	if got.GetRegistrationEnabled() || !slices.Equal(got.GetFirstFactors(), []string{"password", "code", "oidc"}) {
 		t.Fatalf("after change %v", got)
+	}
+}
+
+// kratosSchemas is Kratos's /schemas: its list, swapped by set.
+type kratosSchemas struct {
+	mu   sync.Mutex
+	list []ory.Schema
+	err  error
+}
+
+func (k *kratosSchemas) ListSchemas(context.Context) ([]ory.Schema, error) {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+
+	return k.list, k.err
+}
+
+func (k *kratosSchemas) set(list []ory.Schema, err error) {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+
+	k.list, k.err = list, err
+}
+
+// phones are the tel identifiers of the offered section.
+func phones(t *testing.T, h *backplanetest.Harness) int {
+	t.Helper()
+
+	n := 0
+
+	for _, id := range offered(t, h).GetIdentifiers() {
+		if id.GetKind() == "tel" {
+			n++
+		}
+	}
+
+	return n
+}
+
+// Identifiers come from the settings' schemas; without them, from
+// Kratos's, read every poll; a failed read keeps the last ones.
+func TestLoginIdentifiers(t *testing.T) {
+	t.Parallel()
+
+	var s overlay.Settings
+
+	s.Methods.Code = overlay.Code{Enabled: true, Passwordless: true}
+
+	cfg := struct {
+		Settings config.Live[overlay.Settings] `json:"settings"`
+	}{Settings: config.LiveOf(s)}
+
+	kratos := &kratosSchemas{list: []ory.Schema{{ID: "default", Schema: schema(phoneTrait)}}}
+
+	h := backplanetest.New(t, backplanetest.Name("kratos"))
+	events.NewLogin(h.Root(), cfg.Settings, kratos, 10*time.Millisecond)
+	h.Start()
+
+	await := func(want int) {
+		t.Helper()
+
+		for deadline := time.Now().Add(5 * time.Second); time.Now().Before(deadline); time.Sleep(10 * time.Millisecond) {
+			if phones(t, h) == want {
+				return
+			}
+		}
+
+		t.Fatalf("tel identifiers: %d, want %d", phones(t, h), want)
+	}
+
+	await(1)
+
+	kratos.set(nil, errors.New("kratos down"))
+	time.Sleep(50 * time.Millisecond)
+	await(1)
+
+	// The settings' schemas win, at once.
+	s.Identity.Schemas = map[string]string{"default": string(schema(emailTrait))}
+	backplanetest.SetLive(&cfg.Settings, s)
+
+	if got := offered(t, h).GetIdentifiers(); len(got) != 1 || got[0].GetKind() != "email" {
+		t.Fatalf("from the settings: %v", got)
 	}
 }

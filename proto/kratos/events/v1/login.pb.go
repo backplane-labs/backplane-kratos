@@ -49,8 +49,12 @@ type LoginSection struct {
 	// The recovery and verification flows are on.
 	RecoveryEnabled     bool `protobuf:"varint,10,opt,name=recovery_enabled,json=recoveryEnabled,proto3" json:"recovery_enabled,omitempty"`
 	VerificationEnabled bool `protobuf:"varint,11,opt,name=verification_enabled,json=verificationEnabled,proto3" json:"verification_enabled,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	// Traits an identity signs in with, from the identity schemas, each with
+	// the enabled first factors that take it as the identifier; a trait no
+	// enabled method takes is left out. A tel identifier means phone login.
+	Identifiers   []*LoginIdentifier `protobuf:"bytes,12,rep,name=identifiers,proto3" json:"identifiers,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *LoginSection) Reset() {
@@ -160,6 +164,78 @@ func (x *LoginSection) GetVerificationEnabled() bool {
 	return false
 }
 
+func (x *LoginSection) GetIdentifiers() []*LoginIdentifier {
+	if x != nil {
+		return x.Identifiers
+	}
+	return nil
+}
+
+// LoginIdentifier is a trait sign-in takes as the identifier.
+type LoginIdentifier struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Path of the trait in the identity: traits.email, traits.phone.
+	Trait string `protobuf:"bytes,1,opt,name=trait,proto3" json:"trait,omitempty"`
+	// Kind of value: email, tel, or username for any other.
+	Kind string `protobuf:"bytes,2,opt,name=kind,proto3" json:"kind,omitempty"`
+	// Enabled first factors that take it: password, code, webauthn (a
+	// passkey needs no identifier).
+	Methods       []string `protobuf:"bytes,3,rep,name=methods,proto3" json:"methods,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LoginIdentifier) Reset() {
+	*x = LoginIdentifier{}
+	mi := &file_proto_kratos_events_v1_login_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LoginIdentifier) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LoginIdentifier) ProtoMessage() {}
+
+func (x *LoginIdentifier) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_kratos_events_v1_login_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LoginIdentifier.ProtoReflect.Descriptor instead.
+func (*LoginIdentifier) Descriptor() ([]byte, []int) {
+	return file_proto_kratos_events_v1_login_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *LoginIdentifier) GetTrait() string {
+	if x != nil {
+		return x.Trait
+	}
+	return ""
+}
+
+func (x *LoginIdentifier) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *LoginIdentifier) GetMethods() []string {
+	if x != nil {
+		return x.Methods
+	}
+	return nil
+}
+
 // OIDCProvider is an upstream identity provider sign-in offers.
 type OIDCProvider struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -175,7 +251,7 @@ type OIDCProvider struct {
 
 func (x *OIDCProvider) Reset() {
 	*x = OIDCProvider{}
-	mi := &file_proto_kratos_events_v1_login_proto_msgTypes[1]
+	mi := &file_proto_kratos_events_v1_login_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -187,7 +263,7 @@ func (x *OIDCProvider) String() string {
 func (*OIDCProvider) ProtoMessage() {}
 
 func (x *OIDCProvider) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_events_v1_login_proto_msgTypes[1]
+	mi := &file_proto_kratos_events_v1_login_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -200,7 +276,7 @@ func (x *OIDCProvider) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OIDCProvider.ProtoReflect.Descriptor instead.
 func (*OIDCProvider) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_events_v1_login_proto_rawDescGZIP(), []int{1}
+	return file_proto_kratos_events_v1_login_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *OIDCProvider) GetId() string {
@@ -228,7 +304,7 @@ var File_proto_kratos_events_v1_login_proto protoreflect.FileDescriptor
 
 const file_proto_kratos_events_v1_login_proto_rawDesc = "" +
 	"\n" +
-	"\"proto/kratos/events/v1/login.proto\x12\x10kratos.events.v1\"\xa2\x04\n" +
+	"\"proto/kratos/events/v1/login.proto\x12\x10kratos.events.v1\"\xe7\x04\n" +
 	"\fLoginSection\x121\n" +
 	"\x14registration_enabled\x18\x01 \x01(\bR\x13registrationEnabled\x12-\n" +
 	"\x12registration_style\x18\x02 \x01(\tR\x11registrationStyle\x12\x1f\n" +
@@ -242,7 +318,12 @@ const file_proto_kratos_events_v1_login_proto_rawDesc = "" +
 	"\x18require_verified_address\x18\t \x01(\bR\x16requireVerifiedAddress\x12)\n" +
 	"\x10recovery_enabled\x18\n" +
 	" \x01(\bR\x0frecoveryEnabled\x121\n" +
-	"\x14verification_enabled\x18\v \x01(\bR\x13verificationEnabled\"P\n" +
+	"\x14verification_enabled\x18\v \x01(\bR\x13verificationEnabled\x12C\n" +
+	"\videntifiers\x18\f \x03(\v2!.kratos.events.v1.LoginIdentifierR\videntifiers\"U\n" +
+	"\x0fLoginIdentifier\x12\x14\n" +
+	"\x05trait\x18\x01 \x01(\tR\x05trait\x12\x12\n" +
+	"\x04kind\x18\x02 \x01(\tR\x04kind\x12\x18\n" +
+	"\amethods\x18\x03 \x03(\tR\amethods\"P\n" +
 	"\fOIDCProvider\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\bprovider\x18\x02 \x01(\tR\bprovider\x12\x14\n" +
@@ -260,18 +341,20 @@ func file_proto_kratos_events_v1_login_proto_rawDescGZIP() []byte {
 	return file_proto_kratos_events_v1_login_proto_rawDescData
 }
 
-var file_proto_kratos_events_v1_login_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_proto_kratos_events_v1_login_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_proto_kratos_events_v1_login_proto_goTypes = []any{
-	(*LoginSection)(nil), // 0: kratos.events.v1.LoginSection
-	(*OIDCProvider)(nil), // 1: kratos.events.v1.OIDCProvider
+	(*LoginSection)(nil),    // 0: kratos.events.v1.LoginSection
+	(*LoginIdentifier)(nil), // 1: kratos.events.v1.LoginIdentifier
+	(*OIDCProvider)(nil),    // 2: kratos.events.v1.OIDCProvider
 }
 var file_proto_kratos_events_v1_login_proto_depIdxs = []int32{
-	1, // 0: kratos.events.v1.LoginSection.oidc_providers:type_name -> kratos.events.v1.OIDCProvider
-	1, // [1:1] is the sub-list for method output_type
-	1, // [1:1] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	2, // 0: kratos.events.v1.LoginSection.oidc_providers:type_name -> kratos.events.v1.OIDCProvider
+	1, // 1: kratos.events.v1.LoginSection.identifiers:type_name -> kratos.events.v1.LoginIdentifier
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_proto_kratos_events_v1_login_proto_init() }
@@ -285,7 +368,7 @@ func file_proto_kratos_events_v1_login_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_kratos_events_v1_login_proto_rawDesc), len(file_proto_kratos_events_v1_login_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

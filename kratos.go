@@ -75,6 +75,9 @@ type Connection struct {
 	PublicURL string                   `json:"public_url"        schemapb:"default=http://127.0.0.1:4433"`
 	Headers   map[string]config.Secret `json:"headers,omitempty" schemapb:"description=Headers of every request (a proxy's authorization)"`
 	Timeout   time.Duration            `json:"timeout"           schemapb:"default=10s"`
+	// SchemaPoll is how often the identity schemas are read from Kratos
+	// for kratos.login while the settings set none (the base file's).
+	SchemaPoll time.Duration `json:"schema_poll" schemapb:"default=1m;gt=0;description=How often kratos.login reads the base file's identity schemas from Kratos"`
 }
 
 // Callbacks listener.
@@ -208,7 +211,7 @@ func newState(root backplane.Root[Config]) (*State, error) {
 		settings:  cfg.Settings,
 	}
 	st.Flows = flows.New(root, key, cfg.FailOpen, client)
-	events.OfferLogin(root, cfg.Settings)
+	events.NewLogin(root, cfg.Settings, client, cfg.Kratos.SchemaPoll)
 
 	public, err := url.Parse(client.PublicURL())
 	if err != nil {

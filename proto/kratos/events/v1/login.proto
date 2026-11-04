@@ -31,6 +31,21 @@ message LoginSection {
   // The recovery and verification flows are on.
   bool recovery_enabled = 10;
   bool verification_enabled = 11;
+  // Traits an identity signs in with, from the identity schemas, each with
+  // the enabled first factors that take it as the identifier; a trait no
+  // enabled method takes is left out. A tel identifier means phone login.
+  repeated LoginIdentifier identifiers = 12;
+}
+
+// LoginIdentifier is a trait sign-in takes as the identifier.
+message LoginIdentifier {
+  // Path of the trait in the identity: traits.email, traits.phone.
+  string trait = 1;
+  // Kind of value: email, tel, or username for any other.
+  string kind = 2;
+  // Enabled first factors that take it: password, code, webauthn (a
+  // passkey needs no identifier).
+  repeated string methods = 3;
 }
 
 // OIDCProvider is an upstream identity provider sign-in offers.

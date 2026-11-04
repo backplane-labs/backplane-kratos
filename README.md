@@ -62,7 +62,14 @@ service sits next to it and turns it into parts of Wiring:
 - **Section `kratos.login`** (backplane live section): how identities sign
   up and sign in — registration on or off, first and second factors, OIDC
   providers (id, kind, label), required AALs, recovery and verification —
-  following the console settings, without secrets. Services follow it with
+  following the console settings, without secrets. `identifiers` lists the
+  traits sign-in takes as the identifier (`traits.email`, `traits.phone`),
+  their kind (`email`, `tel`, `username`) and the enabled first factors that
+  take each (`password`, `code`, `webauthn`). They are read from the identity
+  schemas, merged across schemas. The source is the schemas set in the
+  settings; when the settings set none, it is the schemas Kratos runs (its
+  base file's), read from Kratos every `kratos.schema_poll`. A `tel`
+  identifier means phone login is on. Services follow it with
   `sections.Follow[*kratoseventsv1.LoginSection](root, "kratos.login")`.
 - **Admin API → activities**: `GetIdentity`, `FindIdentities`,
   `CreateIdentity`, `UpdateIdentity`, `PatchIdentity`, `DeleteIdentity`,
@@ -124,6 +131,8 @@ cannot read leaves it on the previous configuration.
 | --- | --- |
 | `kratos.admin_url`, `kratos.public_url` | Kratos's APIs (default `127.0.0.1:4434/4433`) |
 | `kratos.headers` | Secret headers of every request (a proxy's authorization) |
+| `kratos.timeout` | Bound of one request to Kratos (default `10s`) |
+| `kratos.schema_poll` | How often `kratos.login` reads the identity schemas from Kratos while the settings set none (default `1m`) |
 | `callbacks.listen`, `callbacks.url` | Where Kratos calls this service (default `:8090`, `http://127.0.0.1:8090`) |
 | `callbacks.key` | Authenticates Kratos; default: derived from the internal secret |
 | `overlay`, `overlay_mode` | The overlay file and its permissions |

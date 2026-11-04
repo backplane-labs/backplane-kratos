@@ -10,7 +10,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file kratos/events/v1/login.proto.
  */
 export const file_kratos_events_v1_login: GenFile = /*@__PURE__*/
-  fileDesc("ChxrcmF0b3MvZXZlbnRzL3YxL2xvZ2luLnByb3RvEhBrcmF0b3MuZXZlbnRzLnYxItsCCgxMb2dpblNlY3Rpb24SHAoUcmVnaXN0cmF0aW9uX2VuYWJsZWQYASABKAgSGgoScmVnaXN0cmF0aW9uX3N0eWxlGAIgASgJEhMKC2xvZ2luX3N0eWxlGAMgASgJEhUKDWZpcnN0X2ZhY3RvcnMYBCADKAkSFgoOc2Vjb25kX2ZhY3RvcnMYBSADKAkSNgoOb2lkY19wcm92aWRlcnMYBiADKAsyHi5rcmF0b3MuZXZlbnRzLnYxLk9JRENQcm92aWRlchIcChRzZXNzaW9uX3JlcXVpcmVkX2FhbBgHIAEoCRIdChVzZXR0aW5nc19yZXF1aXJlZF9hYWwYCCABKAkSIAoYcmVxdWlyZV92ZXJpZmllZF9hZGRyZXNzGAkgASgIEhgKEHJlY292ZXJ5X2VuYWJsZWQYCiABKAgSHAoUdmVyaWZpY2F0aW9uX2VuYWJsZWQYCyABKAgiOwoMT0lEQ1Byb3ZpZGVyEgoKAmlkGAEgASgJEhAKCHByb3ZpZGVyGAIgASgJEg0KBWxhYmVsGAMgASgJQlJaUGdpdGh1Yi5jb20vYmFja3BsYW5lLWxhYnMvYmFja3BsYW5lLWtyYXRvcy9wcm90by9rcmF0b3MvZXZlbnRzL3YxO2tyYXRvc2V2ZW50c3YxYgZwcm90bzM");
+  fileDesc("ChxrcmF0b3MvZXZlbnRzL3YxL2xvZ2luLnByb3RvEhBrcmF0b3MuZXZlbnRzLnYxIpMDCgxMb2dpblNlY3Rpb24SHAoUcmVnaXN0cmF0aW9uX2VuYWJsZWQYASABKAgSGgoScmVnaXN0cmF0aW9uX3N0eWxlGAIgASgJEhMKC2xvZ2luX3N0eWxlGAMgASgJEhUKDWZpcnN0X2ZhY3RvcnMYBCADKAkSFgoOc2Vjb25kX2ZhY3RvcnMYBSADKAkSNgoOb2lkY19wcm92aWRlcnMYBiADKAsyHi5rcmF0b3MuZXZlbnRzLnYxLk9JRENQcm92aWRlchIcChRzZXNzaW9uX3JlcXVpcmVkX2FhbBgHIAEoCRIdChVzZXR0aW5nc19yZXF1aXJlZF9hYWwYCCABKAkSIAoYcmVxdWlyZV92ZXJpZmllZF9hZGRyZXNzGAkgASgIEhgKEHJlY292ZXJ5X2VuYWJsZWQYCiABKAgSHAoUdmVyaWZpY2F0aW9uX2VuYWJsZWQYCyABKAgSNgoLaWRlbnRpZmllcnMYDCADKAsyIS5rcmF0b3MuZXZlbnRzLnYxLkxvZ2luSWRlbnRpZmllciI/Cg9Mb2dpbklkZW50aWZpZXISDQoFdHJhaXQYASABKAkSDAoEa2luZBgCIAEoCRIPCgdtZXRob2RzGAMgAygJIjsKDE9JRENQcm92aWRlchIKCgJpZBgBIAEoCRIQCghwcm92aWRlchgCIAEoCRINCgVsYWJlbBgDIAEoCUJSWlBnaXRodWIuY29tL2JhY2twbGFuZS1sYWJzL2JhY2twbGFuZS1rcmF0b3MvcHJvdG8va3JhdG9zL2V2ZW50cy92MTtrcmF0b3NldmVudHN2MWIGcHJvdG8z");
 
 /**
  * LoginSection is the section kratos.login (backplane sections): how
@@ -96,6 +96,15 @@ export type LoginSection = Message<"kratos.events.v1.LoginSection"> & {
    * @generated from field: bool verification_enabled = 11;
    */
   verificationEnabled: boolean;
+
+  /**
+   * Traits an identity signs in with, from the identity schemas, each with
+   * the enabled first factors that take it as the identifier; a trait no
+   * enabled method takes is left out. A tel identifier means phone login.
+   *
+   * @generated from field: repeated kratos.events.v1.LoginIdentifier identifiers = 12;
+   */
+  identifiers: LoginIdentifier[];
 };
 
 /**
@@ -104,6 +113,42 @@ export type LoginSection = Message<"kratos.events.v1.LoginSection"> & {
  */
 export const LoginSectionSchema: GenMessage<LoginSection> = /*@__PURE__*/
   messageDesc(file_kratos_events_v1_login, 0);
+
+/**
+ * LoginIdentifier is a trait sign-in takes as the identifier.
+ *
+ * @generated from message kratos.events.v1.LoginIdentifier
+ */
+export type LoginIdentifier = Message<"kratos.events.v1.LoginIdentifier"> & {
+  /**
+   * Path of the trait in the identity: traits.email, traits.phone.
+   *
+   * @generated from field: string trait = 1;
+   */
+  trait: string;
+
+  /**
+   * Kind of value: email, tel, or username for any other.
+   *
+   * @generated from field: string kind = 2;
+   */
+  kind: string;
+
+  /**
+   * Enabled first factors that take it: password, code, webauthn (a
+   * passkey needs no identifier).
+   *
+   * @generated from field: repeated string methods = 3;
+   */
+  methods: string[];
+};
+
+/**
+ * Describes the message kratos.events.v1.LoginIdentifier.
+ * Use `create(LoginIdentifierSchema)` to create a new message.
+ */
+export const LoginIdentifierSchema: GenMessage<LoginIdentifier> = /*@__PURE__*/
+  messageDesc(file_kratos_events_v1_login, 1);
 
 /**
  * OIDCProvider is an upstream identity provider sign-in offers.
@@ -138,5 +183,5 @@ export type OIDCProvider = Message<"kratos.events.v1.OIDCProvider"> & {
  * Use `create(OIDCProviderSchema)` to create a new message.
  */
 export const OIDCProviderSchema: GenMessage<OIDCProvider> = /*@__PURE__*/
-  messageDesc(file_kratos_events_v1_login, 1);
+  messageDesc(file_kratos_events_v1_login, 2);
 

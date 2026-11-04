@@ -24,6 +24,7 @@ import (
 
 	"github.com/backplane-labs/backplane-kratos/internal/activities"
 	"github.com/backplane-labs/backplane-kratos/internal/apply"
+	"github.com/backplane-labs/backplane-kratos/internal/events"
 	"github.com/backplane-labs/backplane-kratos/internal/flows"
 	"github.com/backplane-labs/backplane-kratos/internal/ory"
 	"github.com/backplane-labs/backplane-kratos/internal/overlay"
@@ -588,6 +589,13 @@ func TestLoggedOutEvent(t *testing.T) {
 	token, _ := body["session_token"].(string)
 	session, _ := body["session"].(map[string]any)
 
+	// Registered polls the identity's sessions until Kratos stored this
+	// one; the test Kratos runs on SQLite, whose one writer at a time
+	// would refuse the logout while those reads run.
+	waitFor(t, "Registered published", func() bool {
+		return len(backplanetest.Events(e.h, e.flows.Event(overlay.FlowRegistration))) == 1
+	})
+
 	raw, err := json.Marshal(map[string]string{"session_token": token})
 	if err != nil {
 		t.Fatal(err)
@@ -606,10 +614,11 @@ func TestLoggedOutEvent(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	answer, _ := io.ReadAll(res.Body)
 	_ = res.Body.Close()
 
 	if res.StatusCode != http.StatusNoContent {
-		t.Fatalf("logout: %d", res.StatusCode)
+		t.Fatalf("logout: %d %s (token %q)", res.StatusCode, answer, token)
 	}
 
 	got := backplanetest.Events(e.h, e.flows.LoggedOut())
@@ -622,6 +631,37 @@ func TestLoggedOutEvent(t *testing.T) {
 	if code, _ := callAs(t, token, http.MethodGet, "/sessions/whoami", nil); code != http.StatusUnauthorized {
 		t.Fatalf("whoami after logout: %d", code)
 	}
+}
+
+// kratos.login reads the identifiers of the base file's schema from Kratos
+// when the settings set none.
+func TestLoginIdentifiers(t *testing.T) {
+	t.Parallel()
+
+	client, err := ory.New(ory.Options{Admin: adminURL, Public: publicURL, Timeout: 5 * time.Second})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var s overlay.Settings
+
+	s.Methods.Password.Enabled = true
+
+	h := backplanetest.New(t, backplanetest.Name("kratos"))
+	events.NewLogin(h.Root(), config.LiveOf(s), client, 50*time.Millisecond)
+	h.Start()
+
+	waitFor(t, "traits.email from Kratos's schema", func() bool {
+		var section kratoseventsv1.LoginSection
+		if err := backplanetest.Offered(h, events.LoginSectionName).UnmarshalTo(&section); err != nil {
+			t.Fatal(err)
+		}
+
+		ids := section.GetIdentifiers()
+
+		return len(ids) == 1 && ids[0].GetTrait() == "traits.email" && ids[0].GetKind() == "email" &&
+			strings.Join(ids[0].GetMethods(), ",") == "password"
+	})
 }
 
 // The admin activities against the real admin API.
