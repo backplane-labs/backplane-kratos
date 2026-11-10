@@ -304,12 +304,14 @@ func (x *IdentityEvent) GetBy() string {
 	return ""
 }
 
-// SessionsRevoked (kratos.SessionsRevoked): one session was revoked
-// (session_id), or every session of an identity (identity_id, session_id
-// empty).
+// SessionsRevoked (kratos.SessionsRevoked): one session of an identity was
+// revoked (session_id set), or every session of it (session_id empty), by
+// an operator in the console or by wiring. The event's key is the
+// identity.
 type SessionsRevoked struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Identity whose sessions were revoked; empty when one session was.
+	// Identity whose sessions were revoked; empty only when one session was
+	// revoked that Kratos no longer knew.
 	IdentityId string `protobuf:"bytes,1,opt,name=identity_id,json=identityId,proto3" json:"identity_id,omitempty"`
 	// Session revoked; empty when every session of the identity was.
 	SessionId string `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`

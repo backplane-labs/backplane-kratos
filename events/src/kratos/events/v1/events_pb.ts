@@ -191,15 +191,17 @@ export const IdentityEventSchema: GenMessage<IdentityEvent> = /*@__PURE__*/
   messageDesc(file_kratos_events_v1_events, 2);
 
 /**
- * SessionsRevoked (kratos.SessionsRevoked): one session was revoked
- * (session_id), or every session of an identity (identity_id, session_id
- * empty).
+ * SessionsRevoked (kratos.SessionsRevoked): one session of an identity was
+ * revoked (session_id set), or every session of it (session_id empty), by
+ * an operator in the console or by wiring. The event's key is the
+ * identity.
  *
  * @generated from message kratos.events.v1.SessionsRevoked
  */
 export type SessionsRevoked = Message<"kratos.events.v1.SessionsRevoked"> & {
   /**
-   * Identity whose sessions were revoked; empty when one session was.
+   * Identity whose sessions were revoked; empty only when one session was
+   * revoked that Kratos no longer knew.
    *
    * @generated from field: string identity_id = 1;
    */

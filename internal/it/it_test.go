@@ -23,11 +23,13 @@ import (
 	"github.com/backplane-labs/backplane/pkg/backplane/config"
 
 	"github.com/backplane-labs/backplane-kratos/internal/activities"
+	kratosadmin "github.com/backplane-labs/backplane-kratos/internal/admin"
 	"github.com/backplane-labs/backplane-kratos/internal/apply"
 	"github.com/backplane-labs/backplane-kratos/internal/events"
 	"github.com/backplane-labs/backplane-kratos/internal/flows"
 	"github.com/backplane-labs/backplane-kratos/internal/ory"
 	"github.com/backplane-labs/backplane-kratos/internal/overlay"
+	consolev1 "github.com/backplane-labs/backplane-kratos/proto/kratos/console/v1"
 	kratoseventsv1 "github.com/backplane-labs/backplane-kratos/proto/kratos/events/v1"
 )
 
@@ -43,6 +45,7 @@ type env struct {
 	h          *backplanetest.Harness
 	flows      *flows.Flows
 	activities *activities.Activities
+	console    *kratosadmin.Admin
 	settings   config.Live[overlay.Settings]
 	tokenKey   config.Live[config.Secret]
 	kratos     ory.Client
@@ -123,6 +126,8 @@ func startKeyed(t *testing.T, tokenKey string, edit func(*overlay.Settings), bin
 	e := env{h: h, kratos: client, settings: config.LiveOf(settings), tokenKey: config.LiveOf(config.Secret(tokenKey))}
 	e.flows = flows.New(h.Root(), key, config.LiveOf([]string(nil)), client)
 	e.activities = activities.New(h.Root(), client)
+	e.console = kratosadmin.New(h.Root(), client, e.flows, nil, config.LiveOf([]string(nil)), e.settings, e.tokenKey,
+		true, e.activities)
 	apply.New(h.Root(), path, 0o644, e.settings, apply.Secrets{
 		OIDC: config.LiveOf(
 			map[string]config.Secret{},
@@ -721,6 +726,109 @@ func TestActivities(t *testing.T) {
 	deleted := backplanetest.Events(e.h, e.activities.IdentityEvent("IdentityDeleted"))
 	if len(deleted) != 1 || deleted[0].GetIdentityId() != created.ID {
 		t.Fatalf("deleted event: %+v", deleted)
+	}
+}
+
+// An operator's changes in the console publish the same events as
+// wiring's, by console; a revoked session's event names its identity, by
+// the console or by wiring.
+func TestConsoleChangesPublish(t *testing.T) {
+	t.Parallel()
+
+	e := start(t, nil)
+	ctx := t.Context()
+	console := e.console
+
+	signedIn := func(prefix string) (string, string) {
+		t.Helper()
+
+		status, body := register(t, unique(prefix))
+		if status != http.StatusOK {
+			t.Fatalf("registration: %d %v", status, body)
+		}
+
+		session, _ := body["session"].(map[string]any)
+		identity, _ := session["identity"].(map[string]any)
+		id := fmt.Sprint(identity["id"])
+
+		// Registered polls the identity's sessions until Kratos stored this
+		// one; the test Kratos runs on SQLite, whose one writer at a time
+		// would refuse the revoke while those reads run.
+		waitFor(t, "Registered published", func() bool {
+			for _, ev := range backplanetest.Events(e.h, e.flows.Event(overlay.FlowRegistration)) {
+				if ev.GetIdentityId() == id {
+					return true
+				}
+			}
+
+			return false
+		})
+
+		return id, fmt.Sprint(session["id"])
+	}
+
+	revoked := func(n int) *kratoseventsv1.SessionsRevoked {
+		t.Helper()
+
+		got := backplanetest.Events(e.h, e.activities.RevokedEvent())
+		if len(got) != n {
+			t.Fatalf("SessionsRevoked: %+v, want %d", got, n)
+		}
+
+		return got[n-1]
+	}
+
+	// One session, by the console: its identity is named.
+	identity, session := signedIn("revoke")
+	if _, err := console.RevokeSessions(ctx, &consolev1.RevokeSessionsRequest{SessionId: session}); err != nil {
+		t.Fatal(err)
+	}
+
+	if ev := revoked(1); ev.GetIdentityId() != identity || ev.GetSessionId() != session || ev.GetBy() != activities.ByConsole {
+		t.Fatalf("one session: %+v", ev)
+	}
+
+	// Every session, by the console.
+	if _, err := console.RevokeSessions(ctx, &consolev1.RevokeSessionsRequest{IdentityId: identity}); err != nil {
+		t.Fatal(err)
+	}
+
+	if ev := revoked(2); ev.GetIdentityId() != identity || ev.GetSessionId() != "" || ev.GetBy() != activities.ByConsole {
+		t.Fatalf("every session: %+v", ev)
+	}
+
+	// One session, by wiring: its identity is named too.
+	other, otherSession := signedIn("wired")
+	if _, err := backplanetest.Activity[activities.RevokeIn, activities.Empty](ctx, e.h, "RevokeSessions",
+		activities.RevokeIn{SessionID: otherSession}); err != nil {
+		t.Fatal(err)
+	}
+
+	if ev := revoked(3); ev.GetIdentityId() != other || ev.GetBy() != activities.ByWiring {
+		t.Fatalf("one session by wiring: %+v", ev)
+	}
+
+	// Identities created and deleted in the console.
+	created, err := console.CreateIdentity(ctx, &consolev1.CreateIdentityRequest{
+		SchemaId: "default", TraitsJson: fmt.Sprintf(`{"email":%q}`, unique("console")),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	id := created.GetIdentity().GetId()
+	if got := backplanetest.Events(e.h, e.activities.IdentityEvent("IdentityCreated")); len(got) != 1 ||
+		got[0].GetIdentityId() != id || got[0].GetBy() != activities.ByConsole {
+		t.Fatalf("created: %+v", got)
+	}
+
+	if _, err := console.DeleteIdentity(ctx, &consolev1.DeleteIdentityRequest{Id: id}); err != nil {
+		t.Fatal(err)
+	}
+
+	if got := backplanetest.Events(e.h, e.activities.IdentityEvent("IdentityDeleted")); len(got) != 1 ||
+		got[0].GetIdentityId() != id || got[0].GetBy() != activities.ByConsole {
+		t.Fatalf("deleted: %+v", got)
 	}
 }
 

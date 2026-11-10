@@ -135,16 +135,55 @@ func failure(err error) error {
 	return activity.NonRetryable(err)
 }
 
-// identityEvent is the event of a change wiring made to id.
-func identityEvent(id ory.Identity) IdentityEvent {
+// Who made a change, as its event says.
+const (
+	ByWiring  = "wiring"
+	ByConsole = "console"
+)
+
+// identityEvent is the event of a change by made to id.
+func identityEvent(id ory.Identity, by string) IdentityEvent {
 	return &kratoseventsv1.IdentityEvent{
-		IdentityId: id.ID, SchemaId: id.SchemaID, Traits: events.Traits(id.Traits), By: "wiring",
+		IdentityId: id.ID, SchemaId: id.SchemaID, Traits: events.Traits(id.Traits), By: by,
 	}
 }
 
 func (a *Activities) publish(ctx context.Context, ref event.Ref[IdentityEvent], ev IdentityEvent) {
 	if err := ref.Publish(ctx, ev, event.Key(ev.GetIdentityId())); err != nil {
 		a.Log().Ctx().Warn(ctx, "identity event not published", xlog.String("identity", ev.GetIdentityId()), xlog.Err(err))
+	}
+}
+
+// IdentityCreated publishes IdentityCreated of id, created by by.
+func (a *Activities) IdentityCreated(ctx context.Context, id ory.Identity, by string) {
+	a.publish(ctx, a.created, identityEvent(id, by))
+}
+
+// IdentityUpdated publishes IdentityUpdated of id, changed by by.
+func (a *Activities) IdentityUpdated(ctx context.Context, id ory.Identity, by string) {
+	a.publish(ctx, a.updated, identityEvent(id, by))
+}
+
+// IdentityDeleted publishes IdentityDeleted of the identity id, deleted by by.
+func (a *Activities) IdentityDeleted(ctx context.Context, id, by string) {
+	a.publish(ctx, a.deleted, &kratoseventsv1.IdentityEvent{IdentityId: id, By: by})
+}
+
+// Imported publishes IdentityCreated of every identity an import created.
+func (a *Activities) Imported(ctx context.Context, results []ory.ImportResult, by string) {
+	for _, r := range results {
+		if r.Action == "create" && r.Identity != "" {
+			a.publish(ctx, a.created, &kratoseventsv1.IdentityEvent{IdentityId: r.Identity, By: by})
+		}
+	}
+}
+
+// SessionsRevoked publishes SessionsRevoked: one session (sessionID) of
+// identityID, or every session of identityID; revoked by by.
+func (a *Activities) SessionsRevoked(ctx context.Context, identityID, sessionID, by string) {
+	ev := &kratoseventsv1.SessionsRevoked{IdentityId: identityID, SessionId: sessionID, By: by}
+	if err := a.revoked.Publish(ctx, ev, event.Key(identityID)); err != nil {
+		a.Log().Ctx().Warn(ctx, "sessions event not published", xlog.String("identity", identityID), xlog.Err(err))
 	}
 }
 
@@ -269,7 +308,7 @@ func (a *Activities) createIdentity(ctx context.Context, in IdentityIn) (ory.Ide
 		return out, failure(err)
 	}
 
-	a.publish(ctx, a.created, identityEvent(out))
+	a.IdentityCreated(ctx, out, ByWiring)
 
 	return out, nil
 }
@@ -304,7 +343,7 @@ func (a *Activities) updateIdentity(ctx context.Context, in IdentityIn) (ory.Ide
 		return out, failure(err)
 	}
 
-	a.publish(ctx, a.updated, identityEvent(out))
+	a.IdentityUpdated(ctx, out, ByWiring)
 
 	return out, nil
 }
@@ -321,7 +360,7 @@ func (a *Activities) patchIdentity(ctx context.Context, in PatchIn) (ory.Identit
 		return out, failure(err)
 	}
 
-	a.publish(ctx, a.updated, identityEvent(out))
+	a.IdentityUpdated(ctx, out, ByWiring)
 
 	return out, nil
 }
@@ -343,7 +382,7 @@ func (a *Activities) deleteIdentity(ctx context.Context, in IDIn) (Empty, error)
 		return Empty{}, failure(err)
 	}
 
-	a.publish(ctx, a.deleted, &kratoseventsv1.IdentityEvent{IdentityId: in.ID, By: "wiring"})
+	a.IdentityDeleted(ctx, in.ID, ByWiring)
 
 	return Empty{}, nil
 }
@@ -404,27 +443,51 @@ type RevokeIn struct {
 var ErrRevokeWhat = errors.New("session_id or identity_id is required")
 
 func (a *Activities) revokeSessions(ctx context.Context, in RevokeIn) (Empty, error) {
-	var err error
+	identity, err := RevokeSessions(ctx, a.kratos, in)
 
 	switch {
-	case in.SessionID != "":
-		err = a.kratos.DisableSession(ctx, in.SessionID)
-	case in.IdentityID != "":
-		err = a.kratos.DeleteIdentitySessions(ctx, in.IdentityID)
-	default:
-		return Empty{}, activity.NonRetryable(ErrRevokeWhat)
-	}
-
-	if err != nil && !ory.IsNotFound(err) {
+	case errors.Is(err, ErrRevokeWhat):
+		return Empty{}, activity.NonRetryable(err)
+	case err != nil:
 		return Empty{}, failure(err)
 	}
 
-	ev := &kratoseventsv1.SessionsRevoked{IdentityId: in.IdentityID, SessionId: in.SessionID, By: "wiring"}
-	if err := a.revoked.Publish(ctx, ev); err != nil {
-		a.Log().Ctx().Warn(ctx, "sessions event not published", xlog.Err(err))
-	}
+	a.SessionsRevoked(ctx, identity, in.SessionID, ByWiring)
 
 	return Empty{}, nil
+}
+
+// RevokeSessions revokes one session (its identity is read first, for the
+// event) or every session of an identity, and returns the identity (shared
+// with the console). A session or identity Kratos no longer knows is
+// revoked already.
+func RevokeSessions(ctx context.Context, k ory.Client, in RevokeIn) (string, error) {
+	switch {
+	case in.SessionID != "":
+		s, err := k.GetSession(ctx, in.SessionID)
+		if err != nil && !ory.IsNotFound(err) {
+			return "", err
+		}
+
+		identity := in.IdentityID
+		if s.Identity != nil {
+			identity = s.Identity.ID
+		}
+
+		if err := k.DisableSession(ctx, in.SessionID); err != nil && !ory.IsNotFound(err) {
+			return identity, err
+		}
+
+		return identity, nil
+	case in.IdentityID != "":
+		if err := k.DeleteIdentitySessions(ctx, in.IdentityID); err != nil && !ory.IsNotFound(err) {
+			return in.IdentityID, err
+		}
+
+		return in.IdentityID, nil
+	default:
+		return "", ErrRevokeWhat
+	}
 }
 
 func (a *Activities) extendSession(ctx context.Context, in IDIn) (ory.Session, error) {
@@ -515,6 +578,9 @@ func (a *Activities) IdentityEvent(name string) event.Ref[IdentityEvent] {
 	}
 }
 
+// RevokedEvent is the declared kratos.SessionsRevoked.
+func (a *Activities) RevokedEvent() event.Ref[SessionsRevoked] { return a.revoked }
+
 // ImportIn are identities to create, each Kratos's createIdentityBody
 // (traits, schema_id, credentials with hashed passwords, verified addresses).
 type ImportIn struct {
@@ -532,11 +598,7 @@ func (a *Activities) importIdentities(ctx context.Context, in ImportIn) (ImportO
 		return ImportOut{}, failure(err)
 	}
 
-	for _, r := range results {
-		if r.Action == "create" && r.Identity != "" {
-			a.publish(ctx, a.created, &kratoseventsv1.IdentityEvent{IdentityId: r.Identity, By: "wiring"})
-		}
-	}
+	a.Imported(ctx, results, ByWiring)
 
 	return ImportOut{Results: results}, nil
 }

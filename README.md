@@ -75,8 +75,12 @@ service sits next to it and turns it into parts of Wiring:
   `CreateIdentity`, `UpdateIdentity`, `PatchIdentity`, `DeleteIdentity`,
   `DeleteCredentials`, `ListSessions`, `RevokeSessions`, `ExtendSession`,
   `CheckSession`, `GetSession`, `CreateRecoveryCode`, `ListMessages`,
-  `ImportIdentities`; changes publish
-  `IdentityCreated/Updated/Deleted` and `SessionsRevoked`.
+  `ImportIdentities`. Changes, whether wiring makes them through these
+  activities or an operator in the console, publish
+  `IdentityCreated/Updated/Deleted` and `SessionsRevoked`. The event's `by`
+  says who made the change: `wiring` or `console`. `SessionsRevoked` names
+  the identity even when one session was revoked (`session_id` set),
+  keyed by the identity.
 - **Event contract**: the payloads are proto messages in
   `proto/kratos/events/v1` (Go: `github.com/backplane-labs/backplane-kratos/proto/kratos/events/v1`),
   in protojson with proto field names: `FlowEvent`, `IdentityEvent`,

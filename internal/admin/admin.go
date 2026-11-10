@@ -36,6 +36,16 @@ import (
 // cardSessions is how many sessions an identity card lists.
 const cardSessions = 100
 
+// Changes publishes the events of the changes an operator makes, as
+// wiring's do (activities.Activities).
+type Changes interface {
+	IdentityCreated(ctx context.Context, id ory.Identity, by string)
+	IdentityUpdated(ctx context.Context, id ory.Identity, by string)
+	IdentityDeleted(ctx context.Context, id, by string)
+	Imported(ctx context.Context, results []ory.ImportResult, by string)
+	SessionsRevoked(ctx context.Context, identityID, sessionID, by string)
+}
+
 // Admin serves AdminService.
 type Admin struct {
 	v1.UnimplementedAdminServiceServer
@@ -48,6 +58,7 @@ type Admin struct {
 	settings config.Live[overlay.Settings]
 	tokenKey config.Live[config.Secret]
 	events   bool
+	changes  Changes
 }
 
 // New creates the component under parent.
@@ -60,12 +71,14 @@ func New(
 	settings config.Live[overlay.Settings],
 	tokenKey config.Live[config.Secret],
 	events bool,
+	changes Changes,
 ) *Admin {
 	return &Admin{
 		Component: deps.NewComponent(
 			parent,
 			"admin",
 		), kratos: k, flows: f, applier: a, failOpen: failOpen, settings: settings, tokenKey: tokenKey, events: events,
+		changes: changes,
 	}
 }
 
@@ -391,6 +404,8 @@ func (a *Admin) CreateIdentity(ctx context.Context, r *v1.CreateIdentityRequest)
 		return nil, grpcErr(err)
 	}
 
+	a.changes.IdentityCreated(ctx, ident, activities.ByConsole)
+
 	return &v1.CreateIdentityResponse{Identity: identity(ident)}, nil
 }
 
@@ -412,6 +427,8 @@ func (a *Admin) UpdateIdentity(ctx context.Context, r *v1.UpdateIdentityRequest)
 		return nil, grpcErr(err)
 	}
 
+	a.changes.IdentityUpdated(ctx, ident, activities.ByConsole)
+
 	return &v1.UpdateIdentityResponse{Identity: identity(ident)}, nil
 }
 
@@ -420,7 +437,13 @@ func (a *Admin) DeleteIdentity(ctx context.Context, r *v1.DeleteIdentityRequest)
 	err := a.kratos.DeleteIdentity(ctx, r.GetId())
 	a.audit(ctx, "kratos.identity.deleted", "identity/"+r.GetId(), err)
 
-	return &v1.DeleteIdentityResponse{}, grpcErr(err)
+	if err != nil {
+		return nil, grpcErr(err)
+	}
+
+	a.changes.IdentityDeleted(ctx, r.GetId(), activities.ByConsole)
+
+	return &v1.DeleteIdentityResponse{}, nil
 }
 
 // DeleteCredentials implements AdminService.
@@ -490,20 +513,26 @@ func (a *Admin) ListSessions(ctx context.Context, r *v1.ListSessionsRequest) (*v
 
 // RevokeSessions implements AdminService.
 func (a *Admin) RevokeSessions(ctx context.Context, r *v1.RevokeSessionsRequest) (*v1.RevokeSessionsResponse, error) {
-	var err error
+	in := activities.RevokeIn{SessionID: r.GetSessionId(), IdentityID: r.GetIdentityId()}
+
+	identity, err := activities.RevokeSessions(ctx, a.kratos, in)
 
 	switch {
-	case r.GetSessionId() != "":
-		err = a.kratos.DisableSession(ctx, r.GetSessionId())
-		a.audit(ctx, "kratos.session.revoked", "session/"+r.GetSessionId(), err)
-	case r.GetIdentityId() != "":
-		err = a.kratos.DeleteIdentitySessions(ctx, r.GetIdentityId())
-		a.audit(ctx, "kratos.sessions.revoked", "identity/"+r.GetIdentityId(), err)
-	default:
+	case errors.Is(err, activities.ErrRevokeWhat):
 		return nil, status.Error(codes.InvalidArgument, "session_id or identity_id is required")
+	case in.SessionID != "":
+		a.audit(ctx, "kratos.session.revoked", "session/"+in.SessionID, err)
+	default:
+		a.audit(ctx, "kratos.sessions.revoked", "identity/"+in.IdentityID, err)
 	}
 
-	return &v1.RevokeSessionsResponse{}, grpcErr(err)
+	if err != nil {
+		return nil, grpcErr(err)
+	}
+
+	a.changes.SessionsRevoked(ctx, identity, in.SessionID, activities.ByConsole)
+
+	return &v1.RevokeSessionsResponse{}, nil
 }
 
 func message(m ory.Message) *v1.Message {
@@ -631,6 +660,8 @@ func (a *Admin) SetAddressVerified(
 		return nil, grpcErr(err)
 	}
 
+	a.changes.IdentityUpdated(ctx, ident, activities.ByConsole)
+
 	return &v1.SetAddressVerifiedResponse{Identity: identity(ident)}, nil
 }
 
@@ -650,6 +681,8 @@ func (a *Admin) ImportIdentities(
 	if err != nil {
 		return nil, grpcErr(err)
 	}
+
+	a.changes.Imported(ctx, results, activities.ByConsole)
 
 	out := &v1.ImportIdentitiesResponse{}
 	for _, res := range results {

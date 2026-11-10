@@ -241,7 +241,9 @@ func newState(root backplane.Root[Config]) (*State, error) {
 		},
 	)
 	st.Activities = activities.New(root, client)
-	st.Admin = admin.New(root, client, st.Flows, st.Applier, cfg.FailOpen, cfg.Settings, cfg.TokenKey, cfg.NATS.Enabled())
+	st.Admin = admin.New(
+		root, client, st.Flows, st.Applier, cfg.FailOpen, cfg.Settings, cfg.TokenKey, cfg.NATS.Enabled(), st.Activities,
+	)
 
 	return st, nil
 }
