@@ -436,6 +436,40 @@ func TestLoggedInAfterSessionStored(t *testing.T) {
 	}
 }
 
+// Recovered waits for the session the recovery signed in with, stored
+// after the hooks: one authenticated by a recovery method since the flow
+// began, not an older recovery's nor a password login's.
+func TestRecoveredAfterSessionStored(t *testing.T) {
+	t.Parallel()
+
+	issued := time.Date(2026, 11, 10, 9, 0, 0, 0, time.UTC)
+	before, after := issued.Add(-time.Hour), issued.Add(3*time.Second)
+	recovery := []ory.AuthenticationMethod{{Method: "code_recovery", AAL: "aal1"}}
+	kratos := &sessions{hidden: 2, stored: []ory.Session{
+		{ID: "older recovery", AuthenticatedAt: &before, AuthenticationMethods: recovery},
+		{ID: "password", AuthenticatedAt: &after, AuthenticationMethods: []ory.AuthenticationMethod{{Method: "password"}}},
+		{ID: "recovered", AuthenticatedAt: &after, AuthenticationMethods: recovery, AuthenticatorAssuranceLevel: "aal1"},
+	}}
+
+	h, f, srv := harnessWith(t, kratos)
+
+	if code, _ := post(t, srv, "/events/recovery/any", "after_recovery.json"); code != http.StatusOK {
+		t.Fatalf("status %d", code)
+	}
+
+	var events []flows.FlowEvent
+
+	for deadline := time.Now().Add(5 * time.Second); len(events) == 0 && time.Now().Before(deadline); {
+		time.Sleep(10 * time.Millisecond)
+
+		events = backplanetest.Events(h, f.Event("recovery"))
+	}
+
+	if len(events) != 1 || events[0].GetSession().GetId() != "recovered" || events[0].GetSession().GetAal() != "aal1" {
+		t.Fatalf("events: %+v", events)
+	}
+}
+
 // Without the key nothing is served.
 func TestKeyRequired(t *testing.T) {
 	t.Parallel()

@@ -38,7 +38,12 @@ service sits next to it and turns it into parts of Wiring:
   a login whose session is never stored publishes nothing. A registration
   that signs the identity in (setting *Sign the new identity in*) publishes
   `Registered` the same way, with the session the registration issued; one
-  that does not sign in publishes it at once, without a session. Every flow event
+  that does not sign in publishes it at once, without a session. A redeemed
+  recovery signs the identity in too, and Kratos stores that session only after
+  its hooks and sends none to them (`kratos.AfterRecovery` gets the identity
+  alone). So `Recovered` waits for the session authenticated by a recovery
+  method (`code_recovery`, `link_recovery`) since the recovery flow began, and
+  carries it. A recovery whose session is never stored publishes nothing. Every flow event
   carries the flow's `transient_payload`, the same one its `Deliver` saw:
   Kratos gives a courier message no flow id, so a client marker in the
   payload is how a message and its completed flow are matched.

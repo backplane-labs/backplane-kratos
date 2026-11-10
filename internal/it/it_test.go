@@ -900,9 +900,10 @@ func (e env) newUser(t *testing.T, email string) string {
 	return ident.ID
 }
 
-// finishRecovery submits a recovery code to its flow, sets a new password
-// with the session the recovery grants and proves it signs in.
-func finishRecovery(t *testing.T, flowID, code, email string) {
+// finishRecovery submits a recovery code to its flow, checks Recovered
+// carries the session the recovery grants, sets a new password with it and
+// proves it signs in.
+func finishRecovery(t *testing.T, e env, flowID, code, email string) {
 	t.Helper()
 
 	status, body := call(t, http.MethodPost, "/self-service/recovery?flow="+flowID, map[string]any{"method": "code", "code": code})
@@ -928,6 +929,18 @@ func finishRecovery(t *testing.T, flowID, code, email string) {
 	if token == "" || settings == "" {
 		t.Fatalf("recovery granted no session and settings flow: %v", body)
 	}
+
+	_, who := callAs(t, token, http.MethodGet, "/sessions/whoami", nil)
+
+	waitFor(t, "Recovered with the recovery's session", func() bool {
+		for _, ev := range backplanetest.Events(e.h, e.flows.Event(overlay.FlowRecovery)) {
+			if ev.GetFlowId() == flowID {
+				return ev.GetSession().GetId() == who["id"]
+			}
+		}
+
+		return false
+	})
 
 	const newPassword = "Another-Long-Pass-456!y"
 
@@ -982,7 +995,7 @@ func TestRecoveryByEmail(t *testing.T) {
 		t.Fatalf("message: %+v", msg)
 	}
 
-	finishRecovery(t, flowID, msg.Code, email)
+	finishRecovery(t, e, flowID, msg.Code, email)
 }
 
 // An operator's recovery code (the console's, the activity's) lets the
@@ -1005,7 +1018,7 @@ func TestRecoveryByOperator(t *testing.T) {
 		t.Fatalf("link: %q %v", recovery.Link, err)
 	}
 
-	finishRecovery(t, link.Query().Get("flow"), recovery.Code, email)
+	finishRecovery(t, e, link.Query().Get("flow"), recovery.Code, email)
 }
 
 // phoneSchema identifies people by a phone: codes to sign in, verify and

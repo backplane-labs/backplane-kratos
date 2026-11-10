@@ -246,6 +246,8 @@ type kratosCtx struct {
 		ID               string          `json:"id"`
 		Type             string          `json:"type"`
 		TransientPayload json.RawMessage `json:"transient_payload"`
+		// IssuedAt is when Kratos created the flow, by its own clock.
+		IssuedAt *time.Time `json:"issued_at"`
 	} `json:"flow"`
 	Identity json.RawMessage `json:"identity"`
 	// Session of a login; Kratos stores it, giving it its id, only after
@@ -608,6 +610,15 @@ func (f *Flows) event(w http.ResponseWriter, r *http.Request) {
 		// only session is the registration's.
 		go f.publishSession(context.WithoutCancel(r.Context()), ref, flowEvent, flow, point, start, nil,
 			func(ory.Session) bool { return true })
+	case flow == overlay.FlowRecovery:
+		// A redeemed recovery signs the identity in, and Kratos stores that
+		// session only after the hooks, sending none to them: Recovered
+		// waits for it, a session authenticated by a recovery method since
+		// the flow began.
+		issued := c.Flow.IssuedAt
+
+		go f.publishSession(context.WithoutCancel(r.Context()), ref, flowEvent, flow, point, start, nil,
+			func(s ory.Session) bool { return recoveredSince(s, issued) })
 	default:
 		f.publish(r.Context(), ref, flowEvent, flow, point, start)
 	}
@@ -659,6 +670,24 @@ func (f *Flows) publishSession(ctx context.Context, ref event.Ref[FlowEvent], fl
 	flowEvent.Session = sessionEvent(details)
 
 	f.publish(ctx, ref, flowEvent, flow, point, start)
+}
+
+// recoveredSince: s was authenticated by a recovery method (Kratos's
+// CredentialsTypeRecoveryCode or CredentialsTypeRecoveryLink) at or after
+// issued (when the recovery flow began; nil: any time).
+func recoveredSince(s ory.Session, issued *time.Time) bool {
+	if s.AuthenticatedAt == nil || (issued != nil && s.AuthenticatedAt.Before(*issued)) {
+		return false
+	}
+
+	for _, m := range s.AuthenticationMethods {
+		switch m.Method {
+		case "code_recovery", "link_recovery":
+			return true
+		}
+	}
+
+	return false
 }
 
 // stored waits for an active session of the identity that matches.

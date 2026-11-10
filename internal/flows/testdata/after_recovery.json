@@ -1,0 +1,10 @@
+{
+  "flow": {"id": "8d9e0f1a-2b3c-4d5e-8f6a-7b8c9d0e1f2a", "type": "api", "issued_at": "2026-11-10T09:00:00Z"},
+  "identity": {
+    "id": "0c1d2e3f-4a5b-4c6d-8e7f-901a2b3c4d5e",
+    "schema_id": "default",
+    "traits": {"email": "forgot@example.com"}
+  },
+  "request_url": "http://127.0.0.1:4433/self-service/recovery?flow=8d9e0f1a-2b3c-4d5e-8f6a-7b8c9d0e1f2a",
+  "request_method": "POST"
+}
