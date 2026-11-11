@@ -67,6 +67,15 @@ type Config struct {
 	TokenKey config.Live[config.Secret] `json:"token_key,omitempty" schemapb:"description=Private JWK the session tokens are signed with (empty: no tokens)"`
 	// FailOpen names flow hooks whose failure lets the flow continue.
 	FailOpen config.Live[[]string] `json:"fail_open,omitempty" schemapb:"description=Flow hooks (e.g. AfterLogin) whose failure lets the flow continue"`
+	// TokenExchange bounds the native apps' session token exchange.
+	TokenExchange TokenExchange `json:"token_exchange"`
+}
+
+// TokenExchange of the native sign-in: Kratos answers an exchange code
+// pair for ever; the service answers it only this long after the session
+// was authenticated, and only while the session is active.
+type TokenExchange struct {
+	MaxAge time.Duration `json:"max_age" schemapb:"default=5m;gt=0;description=How long after sign-in an exchange code pair is answered"`
 }
 
 // Connection to Kratos.
@@ -148,6 +157,7 @@ type State struct {
 	callbacks string                        // listen address of the callbacks
 	settings  config.Live[overlay.Settings] // the tokens' public keys among them
 	logout    http.Handler                  // Kratos's logout endpoints, proxied
+	exchange  http.Handler                  // Kratos's session token exchange, proxied
 }
 
 // Main runs backplane-kratos until a signal stops it, exiting on error.
@@ -170,6 +180,7 @@ func Run(ctx context.Context) error {
 	svc.HTTP("/", st.Flows.Handler(), api.Listen("callbacks", st.callbacks))
 	svc.HTTP("/.well-known/", jwks.Handler(st.settings))
 	svc.HTTP(flows.LogoutPath, st.logout)
+	svc.HTTP(flows.TokenExchangePath, st.exchange)
 	svc.Internal(func(r grpc.ServiceRegistrar) { kratosconsolev1.RegisterAdminServiceServer(r, st.Admin) })
 
 	if bundle := ui.Bundle(); bundle != nil {
@@ -219,6 +230,7 @@ func newState(root backplane.Root[Config]) (*State, error) {
 	}
 
 	st.logout = st.Flows.Logout(public, headers)
+	st.exchange = flows.TokenExchange(public, headers, cfg.TokenExchange.MaxAge)
 
 	mode, err := strconv.ParseUint(cfg.OverlayMode, 8, 32)
 	if err != nil || mode > 0o777 {

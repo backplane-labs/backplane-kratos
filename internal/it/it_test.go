@@ -129,9 +129,7 @@ func startKeyed(t *testing.T, tokenKey string, edit func(*overlay.Settings), bin
 	e.console = kratosadmin.New(h.Root(), client, e.flows, nil, config.LiveOf([]string(nil)), e.settings, e.tokenKey,
 		true, e.activities)
 	apply.New(h.Root(), path, 0o644, e.settings, apply.Secrets{
-		OIDC: config.LiveOf(
-			map[string]config.Secret{},
-		), OAuth2ProviderHeaders: config.LiveOf(map[string]config.Secret{}),
+		OIDC: config.LiveOf(oidcSecrets(settings)), OAuth2ProviderHeaders: config.LiveOf(map[string]config.Secret{}),
 		TokenKey: e.tokenKey,
 	}, e.flows, overlay.Wiring{
 		URL: "http://" + lis.Addr().String(), Key: key, Events: true,
@@ -162,6 +160,17 @@ func startKeyed(t *testing.T, tokenKey string, edit func(*overlay.Settings), bin
 	time.Sleep(reload)
 
 	return e
+}
+
+// oidcSecrets is a client secret for every OIDC provider of s; the test
+// provider checks none.
+func oidcSecrets(s overlay.Settings) map[string]config.Secret {
+	out := map[string]config.Secret{}
+	for i := range s.Methods.OIDC.Providers {
+		out[s.Methods.OIDC.Providers[i].ID] = "it-secret"
+	}
+
+	return out
 }
 
 // reload is how long Kratos takes to see a changed file.
@@ -642,6 +651,10 @@ func TestLoggedOutEvent(t *testing.T) {
 // when the settings set none.
 func TestLoginIdentifiers(t *testing.T) {
 	t.Parallel()
+
+	if os.Getenv("KRATOS_IT_OVERLAY") == "" {
+		t.Skip("KRATOS_IT_OVERLAY not set: make it-up it")
+	}
 
 	client, err := ory.New(ory.Options{Admin: adminURL, Public: publicURL, Timeout: 5 * time.Second})
 	if err != nil {

@@ -1,0 +1,12 @@
+{
+  "interactiveLogin": false,
+  "tokenCallbacks": [
+    {
+      "issuerId": "returning",
+      "tokenExpiry": 3600,
+      "requestMappings": [
+        {"requestParam": "grant_type", "match": "*", "claims": {"sub": "returning-user", "aud": ["kratos"]}}
+      ]
+    }
+  ]
+}

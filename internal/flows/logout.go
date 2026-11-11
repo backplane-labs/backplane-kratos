@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"net/http/httputil"
 	"net/url"
 	"time"
 
@@ -38,21 +37,7 @@ const (
 // LoggedOut is published with it. Kratos itself has no logout hooks.
 // headers go with every request to Kratos (a proxy's authorization).
 func (f *Flows) Logout(public *url.URL, headers map[string]string) http.Handler {
-	proxy := &httputil.ReverseProxy{Rewrite: func(r *httputil.ProxyRequest) {
-		r.SetURL(public)
-		r.Out.Host = r.In.Host
-
-		// Kratos sees the client as the edge saw it.
-		for _, h := range []string{"Forwarded", "X-Forwarded-For", "X-Forwarded-Host", "X-Forwarded-Proto"} {
-			if v, ok := r.In.Header[h]; ok {
-				r.Out.Header[h] = v
-			}
-		}
-
-		for k, v := range headers {
-			r.Out.Header.Set(k, v)
-		}
-	}}
+	proxy := kratosProxy(public, headers)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()

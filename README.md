@@ -64,6 +64,20 @@ service sits next to it and turns it into parts of Wiring:
   logout Kratos refuses, a browser logout without the session cookie, and a
   logout that bypasses the route publish nothing. Delivery is best effort,
   like every flow event.
+- **Native apps' session token exchange.** A native app signs in through the
+  system browser with an API flow asking for
+  `return_session_token_exchange_code=true` and a `return_to` it handles. It
+  then trades the flow's `init_code` and the callback's `code` at
+  `/sessions/token-exchange` for the session token. Kratos answers such a pair
+  again and again, at any age, even for an ended session. So this service also
+  serves `/sessions/token-exchange` on its HTTP port, in front of Kratos as for
+  logout: it answers only for an active session authenticated within
+  `token_exchange.max_age` (default `5m`), else `404` as for an unknown pair.
+  Answers before the session exists (a polling app) pass as they are. Route that
+  path of Kratos's public host here.
+  `return_to` must be listed in `allowed_return_urls` and carry a host:
+  Kratos puts the default return URL's host into a private-use URI without one
+  (`ru.app:/callback`), which then matches nothing. Use `ru.app://callback`.
 - **Section `kratos.login`** (backplane live section): how identities sign
   up and sign in — registration on or off, first and second factors, OIDC
   providers (id, kind, label), required AALs, recovery and verification —
@@ -148,6 +162,7 @@ cannot read leaves it on the previous configuration.
 | `settings` | Live: the Kratos settings above, edited on the module's Settings page |
 | `oidc_secrets`, `oauth2_provider_headers` | Live secrets kept apart from the settings: the console writes them only when an operator enters new ones |
 | `fail_open` | Live: flow hooks whose failure lets the flow continue (default: none — a failing hook stops the flow) |
+| `token_exchange.max_age` | How long after sign-in a native app's exchange code pair is answered (default `5m`) |
 
 ## Who made a request: session tokens and `pkg/auth`
 

@@ -59,3 +59,11 @@ deployment:
 #   - path: /self-service/logout
 #     pathType: Prefix
 #     backend: {service: {name: <service on the pods' 8080>, port: {number: 8080}}}
+#
+# The native apps' session token exchange goes through it the same way: it
+# answers an exchange code pair only shortly after sign-in, for an active
+# session (token_exchange.max_age).
+#
+#   - path: /sessions/token-exchange
+#     pathType: Exact
+#     backend: {service: {name: <service on the pods' 8080>, port: {number: 8080}}}
