@@ -198,6 +198,18 @@ claims come from Jsonnet (Settings → Session tokens → Claims): by default
 `aal`, `amr`, `authenticated_at`, `email`, `schema_id` and `metadata`, next to
 Kratos's `iss`, `sub`, `sid`, `iat`, `nbf`, `exp`, `jti`.
 
+A refused token is never an Auth. One that is authentic (signature, issuer
+and audience verified) but out of its time, `exp` passed or `nbf` not come
+beyond the leeway (30s), fails with `auth.ErrExpired` wrapped in
+`*auth.ExpiredError`, whose `Auth` names the session it was:
+
+```go
+var late *auth.ExpiredError
+if errors.As(err, &late) {
+	reason := terminated[late.Auth.SessionID] // e.g. why a long-offline device's session ended
+}
+```
+
 Rotating the key: generate a new one on the same page and save; the earlier
 public key stays listed so the tokens it signed keep verifying, and is removed
 after a token lifetime. The only cache in `pkg/auth` is of these public keys:

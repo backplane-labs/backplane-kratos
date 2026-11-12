@@ -175,32 +175,46 @@ func TestTokenRefusals(t *testing.T) {
 	now := time.Now()
 	v := verifier(t, issuer, &now)
 
-	cases := map[string]struct {
-		token string
-		want  error
-	}{
-		"expired":     {issuer.sign("k1", session(now, map[string]any{"exp": now.Add(-time.Minute).Unix()})), auth.ErrExpired},
-		"not yet":     {issuer.sign("k1", session(now, map[string]any{"nbf": now.Add(time.Minute).Unix()})), auth.ErrExpired},
-		"keyIssuer":   {issuer.sign("k1", session(now, map[string]any{"iss": "https://evil.example"})), auth.ErrInvalid},
-		"no subject":  {issuer.sign("k1", session(now, map[string]any{"sub": ""})), auth.ErrInvalid},
-		"garbage":     {"a.b.c", auth.ErrInvalid},
-		"foreign key": {issuer.sign("k1", nil), auth.ErrInvalid},
-	}
-
 	// A token signed by another key under a published kid.
 	forged := newIssuer(t)
 	forged.add("k1")
-	cases["foreign key"] = struct {
+
+	expired := map[string]any{"exp": now.Add(-time.Hour).Unix(), "iat": now.Add(-2 * time.Hour).Unix(), "nbf": now.Add(-2 * time.Hour).Unix()}
+	cases := map[string]struct {
 		token string
 		want  error
-	}{forged.sign("k1", session(now, nil)), auth.ErrInvalid}
+		// session: the sid an expired authentic token names; "": no claims.
+		session string
+	}{
+		"expired":         {token: issuer.sign("k1", session(now, expired)), want: auth.ErrExpired, session: "s-1"},
+		"not yet":         {token: issuer.sign("k1", session(now, map[string]any{"nbf": now.Add(time.Minute).Unix()})), want: auth.ErrExpired, session: "s-1"},
+		"within leeway":   {token: issuer.sign("k1", session(now, map[string]any{"exp": now.Add(-10 * time.Second).Unix()}))},
+		"keyIssuer":       {token: issuer.sign("k1", session(now, map[string]any{"iss": "https://evil.example"})), want: auth.ErrInvalid},
+		"expired, issuer": {token: issuer.sign("k1", session(now, map[string]any{"iss": "https://evil.example", "exp": now.Add(-time.Hour).Unix()})), want: auth.ErrInvalid},
+		"no subject":      {token: issuer.sign("k1", session(now, map[string]any{"sub": ""})), want: auth.ErrInvalid},
+		"garbage":         {token: "a.b.c", want: auth.ErrInvalid},
+		"foreign key":     {token: forged.sign("k1", session(now, nil)), want: auth.ErrInvalid},
+		"expired, forged": {token: forged.sign("k1", session(now, expired)), want: auth.ErrInvalid},
+	}
 
 	for name, c := range cases {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			if _, err := v.Verify(context.Background(), c.token); !errors.Is(err, c.want) {
+			a, err := v.Verify(context.Background(), c.token)
+			if !errors.Is(err, c.want) || (c.want == nil) != (err == nil) {
 				t.Fatalf("err = %v, want %v", err, c.want)
+			}
+
+			if c.want != nil && !a.IsZero() {
+				t.Fatalf("a refused token authenticated %+v", a)
+			}
+
+			// Only an authentic token out of its time says whose session it was.
+			var late *auth.ExpiredError
+			if got := errors.As(err, &late); got != (c.session != "") ||
+				got && (late.Auth.SessionID != c.session || late.Auth.IdentityID != "id-1") {
+				t.Fatalf("expired details: %v %+v", got, late)
 			}
 		})
 	}

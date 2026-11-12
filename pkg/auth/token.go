@@ -146,18 +146,39 @@ func (t *Tokens) Verify(ctx context.Context, token string) (Auth, error) {
 		expected.AnyAudience = jwt.Audience{t.audience}
 	}
 
+	if c.Subject == "" || c.Expiry == nil {
+		return Auth{}, fmt.Errorf("%w: sub and exp are required", ErrInvalid)
+	}
+
+	// Issuer and audience are checked before the time, so a time error means
+	// they held: the token is authentic, only out of its validity.
 	if err := c.ValidateWithLeeway(expected, t.leeway); err != nil {
 		if errors.Is(err, jwt.ErrExpired) || errors.Is(err, jwt.ErrNotValidYet) {
-			return Auth{}, fmt.Errorf("%w: %w", ErrExpired, err)
+			return Auth{}, &ExpiredError{Auth: authOf(c, all), err: fmt.Errorf("%w: %w", ErrExpired, err)}
 		}
 
 		return Auth{}, fmt.Errorf("%w: %w", ErrInvalid, err)
 	}
 
-	if c.Subject == "" || c.Expiry == nil {
-		return Auth{}, fmt.Errorf("%w: sub and exp are required", ErrInvalid)
-	}
+	return authOf(c, all), nil
+}
 
+// ExpiredError is the refusal of a token whose signature, issuer and
+// audience verified but whose exp has passed (or nbf has not come). It wraps
+// ErrExpired; Auth names whose session it was, so a caller can tell why the
+// session ended (signed out, revoked). The token is still refused: never
+// authenticate with Auth.
+type ExpiredError struct {
+	Auth Auth
+	err  error
+}
+
+func (e *ExpiredError) Error() string { return e.err.Error() }
+
+func (e *ExpiredError) Unwrap() error { return e.err }
+
+// authOf is the Auth of verified claims.
+func authOf(c claims, all map[string]any) Auth {
 	a := Auth{
 		IdentityID: c.Subject, SessionID: c.SessionID, AAL: c.AAL, Methods: c.Methods,
 		ExpiresAt: c.Expiry.Time(), Email: c.Email, SchemaID: c.SchemaID, Metadata: c.Metadata,
@@ -167,5 +188,5 @@ func (t *Tokens) Verify(ctx context.Context, token string) (Auth, error) {
 		a.AuthenticatedAt = *c.AuthenticatedAt
 	}
 
-	return a, nil
+	return a
 }
