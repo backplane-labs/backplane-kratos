@@ -265,8 +265,8 @@ func TestNativeOIDC(t *testing.T) {
 
 	// Kratos itself answers the same pair again, with the same token, and
 	// even after the session ended: it consumes no code and checks no age
-	// (why the service fronts the exchange, TestTokenExchangeProxy). Should
-	// Kratos fix it, this fails and the proxy can go.
+	// (why the service fronts the exchange, TestTokenExchangeProxy; reported
+	// as ory/kratos#4639). Should Kratos fix it, this fails and the proxy can go.
 	if again, body := exchange(t, registered); again != http.StatusOK || body["session_token"] != token {
 		t.Fatalf("second exchange: %d %v", again, body)
 	}
