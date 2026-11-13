@@ -102,7 +102,7 @@ func post(t *testing.T, srv *httptest.Server, path, fixture string) (int, map[st
 		t.Fatal(err)
 	}
 
-	req.Header.Set(overlay.KeyHeader, key)
+	req.SetBasicAuth(overlay.KeyUser, key)
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -470,28 +470,44 @@ func TestRecoveredAfterSessionStored(t *testing.T) {
 	}
 }
 
-// Without the key nothing is served.
+// Without Basic kratos:<key> nothing is served.
 func TestKeyRequired(t *testing.T) {
 	t.Parallel()
 
 	_, _, srv := harness(t)
 
-	req, _ := http.NewRequestWithContext(
-		t.Context(),
-		http.MethodPost,
-		srv.URL+"/courier/email",
-		strings.NewReader("{}"),
-	)
-
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		t.Fatal(err)
+	tests := []struct {
+		name           string
+		user, password string
+		basic          bool
+	}{
+		{name: "no credentials"},
+		{name: "wrong key", user: overlay.KeyUser, password: "not-the-key", basic: true},
+		{name: "wrong user", user: "admin", password: key, basic: true},
+		{name: "empty key", user: overlay.KeyUser, basic: true},
 	}
 
-	_ = res.Body.Close()
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	if res.StatusCode != http.StatusUnauthorized {
-		t.Fatalf("status %d", res.StatusCode)
+			req, _ := http.NewRequestWithContext(t.Context(), http.MethodPost, srv.URL+"/courier/email",
+				strings.NewReader("{}"))
+			if tc.basic {
+				req.SetBasicAuth(tc.user, tc.password)
+			}
+
+			res, err := http.DefaultClient.Do(req)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			_ = res.Body.Close()
+
+			if res.StatusCode != http.StatusUnauthorized {
+				t.Fatalf("status %d", res.StatusCode)
+			}
+		})
 	}
 }
 

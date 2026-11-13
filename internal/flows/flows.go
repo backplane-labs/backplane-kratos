@@ -230,7 +230,9 @@ func (f *Flows) Handler() http.Handler {
 
 func (f *Flows) authorized(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if subtle.ConstantTimeCompare([]byte(r.Header.Get(overlay.KeyHeader)), []byte(f.key)) != 1 {
+		user, password, _ := r.BasicAuth()
+		if subtle.ConstantTimeCompare([]byte(user), []byte(overlay.KeyUser))&
+			subtle.ConstantTimeCompare([]byte(password), []byte(f.key)) != 1 {
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 
 			return

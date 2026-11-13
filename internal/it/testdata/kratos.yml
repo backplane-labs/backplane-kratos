@@ -14,4 +14,5 @@ secrets:
   cookie: [integration-tests-cookie-secret]
   cipher: [32-integration-tests-cipher-key!]
 courier: {smtp: {connection_uri: "smtp://127.0.0.1:1025/?disable_starttls=true"}}
-log: {level: info, format: json}
+# trace: the most a deployment can log; TestCallbackSecretsNotLogged reads it.
+log: {level: trace, format: json}

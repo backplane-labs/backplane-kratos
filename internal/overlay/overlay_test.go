@@ -123,6 +123,14 @@ func TestRenderValid(t *testing.T) {
 		t.Fatal("courier or identity not rendered")
 	}
 
+	// Callbacks authenticate with Basic (the Authorization header, which
+	// Kratos redacts in its logs), never with a header of their own.
+	basic := "map[config:map[password:k user:kratos] type:basic_auth]"
+	if fmt.Sprint(stored["auth"]) != basic ||
+		fmt.Sprint(at(t, doc, "courier.http.request_config").(map[string]any)["auth"]) != basic {
+		t.Fatalf("callback auth: %v", stored["auth"])
+	}
+
 	if _, err := overlay.Encode(doc); err != nil {
 		t.Fatal(err)
 	}

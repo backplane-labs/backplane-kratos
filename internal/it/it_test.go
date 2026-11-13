@@ -14,6 +14,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"os/exec"
 	"strings"
 	"sync"
 	"testing"
@@ -36,7 +37,7 @@ import (
 const (
 	adminURL  = "http://127.0.0.1:34434"
 	publicURL = "http://127.0.0.1:34433"
-	key       = "it-key"
+	key       = "it-callback-key-5f2c9a"
 	password  = "Very-Long-Pass-123!x"
 )
 
@@ -1179,5 +1180,49 @@ func TestSMSRecovery(t *testing.T) {
 	who, err := e.kratos.WhoAmI(t.Context(), token, "")
 	if err != nil || who.Identity == nil || who.Identity.ID != ident.ID {
 		t.Fatalf("recovered session: %+v %v (%v)", who, err, body)
+	}
+}
+
+// The callback key never reaches Kratos's logs, even at trace: callbacks
+// authenticate with Basic, which Kratos redacts as the Authorization header
+// of every "Dispatching webhook" line. KRATOS_IT_CONTAINER names the
+// Kratos container of make it-up.
+func TestCallbackSecretsNotLogged(t *testing.T) {
+	t.Parallel()
+
+	container := os.Getenv("KRATOS_IT_CONTAINER")
+	if container == "" {
+		t.Skip("KRATOS_IT_CONTAINER not set: make it-up it")
+	}
+
+	codes := make(chan flows.DeliverIn, 64)
+
+	start(t, func(h *backplanetest.Harness, f *flows.Flows) {
+		backplanetest.Answer(h, f.DeliverRef(), func(_ context.Context, in flows.DeliverIn) (flows.DeliverOut, error) {
+			codes <- in
+
+			return flows.DeliverOut{}, nil
+		})
+	})
+
+	email := unique("logs")
+
+	if status, reg := register(t, email); status != http.StatusOK {
+		t.Fatalf("registration: %d %v", status, reg)
+	}
+
+	awaitMessage(t, codes, email, "verification_code_valid")
+
+	logs, err := exec.CommandContext(t.Context(), "docker", "logs", container).CombinedOutput()
+	if err != nil {
+		t.Fatalf("docker logs: %v", err)
+	}
+
+	if bytes.Contains(logs, []byte(key)) {
+		t.Fatal("the callback key is in Kratos's logs")
+	}
+
+	if !bytes.Contains(logs, []byte(`"authorization":"Value is sensitive and has been redacted`)) {
+		t.Fatal("no redacted Authorization header in Kratos's logs: the webhook lines changed shape")
 	}
 }

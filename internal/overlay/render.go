@@ -110,7 +110,7 @@ const DeliverHook = "Deliver"
 type Wiring struct {
 	// URL is the callbacks listener as Kratos reaches it.
 	URL string
-	// Key authenticates Kratos's calls (header KeyHeader).
+	// Key authenticates Kratos's calls: the Basic password of KeyUser.
 	Key string
 	// Bound reports whether a hook (short name) is bound.
 	Bound func(hook string) bool
@@ -118,8 +118,11 @@ type Wiring struct {
 	Events bool
 }
 
-// KeyHeader carries Wiring.Key on every callback.
-const KeyHeader = "X-Backplane-Kratos-Key"
+// KeyUser is the Basic user of every callback; Wiring.Key is its password.
+// Basic authentication rides the Authorization header, which Kratos
+// always redacts in its request logs (a custom header would be logged in
+// clear unless the deployment listed it in log.additional_redacted_headers).
+const KeyUser = "kratos"
 
 // body is the Jsonnet every callback sends: Kratos's whole context but its
 // cookies, which must never reach wiring.
@@ -280,11 +283,13 @@ func (r renderer) webHook(path string, a answer) map[string]any {
 		"method":   "POST",
 		"body":     "base64://" + base64.StdEncoding.EncodeToString([]byte(body)),
 		"response": response,
-		"auth": map[string]any{
-			keyType:   "api_key",
-			keyConfig: map[string]any{"name": KeyHeader, "value": r.w.Key, "in": "header"},
-		},
+		"auth":     r.auth(),
 	}}
+}
+
+// auth is how every callback authenticates: Basic KeyUser:Wiring.Key.
+func (r renderer) auth() map[string]any {
+	return map[string]any{keyType: "basic_auth", keyConfig: map[string]any{"user": KeyUser, "password": r.w.Key}}
 }
 
 func (r renderer) bound(hook string) bool { return r.w.Bound != nil && r.w.Bound(hook) }
@@ -445,10 +450,7 @@ func (r renderer) courier() {
 			"method":  "POST",
 			"body":    "base64://" + base64.StdEncoding.EncodeToString([]byte(body)),
 			"headers": map[string]any{"Content-Type": "application/json"},
-			"auth": map[string]any{
-				keyType:   "api_key",
-				keyConfig: map[string]any{"name": KeyHeader, "value": r.w.Key, "in": "header"},
-			},
+			"auth":    r.auth(),
 		}
 	}
 

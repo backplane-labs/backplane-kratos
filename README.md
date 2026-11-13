@@ -157,12 +157,24 @@ cannot read leaves it on the previous configuration.
 | `kratos.timeout` | Bound of one request to Kratos (default `10s`) |
 | `kratos.schema_poll` | How often `kratos.login` reads the identity schemas from Kratos while the settings set none (default `1m`) |
 | `callbacks.listen`, `callbacks.url` | Where Kratos calls this service (default `:8090`, `http://127.0.0.1:8090`) |
-| `callbacks.key` | Authenticates Kratos; default: derived from the internal secret |
+| `callbacks.key` | Authenticates Kratos: every callback (hooks, events, courier) carries Basic `kratos:<key>`, the Authorization header Kratos redacts in its logs; default: derived from the internal secret |
 | `overlay`, `overlay_mode` | The overlay file and its permissions |
 | `settings` | Live: the Kratos settings above, edited on the module's Settings page |
 | `oidc_secrets`, `oauth2_provider_headers` | Live secrets kept apart from the settings: the console writes them only when an operator enters new ones |
 | `fail_open` | Live: flow hooks whose failure lets the flow continue (default: none — a failing hook stops the flow) |
 | `token_exchange.max_age` | How long after sign-in a native app's exchange code pair is answered (default `5m`) |
+
+### Secrets in Kratos's logs
+
+Kratos logs every webhook it dispatches with its request headers. The callback
+key rides the Authorization header, which Kratos always redacts (unless the
+deployment sets `log.leak_sensitive_values`), so it never appears even at
+`trace`; webhook bodies and the overlay's secrets (OIDC client secrets,
+`oauth2_provider_headers`, the token key) are not logged either
+(`TestCallbackSecretsNotLogged` checks the key on a real Kratos at `trace`).
+At `debug` and below, Kratos's own courier line "Courier sent out message."
+logs the message subject, and Kratos's default verification and recovery
+templates put the one-time code in it: run Kratos at `info` in production.
 
 ## Who made a request: session tokens and `pkg/auth`
 

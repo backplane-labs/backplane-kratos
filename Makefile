@@ -183,4 +183,4 @@ it-down: ## Stop the Kratos and the OIDC provider of the integration tests
 
 .PHONY: it
 it: ## Integration tests against the Kratos of it-up
-	KRATOS_IT_OVERLAY="$(IT_DIR)/overlay.yml" go test -count=1 -v ./internal/it/
+	KRATOS_IT_OVERLAY="$(IT_DIR)/overlay.yml" KRATOS_IT_CONTAINER=backplane-kratos-it go test -count=1 -v ./internal/it/
