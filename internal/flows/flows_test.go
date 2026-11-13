@@ -231,8 +231,9 @@ func TestFlowVerdicts(t *testing.T) {
 
 				msgs, _ := body["messages"].([]any)
 				first, _ := msgs[0].(map[string]any)
+				second, _ := msgs[1].(map[string]any)
 
-				if len(msgs) != 2 || first["instance_ptr"] != "#/traits/email" {
+				if len(msgs) != 2 || first["instance_ptr"] != "#/traits/email" || second["instance_ptr"] != "#/" {
 					t.Fatalf("messages %v", body)
 				}
 			},

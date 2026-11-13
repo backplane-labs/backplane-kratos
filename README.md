@@ -15,7 +15,14 @@ service sits next to it and turns it into parts of Wiring:
   hook runs before Kratos creates the flow, so there is no form yet: a deny
   there makes the flow's creation fail with an error (Kratos answers it as a
   server error), not form messages. To refuse a step with messages the user
-  sees, deny at `After<Flow>`.
+  sees, deny at `After<Flow>`. A deny message with a `field`
+  (`traits.email`) lands on that field's node. One without a field lands in
+  the flow's `ui.messages`, the form's own messages. Kratos answers a denied
+  login, registration or settings submit with 400 and the flow. A denied
+  recovery works differently in Kratos v26: it restarts the recovery. The
+  answer is an error whose `details.continue_with` has `show_recovery_ui`
+  with a new flow, and the messages are in that flow's `ui.messages`; a
+  browser form is sent to it with a 303.
   `kratos.AfterRegistration` runs before Kratos stores the identity, so its
   `req.identity` has no id yet. `req.session` is the acting session as
   Kratos sends it — id, active, `authenticator_assurance_level`,

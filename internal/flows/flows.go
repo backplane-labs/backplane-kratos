@@ -461,10 +461,9 @@ func (d *Deny) kratos() kratosMessages {
 	var order []string
 
 	for _, m := range d.Messages {
+		// "#/" is the form itself: Kratos turns it into no field and shows the
+		// message in ui.messages; "#" would become a field named "#".
 		ptr := "#/" + strings.ReplaceAll(m.Field, ".", "/")
-		if m.Field == "" {
-			ptr = "#"
-		}
 
 		if _, seen := byField[ptr]; !seen {
 			order = append(order, ptr)
