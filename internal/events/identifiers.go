@@ -6,6 +6,7 @@ import (
 	"slices"
 	"sort"
 
+	"github.com/backplane-labs/backplane-kratos/internal/overlay"
 	kratoseventsv1 "github.com/backplane-labs/backplane-kratos/proto/kratos/events/v1"
 )
 
@@ -68,7 +69,7 @@ func Identifiers(schemas []json.RawMessage, first []string) []*kratoseventsv1.Lo
 
 	// The credentials whose schema extension marks a trait as the
 	// identifier, in the order the section lists them.
-	identifierMethods := []string{"password", "code", "webauthn"}
+	identifierMethods := []string{overlay.MethodPassword, overlay.MethodCode, overlay.MethodWebAuthn}
 	found := map[key]map[string]bool{}
 
 	var walk func(path string, n schemaNode)

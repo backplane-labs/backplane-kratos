@@ -10,6 +10,9 @@ import (
 	"time"
 )
 
+// identitiesPath is Kratos's admin collection of identities.
+const identitiesPath = "/admin/identities"
+
 // Identity as Kratos's admin API returns it. Traits, metadata and the
 // credentials' configurations keep Kratos's JSON.
 type Identity struct {
@@ -95,7 +98,7 @@ func (c Client) ListIdentities(ctx context.Context, f IdentityFilter) (Page[Iden
 
 	var out []Identity
 
-	h, err := c.do(ctx, request{method: http.MethodGet, base: c.admin, path: "/admin/identities", query: q}, &out)
+	h, err := c.do(ctx, request{method: http.MethodGet, base: c.admin, path: identitiesPath, query: q}, &out)
 
 	return Page[Identity]{Items: out, Next: nextToken(h)}, err
 }
@@ -134,7 +137,7 @@ func (c Client) GetIdentityByExternalID(ctx context.Context, externalID string) 
 func (c Client) CreateIdentity(ctx context.Context, body json.RawMessage) (Identity, error) {
 	var out Identity
 
-	_, err := c.do(ctx, request{method: http.MethodPost, base: c.admin, path: "/admin/identities", body: body}, &out)
+	_, err := c.do(ctx, request{method: http.MethodPost, base: c.admin, path: identitiesPath, body: body}, &out)
 
 	return out, err
 }
@@ -253,7 +256,7 @@ func (c Client) ImportIdentities(ctx context.Context, bodies []json.RawMessage) 
 		Identities []ImportResult `json:"identities"`
 	}
 
-	_, err := c.do(ctx, request{method: http.MethodPatch, base: c.admin, path: "/admin/identities", body: in}, &out)
+	_, err := c.do(ctx, request{method: http.MethodPatch, base: c.admin, path: identitiesPath, body: in}, &out)
 
 	return out.Identities, err
 }

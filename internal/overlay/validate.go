@@ -28,7 +28,7 @@ func stubBase() map[string]any {
 		"dsn": "memory",
 		"identity": map[string]any{
 			"default_schema_id": "default",
-			"schemas":           []any{map[string]any{"id": "default", "url": "base64://e30="}},
+			"schemas":           []any{map[string]any{"id": "default", keyURL: "base64://e30="}},
 		},
 		"selfservice": map[string]any{"default_browser_return_url": "http://127.0.0.1/"},
 		"courier":     map[string]any{"smtp": map[string]any{"connection_uri": "smtp://127.0.0.1:25/"}},

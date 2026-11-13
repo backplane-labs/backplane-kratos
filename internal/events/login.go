@@ -149,26 +149,32 @@ func LoginSection(s overlay.Settings, schemas []json.RawMessage) *kratoseventsv1
 	}
 
 	first := map[string]bool{
-		"password": m.Password.Enabled,
-		"code":     m.Code.Enabled && m.Code.Passwordless,
-		"webauthn": m.WebAuthn.Enabled && m.WebAuthn.Passwordless,
-		"passkey":  m.Passkey.Enabled,
-		"oidc":     m.OIDC.Enabled,
+		overlay.MethodPassword: m.Password.Enabled,
+		overlay.MethodCode:     m.Code.Enabled && m.Code.Passwordless,
+		overlay.MethodWebAuthn: m.WebAuthn.Enabled && m.WebAuthn.Passwordless,
+		overlay.MethodPasskey:  m.Passkey.Enabled,
+		overlay.MethodOIDC:     m.OIDC.Enabled,
 	}
 	second := map[string]bool{
-		"totp":          m.TOTP.Enabled,
-		"lookup_secret": m.LookupSecret.Enabled,
-		"webauthn":      m.WebAuthn.Enabled && !m.WebAuthn.Passwordless,
-		"code":          m.Code.Enabled && m.Code.MFA,
+		overlay.MethodTOTP:         m.TOTP.Enabled,
+		overlay.MethodLookupSecret: m.LookupSecret.Enabled,
+		overlay.MethodWebAuthn:     m.WebAuthn.Enabled && !m.WebAuthn.Passwordless,
+		overlay.MethodCode:         m.Code.Enabled && m.Code.MFA,
 	}
 
-	for _, method := range []string{"password", "code", "webauthn", "passkey", "oidc"} {
+	for _, method := range []string{
+		overlay.MethodPassword, overlay.MethodCode, overlay.MethodWebAuthn,
+		overlay.MethodPasskey, overlay.MethodOIDC,
+	} {
 		if first[method] {
 			out.FirstFactors = append(out.FirstFactors, method)
 		}
 	}
 
-	for _, method := range []string{"totp", "lookup_secret", "webauthn", "code"} {
+	for _, method := range []string{
+		overlay.MethodTOTP, overlay.MethodLookupSecret, overlay.MethodWebAuthn,
+		overlay.MethodCode,
+	} {
 		if second[method] {
 			out.SecondFactors = append(out.SecondFactors, method)
 		}

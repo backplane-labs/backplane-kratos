@@ -25,16 +25,34 @@ func Flows() []string {
 	return []string{FlowRegistration, FlowLogin, FlowSettings, FlowRecovery, FlowVerification}
 }
 
+// Kratos's method names.
+const (
+	MethodPassword     = "password"
+	MethodCode         = "code"
+	MethodWebAuthn     = "webauthn"
+	MethodPasskey      = "passkey"
+	MethodOIDC         = "oidc"
+	MethodTOTP         = "totp"
+	MethodLookupSecret = "lookup_secret"
+	MethodProfile      = "profile"
+)
+
 // methods are the per-method after-hook lists of a flow; nil: the flow
 // has one generic list (after.hooks).
 func methods(flow string) []string {
 	switch flow {
 	case FlowRegistration:
-		return []string{"password", "webauthn", "passkey", "oidc", "code"}
+		return []string{MethodPassword, MethodWebAuthn, MethodPasskey, MethodOIDC, MethodCode}
 	case FlowLogin:
-		return []string{"password", "webauthn", "passkey", "oidc", "code", "totp", "lookup_secret"}
+		return []string{
+			MethodPassword, MethodWebAuthn, MethodPasskey, MethodOIDC, MethodCode,
+			MethodTOTP, MethodLookupSecret,
+		}
 	case FlowSettings:
-		return []string{"password", "totp", "oidc", "webauthn", "passkey", "lookup_secret", "profile"}
+		return []string{
+			MethodPassword, MethodTOTP, MethodOIDC, MethodWebAuthn, MethodPasskey,
+			MethodLookupSecret, MethodProfile,
+		}
 	default:
 		return nil
 	}
@@ -53,6 +71,12 @@ func MethodsOf(flow string) []string {
 
 	return []string{GenericMethod}
 }
+
+// Before and After are the points of a flow Kratos hooks run at.
+const (
+	Before = "before"
+	After  = "after"
+)
 
 // HookName is the backplane hook of a flow's before or after point, e.g.
 // "AfterRegistration".
@@ -231,6 +255,14 @@ const (
 	ignored
 )
 
+// Keys of Kratos's hook configuration.
+const (
+	keyHook   = "hook"
+	keyConfig = "config"
+	keyURL    = "url"
+	keyType   = "type"
+)
+
 // webHook is a callback entry.
 func (r renderer) webHook(path string, a answer) map[string]any {
 	response := map[string]any{"parse": true}
@@ -243,13 +275,14 @@ func (r renderer) webHook(path string, a answer) map[string]any {
 		response = map[string]any{"ignore": true}
 	}
 
-	return map[string]any{"hook": "web_hook", "config": map[string]any{
-		"url": strings.TrimRight(r.w.URL, "/") + path, "method": "POST",
+	return map[string]any{keyHook: "web_hook", keyConfig: map[string]any{
+		keyURL:     strings.TrimRight(r.w.URL, "/") + path,
+		"method":   "POST",
 		"body":     "base64://" + base64.StdEncoding.EncodeToString([]byte(body)),
 		"response": response,
 		"auth": map[string]any{
-			"type":   "api_key",
-			"config": map[string]any{"name": KeyHeader, "value": r.w.Key, "in": "header"},
+			keyType:   "api_key",
+			keyConfig: map[string]any{"name": KeyHeader, "value": r.w.Key, "in": "header"},
 		},
 	}}
 }
@@ -258,7 +291,7 @@ func (r renderer) bound(hook string) bool { return r.w.Bound != nil && r.w.Bound
 
 func (r renderer) before(flow string) []any {
 	hooks := []any{}
-	if r.bound(HookName("before", flow)) {
+	if r.bound(HookName(Before, flow)) {
 		hooks = append(hooks, r.webHook("/hooks/before/"+flow+"/"+GenericMethod, parsed))
 	}
 
@@ -279,7 +312,7 @@ func (r renderer) eventsPath(flow, method string) string {
 
 func (r renderer) after(flow, method string) []any {
 	hooks := []any{}
-	if r.bound(HookName("after", flow)) {
+	if r.bound(HookName(After, flow)) {
 		hooks = append(hooks, r.webHook("/hooks/after/"+flow+"/"+method, parsed))
 	}
 
@@ -297,23 +330,23 @@ func (r renderer) after(flow, method string) []any {
 	switch flow {
 	case FlowRegistration:
 		if s.Registration.LoginAfter {
-			hooks = append(hooks, map[string]any{"hook": "session"})
+			hooks = append(hooks, map[string]any{keyHook: "session"})
 		}
 
 		if s.Registration.ShowVerificationUI {
-			hooks = append(hooks, map[string]any{"hook": "show_verification_ui"})
+			hooks = append(hooks, map[string]any{keyHook: "show_verification_ui"})
 		}
 	case FlowLogin:
-		if s.Login.RequireVerifiedAddress && method == "password" {
-			hooks = append(hooks, map[string]any{"hook": "require_verified_address"})
+		if s.Login.RequireVerifiedAddress && method == MethodPassword {
+			hooks = append(hooks, map[string]any{keyHook: "require_verified_address"})
 		}
 
 		if s.Login.RevokeOtherSessions {
-			hooks = append(hooks, map[string]any{"hook": "revoke_active_sessions"})
+			hooks = append(hooks, map[string]any{keyHook: "revoke_active_sessions"})
 		}
 	case FlowRecovery:
 		if s.Recovery.RevokeSessions {
-			hooks = append(hooks, map[string]any{"hook": "revoke_active_sessions"})
+			hooks = append(hooks, map[string]any{keyHook: "revoke_active_sessions"})
 		}
 	}
 
@@ -408,12 +441,13 @@ func (r renderer) courier() {
 
 	request := func(path string) map[string]any {
 		return map[string]any{
-			"url": strings.TrimRight(r.w.URL, "/") + path, "method": "POST",
+			keyURL:    strings.TrimRight(r.w.URL, "/") + path,
+			"method":  "POST",
 			"body":    "base64://" + base64.StdEncoding.EncodeToString([]byte(body)),
 			"headers": map[string]any{"Content-Type": "application/json"},
 			"auth": map[string]any{
-				"type":   "api_key",
-				"config": map[string]any{"name": KeyHeader, "value": r.w.Key, "in": "header"},
+				keyType:   "api_key",
+				keyConfig: map[string]any{"name": KeyHeader, "value": r.w.Key, "in": "header"},
 			},
 		}
 	}
@@ -422,7 +456,7 @@ func (r renderer) courier() {
 	r.set("courier.http.request_config", request("/courier/email"))
 	r.set(
 		"courier.channels",
-		[]any{map[string]any{"id": "sms", "type": "http", "request_config": request("/courier/sms")}},
+		[]any{map[string]any{"id": "sms", keyType: "http", "request_config": request("/courier/sms")}},
 	)
 }
 
@@ -462,7 +496,7 @@ func (r renderer) identity() error {
 		}
 
 		schemas = append(schemas, map[string]any{
-			"id": name, "url": "base64://" + base64.StdEncoding.EncodeToString([]byte(doc)),
+			"id": name, keyURL: "base64://" + base64.StdEncoding.EncodeToString([]byte(doc)),
 		})
 	}
 

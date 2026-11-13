@@ -117,7 +117,7 @@ func New(parent deps.Scope, key string, failOpen config.Live[[]string], sessions
 		hook.Describe("Deliver a message of Kratos's courier (codes, links); an error makes Kratos retry it"))
 
 	for _, flow := range overlay.Flows() {
-		for _, when := range []string{"before", "after"} {
+		for _, when := range []string{overlay.Before, overlay.After} {
 			name := overlay.HookName(when, flow)
 			f.points[name] = hook.Declare[FlowIn, FlowOut](f, name, hook.DefaultTimeout(flowTimeout),
 				hook.Describe(describePoint(when, flow)))
@@ -140,7 +140,7 @@ func New(parent deps.Scope, key string, failOpen config.Live[[]string], sessions
 }
 
 func describePoint(when, flow string) string {
-	if when == "before" {
+	if when == overlay.Before {
 		// Kratos runs it before the flow exists: there is no form to show
 		// messages on, so a deny fails the flow's creation with an error.
 		return "Kratos is starting a " + flow + " flow: refuse to start it (the client gets an error, " +
@@ -172,7 +172,7 @@ func (f *Flows) Hooks() []string {
 	out = append(out, overlay.DeliverHook)
 
 	for _, flow := range overlay.Flows() {
-		out = append(out, overlay.HookName("before", flow), overlay.HookName("after", flow))
+		out = append(out, overlay.HookName(overlay.Before, flow), overlay.HookName(overlay.After, flow))
 	}
 
 	return out
@@ -486,7 +486,8 @@ func (f *Flows) hook(w http.ResponseWriter, r *http.Request) {
 	start, point := time.Now(), "hooks/"+when+"/"+flow
 
 	ref, ok := f.points[name]
-	if !ok || (when != "before" && when != "after" && (when != overlay.Stored || flow != overlay.FlowRegistration)) {
+	if !ok || (when != overlay.Before && when != overlay.After &&
+		(when != overlay.Stored || flow != overlay.FlowRegistration)) {
 		http.NotFound(w, r)
 
 		return
@@ -508,7 +509,7 @@ func (f *Flows) hook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	in := c.flowIn(flow, method)
-	if name == overlay.HookName("after", overlay.FlowRegistration) {
+	if name == overlay.HookName(overlay.After, overlay.FlowRegistration) {
 		in.Identity = withoutID(in.Identity)
 	}
 
@@ -530,7 +531,7 @@ func (f *Flows) hook(w http.ResponseWriter, r *http.Request) {
 
 // verdict is Kratos's answer to a hook's result: status, body, outcome.
 func (f *Flows) verdict(name, when, flow string, out FlowOut, err error) (int, any, string) {
-	changes := when == "after" && (flow == overlay.FlowRegistration || flow == overlay.FlowSettings)
+	changes := when == overlay.After && (flow == overlay.FlowRegistration || flow == overlay.FlowSettings)
 
 	switch {
 	case errors.Is(err, hook.ErrNoBinding):
