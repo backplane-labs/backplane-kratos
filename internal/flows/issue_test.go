@@ -636,3 +636,68 @@ func TestFedCMAdmitted(t *testing.T) {
 		t.Fatalf("fed-cm: %d %s, SessionIssued %+v, revoked %v", r.status, r.body, *got, kratos.revoked())
 	}
 }
+
+// An answer the proxy cannot read whole (encoded, longer than it reads,
+// not the JSON it says) is never passed on: the session it may carry would
+// leave unchecked. The client's Accept-Encoding never reaches Kratos.
+func TestUnreadableAnswerRefused(t *testing.T) {
+	t.Parallel()
+
+	const login = "/self-service/login?flow=f-1"
+
+	session := `{"session_token":"tok-1","session":{"id":"s-1","active":true,"authenticated_at":"` +
+		time.Now().UTC().Format(time.RFC3339Nano) + `"}}`
+
+	tests := []struct {
+		name     string
+		path     string
+		encoding string
+		body     string
+	}{
+		{name: "encoded", path: login, encoding: "br", body: session},
+		{
+			name: "longer than read", path: login,
+			body: `{"pad":"` + strings.Repeat("x", 1<<20) + `",` + session[1:],
+		},
+		{name: "not json", path: login, body: `{"session_token":"tok-1"`},
+		{name: "encoded exchange", path: flows.TokenExchangePath + "?init_code=i", encoding: "br", body: session},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			h, f, _ := harnessWith(t, &sessions{after: stored()})
+			got := bindIssued(h, f, flows.SessionIssuedOut{}, nil)
+
+			var accept string
+
+			k := newKratos(t, func(w http.ResponseWriter, r *http.Request) {
+				accept = r.Header.Get("Accept-Encoding")
+
+				w.Header().Set("Content-Type", "application/json")
+
+				if tc.encoding != "" {
+					w.Header().Set("Content-Encoding", tc.encoding)
+				}
+
+				_, _ = w.Write([]byte(tc.body))
+			})
+			srv := public(t, f, k, errorUI)
+
+			method := http.MethodPost
+			if strings.HasPrefix(tc.path, flows.TokenExchangePath) {
+				method = http.MethodGet
+			}
+
+			r := do(t, method, srv.URL+tc.path, "application/json", `{}`, http.Header{"Accept-Encoding": {"br"}})
+			if r.status != http.StatusBadGateway || strings.Contains(r.body, "tok-1") || len(*got) != 0 {
+				t.Fatalf("%d %.200s, SessionIssued %v", r.status, r.body, *got)
+			}
+
+			if accept == "br" {
+				t.Fatal("the client's Accept-Encoding reached Kratos")
+			}
+		})
+	}
+}

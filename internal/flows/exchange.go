@@ -2,7 +2,6 @@ package flows
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
 	"net/url"
 	"time"
@@ -43,12 +42,14 @@ func (f *Flows) TokenExchange(public *url.URL, headers map[string]string, maxAge
 				return nil
 			}
 
-			raw, err := io.ReadAll(io.LimitReader(res.Body, maxExchangeAnswer))
-			_ = res.Body.Close()
+			raw, err := readBody(res, maxExchangeAnswer)
+			if err != nil {
+				return err
+			}
 
 			a := answerOf{status: http.StatusOK, header: res.Header, raw: raw, replaced: true}
 
-			if err != nil || !freshSession(raw, maxAge) {
+			if !freshSession(raw, maxAge) {
 				a.status, a.raw = http.StatusNotFound, []byte(refusedExchange)
 				a.header.Set("Content-Type", "application/json")
 			} else {

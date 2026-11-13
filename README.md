@@ -131,7 +131,10 @@ service sits next to it and turns it into parts of Wiring:
   the hook is not asked.
   The hop's cookie tells an OIDC link's callback from a sign-in's. A
   callback with no start cookie is asked with an empty `flow` and
-  `flow_id`. While the hook is unbound, sessions pass unchecked.
+  `flow_id`. While the hook is unbound, sessions pass unchecked. An answer
+  the service cannot read whole (encoded, over 1 MiB, or not the JSON it
+  claims) gets a 502 rather than passing unchecked. The client's
+  `Accept-Encoding` is not sent to Kratos.
 - **Section `kratos.login`** (backplane live section): how identities sign
   up and sign in — registration on or off, first and second factors, OIDC
   providers (id, kind, label), required AALs, recovery and verification —

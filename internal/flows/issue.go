@@ -58,8 +58,13 @@ const (
 	errUnavailable = "session_unavailable"
 )
 
-// errNoCheck: the issued session could not be checked; it is refused.
-var errNoCheck = errors.New("issued session not checked")
+var (
+	// errNoCheck: the issued session could not be checked; it is refused.
+	errNoCheck = errors.New("issued session not checked")
+	// errUnreadable: Kratos's answer is encoded, too long or not the JSON
+	// it says; the client gets a 502 instead.
+	errUnreadable = errors.New("kratos's answer cannot be read whole")
+)
 
 // issuance is what the proxy knows of a request that may issue a session.
 type issuance struct {
@@ -348,11 +353,13 @@ func readAnswer(res *http.Response) (answerOf, error) {
 		return a, nil
 	}
 
-	raw, err := io.ReadAll(io.LimitReader(res.Body, maxAnswer))
-	_ = res.Body.Close()
-
+	raw, err := readBody(res, maxAnswer)
 	if err != nil {
-		return a, fmt.Errorf("read kratos's answer: %w", err)
+		return a, err
+	}
+
+	if !json.Valid(raw) {
+		return a, errUnreadable
 	}
 
 	a.raw, a.replaced = raw, true
@@ -361,6 +368,28 @@ func readAnswer(res *http.Response) (answerOf, error) {
 	}
 
 	return a, nil
+}
+
+// readBody is res's whole body, up to limit. A body this proxy cannot read
+// whole (encoded, longer) is refused, never passed on: the session it may
+// carry would leave unchecked.
+func readBody(res *http.Response, limit int64) ([]byte, error) {
+	defer func() { _ = res.Body.Close() }()
+
+	if res.Header.Get("Content-Encoding") != "" {
+		return nil, errUnreadable
+	}
+
+	raw, err := io.ReadAll(io.LimitReader(res.Body, limit+1))
+	if err != nil {
+		return nil, fmt.Errorf("read kratos's answer: %w", err)
+	}
+
+	if int64(len(raw)) > limit {
+		return nil, errUnreadable
+	}
+
+	return raw, nil
 }
 
 // field is a string field of the JSON body; empty when there is none.
