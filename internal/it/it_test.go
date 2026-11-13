@@ -22,6 +22,11 @@ import (
 
 	"github.com/backplane-labs/backplane/pkg/backplane/backplanetest"
 	"github.com/backplane-labs/backplane/pkg/backplane/config"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/backplane-labs/backplane-kratos/internal/activities"
 	kratosadmin "github.com/backplane-labs/backplane-kratos/internal/admin"
@@ -140,7 +145,9 @@ func startKeyed(t *testing.T, tokenKey string, edit func(*overlay.Settings), bin
 		bind(h, e.flows)
 	}
 
-	srv := &http.Server{Handler: e.flows.Handler(), ReadHeaderTimeout: time.Second}
+	// Served as the SDK serves its listeners: a server span continuing
+	// the caller's (Kratos's) trace.
+	srv := &http.Server{Handler: otelhttp.NewHandler(e.flows.Handler(), "callbacks"), ReadHeaderTimeout: time.Second}
 
 	go func() { _ = srv.Serve(lis) }()
 
@@ -1224,5 +1231,70 @@ func TestCallbackSecretsNotLogged(t *testing.T) {
 
 	if !bytes.Contains(logs, []byte(`"authorization":"Value is sensitive and has been redacted`)) {
 		t.Fatal("no redacted Authorization header in Kratos's logs: the webhook lines changed shape")
+	}
+}
+
+// TestMain installs the W3C propagator and a recording provider, as a
+// service on the SDK does at start.
+func TestMain(m *testing.M) {
+	otel.SetTextMapPropagator(propagation.TraceContext{})
+	otel.SetTracerProvider(sdktrace.NewTracerProvider())
+	os.Exit(m.Run())
+}
+
+// A browser's trace goes on through Kratos (tracing on) into the callback
+// and the hook the product binds: one trace from the registration request
+// to the product's AfterRegistration.
+func TestCallbacksContinueKratosTrace(t *testing.T) {
+	t.Parallel()
+
+	seen := make(chan trace.TraceID, 4)
+
+	start(t, func(h *backplanetest.Harness, f *flows.Flows) {
+		backplanetest.Answer(h, f.Point("AfterRegistration"), func(ctx context.Context, _ flows.FlowIn) (flows.FlowOut, error) {
+			seen <- trace.SpanContextFromContext(ctx).TraceID()
+
+			return flows.FlowOut{}, nil
+		})
+	})
+
+	code, flow := call(t, http.MethodGet, "/self-service/registration/api", nil)
+	if code != http.StatusOK {
+		t.Fatalf("registration flow: %d %v", code, flow)
+	}
+
+	const traceID = "4bf92f3577b34da6a3ce929d0e0e4736"
+
+	raw, err := json.Marshal(map[string]any{
+		"method": "password", "traits": map[string]any{"email": unique("trace")}, "password": password,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodPost,
+		fmt.Sprintf("%s/self-service/registration?flow=%v", publicURL, flow["id"]), bytes.NewReader(raw))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Traceparent", "00-"+traceID+"-00f067aa0ba902b7-01")
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_ = res.Body.Close()
+
+	select {
+	case got := <-seen:
+		if got.String() != traceID {
+			t.Fatalf("AfterRegistration ran in trace %s, want the browser's %s", got, traceID)
+		}
+	case <-time.After(30 * time.Second):
+		t.Fatalf("AfterRegistration not called (registration %d)", res.StatusCode)
 	}
 }

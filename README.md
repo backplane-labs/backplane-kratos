@@ -164,6 +164,18 @@ cannot read leaves it on the previous configuration.
 | `fail_open` | Live: flow hooks whose failure lets the flow continue (default: none — a failing hook stops the flow) |
 | `token_exchange.max_age` | How long after sign-in a native app's exchange code pair is answered (default `5m`) |
 
+### Tracing
+
+A flow is one trace from the browser's request to the product's hooks:
+Kratos continues the request's trace into its webhook calls, the callbacks
+listener continues it (a server span), and the hook call carries it to the
+product (`AfterRegistration`, `AfterLogin`, events). Kratos does this only
+with its own tracing on: the deployment's base file sets `tracing.provider:
+otel` and `tracing.providers.otlp` (`server_url`, `insecure`,
+`sampling.sampling_ratio`) towards its Collector. Without it Kratos sends
+no `traceparent` and the callback starts a new trace.
+`TestCallbacksContinueKratosTrace` checks the whole chain on a real Kratos.
+
 ### Secrets in Kratos's logs
 
 Kratos logs every webhook it dispatches with its request headers. The callback

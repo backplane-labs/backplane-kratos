@@ -16,3 +16,10 @@ secrets:
 courier: {smtp: {connection_uri: "smtp://127.0.0.1:1025/?disable_starttls=true"}}
 # trace: the most a deployment can log; TestCallbackSecretsNotLogged reads it.
 log: {level: trace, format: json}
+# Tracing on (exported nowhere): Kratos continues the browser's trace into
+# its webhooks, TestCallbacksContinueKratosTrace checks it.
+tracing:
+  service_name: kratos
+  provider: otel
+  providers:
+    otlp: {server_url: "127.0.0.1:4318", insecure: true, sampling: {sampling_ratio: 1}}
