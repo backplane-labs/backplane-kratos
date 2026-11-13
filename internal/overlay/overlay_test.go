@@ -138,6 +138,24 @@ func TestRenderValid(t *testing.T) {
 
 // Nothing bound, no events: empty hook lists (the overlay owns them) and
 // the base file's courier stays.
+// Kratos forwards FlowHeader to the webhooks, with its own default
+// allowlist kept.
+func TestRenderWebhookHeaders(t *testing.T) {
+	t.Parallel()
+
+	doc, err := overlay.Render(defaults(), overlay.Secrets{}, overlay.Wiring{URL: "http://x", Key: "k"})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	got := fmt.Sprint(at(t, doc, "clients.web_hook.header_allowlist"))
+	for _, want := range []string{overlay.FlowHeader, "User-Agent", "Origin", "True-Client-Ip"} {
+		if !strings.Contains(got, want) {
+			t.Fatalf("header_allowlist %s, want %s in it", got, want)
+		}
+	}
+}
+
 func TestRenderUnbound(t *testing.T) {
 	t.Parallel()
 

@@ -3,10 +3,10 @@ module github.com/backplane-labs/backplane-kratos
 go 1.27.4
 
 require (
-	github.com/backplane-labs/backplane v0.6.90
+	github.com/backplane-labs/backplane v0.6.95
 	github.com/go-jose/go-jose/v4 v4.1.6
 	github.com/google/uuid v1.6.0
-	github.com/gopherex/xlog v1.2.1
+	github.com/gopherex/xlog v1.3.1
 	github.com/gopherex/xprobe v1.2.0
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.3
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.70.0
@@ -53,7 +53,7 @@ require (
 	github.com/gopherex/xlog/contrib/libs/otel v1.2.1 // indirect
 	github.com/gopherex/xprobe/pkg/transport/grpc v1.2.0 // indirect
 	github.com/gopherex/xshutdown v1.1.0 // indirect
-	github.com/gopherex/xtrace v1.1.6 // indirect
+	github.com/gopherex/xtrace v1.3.0 // indirect
 	github.com/gopherex/xtrace/contrib/libs/xlog v1.1.6 // indirect
 	github.com/gopherex/xtrace/contrib/sdk v1.2.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.2 // indirect

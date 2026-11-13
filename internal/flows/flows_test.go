@@ -59,6 +59,34 @@ type sessions struct {
 	who   *ory.Session
 	after ory.Session
 	seen  []string
+
+	// whoErr, when set, is WhoAmI's error; disabled are the revoked ids;
+	// the first busy revokes fail as Kratos's concurrent update does.
+	whoErr   error
+	disabled []string
+	busy     int
+}
+
+func (s *sessions) DisableSession(_ context.Context, id string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.busy > 0 {
+		s.busy--
+
+		return &ory.Error{Status: http.StatusBadRequest}
+	}
+
+	s.disabled = append(s.disabled, id)
+
+	return nil
+}
+
+func (s *sessions) revoked() []string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	return append([]string(nil), s.disabled...)
 }
 
 func (s *sessions) WhoAmI(_ context.Context, token, cookie string) (ory.Session, error) {
@@ -66,6 +94,10 @@ func (s *sessions) WhoAmI(_ context.Context, token, cookie string) (ory.Session,
 	defer s.mu.Unlock()
 
 	s.seen = append(s.seen, token+cookie)
+	if s.whoErr != nil {
+		return ory.Session{}, s.whoErr
+	}
+
 	if s.who == nil {
 		return ory.Session{}, errNoSession
 	}
@@ -75,7 +107,7 @@ func (s *sessions) WhoAmI(_ context.Context, token, cookie string) (ory.Session,
 
 func (s *sessions) GetSession(context.Context, string) (ory.Session, error) { return s.after, nil }
 
-var errNoSession = errors.New("401")
+var errNoSession = &ory.Error{Status: http.StatusUnauthorized}
 
 func (s *sessions) ListIdentitySessions(context.Context, string, ory.SessionFilter) (ory.Page[ory.Session], error) {
 	s.mu.Lock()

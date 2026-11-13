@@ -51,18 +51,20 @@ deployment:
         periodSeconds: 1
         failureThreshold: 120
 
-# Logout goes through backplane-kratos (event kratos.LoggedOut): the ingress
-# of Kratos's public host routes this one prefix to the sidecar's public port
-# (BACKPLANE_PUBLIC_PORT, 8080), which passes it on to Kratos. The backend is
-# a Service of your own selecting the Kratos pods on port 8080:
+# Sessions are issued and ended through backplane-kratos (hook
+# kratos.SessionIssued, client_flow_id of the flow hooks, event
+# kratos.LoggedOut): the ingress of Kratos's public host routes these to the
+# sidecar's public port (BACKPLANE_PUBLIC_PORT, 8080), which passes them on
+# to Kratos; anything else under /self-service/ passes through unchanged.
+# The backend is a Service of your own selecting the Kratos pods on port 8080:
 #
-#   - path: /self-service/logout
+#   - path: /self-service/
 #     pathType: Prefix
 #     backend: {service: {name: <service on the pods' 8080>, port: {number: 8080}}}
 #
 # The native apps' session token exchange goes through it the same way: it
 # answers an exchange code pair only shortly after sign-in, for an active
-# session (token_exchange.max_age).
+# session (token_exchange.max_age) that SessionIssued admits.
 #
 #   - path: /sessions/token-exchange
 #     pathType: Exact

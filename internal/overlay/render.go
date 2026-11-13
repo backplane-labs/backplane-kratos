@@ -124,6 +124,21 @@ type Wiring struct {
 // clear unless the deployment listed it in log.additional_redacted_headers).
 const KeyUser = "kratos"
 
+// FlowHeader carries the client's flow, signed by this service's proxy,
+// through Kratos to the flow hooks; Kratos forwards it because the overlay
+// adds it to the webhooks' header allowlist.
+const FlowHeader = "X-Backplane-Kratos-Flow"
+
+// webhookHeaders is Kratos's default webhook header allowlist and
+// FlowHeader.
+func webhookHeaders() []any {
+	return []any{
+		"Accept", "Accept-Encoding", "Accept-Language", "Content-Length", "Content-Type", "Origin", "Priority",
+		"Referer", "Sec-Ch-Ua", "Sec-Ch-Ua-Mobile", "Sec-Ch-Ua-Platform", "Sec-Fetch-Dest", "Sec-Fetch-Mode",
+		"Sec-Fetch-Site", "Sec-Fetch-User", "True-Client-Ip", "User-Agent", FlowHeader,
+	}
+}
+
 // body is the Jsonnet every callback sends: Kratos's whole context but its
 // cookies, which must never reach wiring.
 const body = `function(ctx) { [k]: ctx[k] for k in std.objectFields(ctx) if k != "request_cookies" }`
@@ -151,6 +166,7 @@ func Render(s Settings, sec Secrets, w Wiring) (map[string]any, error) {
 		return nil, err
 	}
 
+	r.set("clients.web_hook.header_allowlist", webhookHeaders())
 	r.set("feature_flags.use_continue_with_transitions", s.Features.ContinueWith)
 	r.set("feature_flags.choose_recovery_address", s.Features.ChooseRecoveryAddress)
 

@@ -54,6 +54,12 @@ type FlowIn struct {
 	// FlowID and FlowType ("api" or "browser").
 	FlowID   string `json:"flow_id,omitempty"`
 	FlowType string `json:"flow_type,omitempty"`
+	// ClientFlowID is the flow the client submitted or started, as this
+	// service's proxy vouches for it. It differs from FlowID only when Kratos
+	// converted the flow: an OIDC login of an unknown subject completes as a
+	// new registration flow, an OIDC registration of a known one as a new
+	// login flow. Empty when the request did not pass the proxy.
+	ClientFlowID string `json:"client_flow_id,omitempty"`
 	// Identity of the flow (after points). At AfterRegistration it is not
 	// stored yet and has no id; AfterRegistrationStored has the final one.
 	Identity json.RawMessage `json:"identity,omitempty"`
@@ -100,6 +106,54 @@ type IdentityPatch struct {
 	Traits         json.RawMessage `json:"traits,omitempty"`
 	MetadataPublic json.RawMessage `json:"metadata_public,omitempty"`
 	MetadataAdmin  json.RawMessage `json:"metadata_admin,omitempty"`
+}
+
+// Channels a new session's credential leaves by.
+const (
+	// ChannelBrowser: a session cookie.
+	ChannelBrowser = "browser"
+	// ChannelAPI: a session token in the flow's answer.
+	ChannelAPI = "api"
+	// ChannelNativeExchange: a session token from /sessions/token-exchange.
+	ChannelNativeExchange = "native_exchange"
+)
+
+// SessionIssuedIn is a session Kratos has stored whose credential has not
+// left yet.
+type SessionIssuedIn struct {
+	// Flow is login, registration or recovery: the flow the client
+	// submitted; empty for an OIDC callback whose start is unknown.
+	Flow string `json:"flow,omitempty"`
+	// Method is the session's latest authentication method (password, code,
+	// oidc, webauthn, passkey, totp, lookup_secret, code_recovery, ...).
+	Method string `json:"method"`
+	// FlowID is the client's flow, the ClientFlowID of the after hooks: the
+	// submit's ?flow=, for an OIDC sign-in the flow that started it, for the
+	// native exchange the app's X-Kratos-Flow-Id header (unverified). Empty
+	// when unknown.
+	FlowID string `json:"flow_id,omitempty"`
+	// Channel is browser, api or native_exchange.
+	Channel string `json:"channel"`
+	// Identity of the session, stored.
+	Identity ory.Identity `json:"identity"`
+	// Session as Kratos stored it, without its identity, token or cookie.
+	Session ory.Session `json:"session"`
+	// TransientPayload of the submit that issued the session; empty for an
+	// OIDC callback and the native exchange (the after hooks had it).
+	TransientPayload json.RawMessage `json:"transient_payload,omitempty"`
+}
+
+// SessionIssuedOut: nothing lets the credential go; Deny revokes the
+// session and refuses the client.
+type SessionIssuedOut struct {
+	Deny *SessionDeny `json:"deny,omitempty"`
+}
+
+// SessionDeny refuses a new session.
+type SessionDeny struct {
+	// Code is the machine reason the client gets (error.reason).
+	Code     string    `json:"code"               validate:"required"`
+	Messages []Message `json:"messages,omitempty"`
 }
 
 // FlowEvent is a completed flow: Registered, LoggedIn, SettingsChanged,

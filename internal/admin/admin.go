@@ -188,8 +188,11 @@ func (a *Admin) GetStatus(ctx context.Context, _ *v1.GetStatusRequest) (*v1.GetS
 }
 
 func describe(name string) string {
-	if name == overlay.DeliverHook {
+	switch name {
+	case overlay.DeliverHook:
 		return "Kratos's courier messages: codes and links by email or SMS"
+	case flows.SessionIssuedHook:
+		return "A new session before its cookie or token leaves"
 	}
 
 	for _, flow := range overlay.Flows() {

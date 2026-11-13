@@ -90,7 +90,7 @@ func TestSessionTokens(t *testing.T) {
 	keys := httptest.NewServer(jwks.Handler(e.settings))
 	t.Cleanup(keys.Close)
 
-	tokens, err := auth.NewTokens(auth.TokensOptions{KeysURL: keys.URL + jwks.Path, Issuer: publicURL + "/"})
+	tokens, err := auth.NewTokens(auth.TokensOptions{KeysURL: keys.URL + jwks.Path, Issuer: frontURL + "/"})
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -25,7 +25,15 @@ service sits next to it and turns it into parts of Wiring:
   so a binding can refuse a settings change for a session the product does
   not trust (by `req.session.id`) or one without a second factor; after login
   and registration the new session, whose id is empty because Kratos stores
-  it only after the hooks.
+  it only after the hooks. `req.client_flow_id` is the flow the client
+  submitted or started, as this service's proxy vouches for it (see
+  [Routing](#routing)). It differs from `req.flow_id` only when Kratos
+  converted the flow: an OIDC login of an unknown subject completes as a new
+  registration flow, and an OIDC registration of a known one as a new login
+  flow (Kratos v26, browser and API flows alike). A value the client
+  forges never reaches the hooks. The field is empty when the request did
+  not pass the proxy, and it never falls back to `flow_id`, so a product
+  that binds a proof to the client's flow refuses an empty one.
 - **Stored registration → hook `kratos.AfterRegistrationStored`**. Kratos
   calls it after it stores the identity and waits for the answer.
   `req.identity.id` is final, so it is the place to record anything keyed by
@@ -54,8 +62,8 @@ service sits next to it and turns it into parts of Wiring:
 - **Self-service logout → event `LoggedOut`**. Kratos has no logout hooks, so
   this service serves Kratos's logout endpoints (`/self-service/logout`,
   `/self-service/logout/browser`, `/self-service/logout/api`) on its HTTP
-  port and passes every request to Kratos's public URL unchanged. Route that
-  path prefix of Kratos's public host to this service. Before forwarding a
+  port and passes every request to Kratos's public URL unchanged (see
+  [Routing](#routing)). Before forwarding a
   browser logout (`GET /self-service/logout?token=`, with the session
   cookie) or an API one (`DELETE /self-service/logout/api`), it asks Kratos
   whose session it is. Once Kratos has ended that session, it publishes
@@ -73,11 +81,57 @@ service sits next to it and turns it into parts of Wiring:
   serves `/sessions/token-exchange` on its HTTP port, in front of Kratos as for
   logout: it answers only for an active session authenticated within
   `token_exchange.max_age` (default `5m`), else `404` as for an unknown pair.
-  Answers before the session exists (a polling app) pass as they are. Route that
-  path of Kratos's public host here.
+  Answers before the session exists (a polling app) pass as they are (see
+  [Routing](#routing)).
   `return_to` must be listed in `allowed_return_urls` and carry a host:
   Kratos puts the default return URL's host into a private-use URI without one
   (`ru.app:/callback`), which then matches nothing. Use `ru.app://callback`.
+- **New sessions → hook `kratos.SessionIssued`** (fail-closed, never in
+  `fail_open`). Kratos stores a session before its credential leaves; this
+  service sees that answer on its way out (see [Routing](#routing)) and asks
+  the hook before the cookie or token reaches the client. This covers every
+  answer under `/self-service/` that carries a session: the submits, a
+  recovery link's GET, the OIDC callbacks, FedCM's token, and the native
+  token exchange. `req`:
+  - `flow`: login, registration or recovery, the flow the client submitted;
+    empty for an OIDC callback with no start cookie.
+  - `method`: the session's latest authentication method.
+  - `flow_id`: the client's flow, the `client_flow_id` of the after hooks.
+    It is the submit's `?flow=`, the start of an OIDC sign-in (browser and
+    native), or for the native exchange the app's `X-Kratos-Flow-Id` header.
+    This service does not verify that header: the product checks it against
+    what its after hooks recorded for that flow.
+  - `channel`: `browser` (cookie), `api` (token in the answer) or
+    `native_exchange`.
+  - `identity` and `session`: both as Kratos stored them; the session has
+    no token.
+  - `transient_payload`: the submit's; empty for an OIDC callback and the
+    exchange, whose after hook had it.
+
+  The result `deny: {code, messages}` revokes the session. So does an error
+  or a timeout of the hook. The revoke retries until it succeeds, because
+  Kratos refuses one that races its own write. The client then gets no
+  credential: every `Set-Cookie` is stripped and the token is never
+  returned.
+  - API, JSON and exchange clients get Kratos's error shape: `403
+    {"error": {"id": "session_refused", "reason": <code>, "details":
+    {"messages": [...]}}}`, or `503` with `"id": "session_unavailable"`
+    when the hook failed.
+  - A browser form flow is sent with a 303 to `settings.error_ui_url?id=
+    session_refused|session_unavailable&reason=<code>`, or gets the JSON
+    when no error page is set.
+
+  A session that cannot be used yet (`session.whoami.required_aal` asks
+  for a second factor the user has) is admitted when the step-up
+  completes, with the same session id. An answer that names the session
+  (JSON) is admitted at each step, so the binding is idempotent by session
+  id. A settings flow (an OIDC link among them) and a verification flow
+  issue no session: Kratos only sets the cookie of a session that already
+  exists (the signed-in one, or the registration's for a Hydra login), so
+  the hook is not asked.
+  The hop's cookie tells an OIDC link's callback from a sign-in's. A
+  callback with no start cookie is asked with an empty `flow` and
+  `flow_id`. While the hook is unbound, sessions pass unchecked.
 - **Section `kratos.login`** (backplane live section): how identities sign
   up and sign in — registration on or off, first and second factors, OIDC
   providers (id, kind, label), required AALs, recovery and verification —
@@ -117,6 +171,46 @@ service sits next to it and turns it into parts of Wiring:
 - **Settings from the console**: flows on/off (registration included), UI
   URLs, lifespans, methods (password, codes, passkeys, WebAuthn, TOTP, social
   sign-in), sessions, identity schemas, the Hydra login provider — live.
+
+## Routing
+
+This service fronts Kratos's public host for everything that issues or ends
+a session. Route these paths of Kratos's public host (behind any prefix the
+host has, e.g. `/auth`) to this service's HTTP port; it passes every request
+on to `kratos.public_url`. Route the whole `/self-service/` prefix: a
+narrower set leaves a way to a session `SessionIssued` never sees (a
+recovery link is a GET, FedCM has its own endpoint). Kratos's
+`serve.public.base_url` stays the public host as clients see it.
+
+| Path | Why |
+| --- | --- |
+| `/self-service/` | `SessionIssued`, `client_flow_id`, the OIDC start hop, `LoggedOut` |
+| `GET /sessions/token-exchange` | The native exchange's age check and `SessionIssued` |
+
+How the client's flow travels:
+
+- Every request this service forwards to Kratos carries the header
+  `X-Backplane-Kratos-Flow`. It holds the client's flow, HMAC-signed with
+  the callbacks key, and the service drops any copy the client sent.
+- The overlay adds the header to Kratos's `clients.web_hook.header_allowlist`
+  (Kratos's default list plus this header), so Kratos hands it back to the
+  after hooks.
+- An OIDC start answer sends the browser through a hop on the public host,
+  `/self-service/methods/oidc/backplane/start?t=<signed>`. The service
+  rewrites the provider redirect (a 303 `Location`, or `redirect_browser_to`
+  in JSON) to point at it. The hop takes the host of the provider URL's
+  `redirect_uri`, so it needs no configuration. It works for the system
+  browser of a native app too, which never saw the start request.
+- The hop sets the cookie `backplane_kratos_flow_<hash of the OIDC state>`
+  (HttpOnly, Secure, SameSite=Lax, living as long as the longest login,
+  registration or recovery flow), then sends a 303 to exactly the provider
+  URL it was signed for. A link that is tampered with, foreign or expired
+  gets a 400.
+- The OIDC callback reads the cookie for its `state` and deletes it. A
+  form_post callback is a cross-site POST that brings no cookie and
+  deletes none; Kratos sends it on to a GET that brings the cookie.
+- Apple's form_post callback works: Kratos answers the POST with a
+  redirect to a GET, and the session is issued on that GET.
 
 ## How Kratos picks up the settings
 

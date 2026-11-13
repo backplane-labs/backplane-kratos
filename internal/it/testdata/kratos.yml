@@ -3,7 +3,9 @@
 version: v26.2.0
 dsn: memory
 serve:
-  public: {base_url: "http://127.0.0.1:34433/", host: 127.0.0.1, port: 34433}
+  # base_url is the test's TLS front (env.front: flows.Public), as a
+  # deployment routes Kratos's public host through backplane-kratos.
+  public: {base_url: "https://127.0.0.1:34435/", host: 127.0.0.1, port: 34433}
   admin: {base_url: "http://127.0.0.1:34434/", host: 127.0.0.1, port: 34434}
 selfservice:
   default_browser_return_url: http://127.0.0.1:4455/

@@ -58,7 +58,8 @@ func TestTokenExchange(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			proxy := httptest.NewServer(flows.TokenExchange(public, nil, 5*time.Minute))
+			_, f, _ := harness(t)
+			proxy := httptest.NewServer(f.TokenExchange(public, nil, 5*time.Minute))
 			t.Cleanup(proxy.Close)
 
 			req, err := http.NewRequestWithContext(t.Context(), http.MethodGet,

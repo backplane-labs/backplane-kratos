@@ -46,9 +46,9 @@ func nativeSettings(s *overlay.Settings) {
 	}}
 }
 
-// browser is the system browser: it keeps cookies and does not follow
-// redirects, so the test sees every hop.
-func browser(t *testing.T) *http.Client {
+// browser is the system browser: it keeps cookies, trusts the front and
+// does not follow redirects, so the test sees every hop.
+func (e env) browser(t *testing.T) *http.Client {
 	t.Helper()
 
 	jar, err := cookiejar.New(nil)
@@ -56,7 +56,10 @@ func browser(t *testing.T) *http.Client {
 		t.Fatal(err)
 	}
 
-	return &http.Client{Jar: jar, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+	return &http.Client{
+		Jar: jar, Transport: e.front.Client().Transport,
+		CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
+	}
 }
 
 // hop requests url in b; the answer's status and Location.
@@ -105,8 +108,15 @@ type native struct {
 // nativeSignIn runs a native OIDC flow of kind (login or registration)
 // with provider, as the app does: an API flow asking for a session token
 // exchange code, the browser through the provider back to the app's
-// callback, whose code completes the pair.
-func nativeSignIn(t *testing.T, kind, provider string, transient map[string]any) native {
+// callback, whose code completes the pair. The submit goes to Kratos.
+func nativeSignIn(t *testing.T, e env, kind, provider string, transient map[string]any) native {
+	t.Helper()
+
+	return nativeSignInVia(t, e, publicURL, kind, provider, transient)
+}
+
+// nativeSignInVia is nativeSignIn with the submit sent to base.
+func nativeSignInVia(t *testing.T, e env, base, kind, provider string, transient map[string]any) native {
 	t.Helper()
 
 	q := url.Values{"return_session_token_exchange_code": {"true"}, "return_to": {nativeCallback}}
@@ -124,7 +134,7 @@ func nativeSignIn(t *testing.T, kind, provider string, transient map[string]any)
 		submit["transient_payload"] = transient
 	}
 
-	status, body := call(t, http.MethodPost, "/self-service/"+kind+"?flow="+n.flow, submit)
+	status, body := e.callAt(t, http.MethodPost, base+"/self-service/"+kind+"?flow="+n.flow, submit, nil)
 	n.trace = append(n.trace, fmt.Sprintf("submit %d", status))
 
 	next, _ := body["redirect_browser_to"].(string)
@@ -132,7 +142,7 @@ func nativeSignIn(t *testing.T, kind, provider string, transient map[string]any)
 		t.Fatalf("submit: %d %v", status, body)
 	}
 
-	b := browser(t)
+	b := e.browser(t)
 
 	for range 10 {
 		if strings.HasPrefix(next, nativeCallback) {
@@ -159,6 +169,46 @@ func nativeSignIn(t *testing.T, kind, provider string, transient map[string]any)
 	t.Fatalf("no callback after %v", n.trace)
 
 	return n
+}
+
+// callAt is a JSON request to target (Kratos or the front) with header.
+func (e env) callAt(t *testing.T, method, target string, body any, header http.Header) (int, map[string]any) {
+	t.Helper()
+
+	var in io.Reader
+
+	if body != nil {
+		raw, err := json.Marshal(body)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		in = bytes.NewReader(raw)
+	}
+
+	req, err := http.NewRequestWithContext(t.Context(), method, target, in)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for k, v := range header {
+		req.Header[k] = v
+	}
+
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Content-Type", "application/json")
+
+	res, err := e.front.Client().Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer res.Body.Close()
+
+	var out map[string]any
+
+	_ = json.NewDecoder(res.Body).Decode(&out)
+
+	return res.StatusCode, out
 }
 
 // exchange trades the pair for the session token at Kratos.
@@ -232,7 +282,7 @@ func TestNativeOIDC(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	front := httptest.NewServer(flows.TokenExchange(public, nil, 5*time.Minute))
+	front := httptest.NewServer(e.flows.TokenExchange(public, nil, 5*time.Minute))
 	t.Cleanup(front.Close)
 
 	// return_to must be an allowed URL. A private-use URI without a host
@@ -247,7 +297,7 @@ func TestNativeOIDC(t *testing.T) {
 
 	// A new subject registers; Registered carries the session the app
 	// holds, and the client's transient payload.
-	registered := nativeSignIn(t, "registration", "mock", map[string]any{"qr": "n-1"})
+	registered := nativeSignIn(t, e, "registration", "mock", map[string]any{"qr": "n-1"})
 	token, sid := exchanged(t, registered)
 
 	if code, who := callAs(t, token, http.MethodGet, "/sessions/whoami", nil); code != http.StatusOK || who["id"] != sid {
@@ -286,8 +336,8 @@ func TestNativeOIDC(t *testing.T) {
 	}
 
 	// The same subject signs in again: LoggedIn carries the new session.
-	nativeSignIn(t, "login", "returning", nil)
-	returning := nativeSignIn(t, "login", "returning", map[string]any{"qr": "n-2"})
+	nativeSignIn(t, e, "login", "returning", nil)
+	returning := nativeSignIn(t, e, "login", "returning", map[string]any{"qr": "n-2"})
 
 	// A fresh active session's pair passes through the service.
 	if status := exchangeVia(t, front.URL, returning); status != http.StatusOK {

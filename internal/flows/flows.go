@@ -51,6 +51,8 @@ type Sessions interface {
 	// WhoAmI is the session of a token or a cookie header.
 	WhoAmI(ctx context.Context, token, cookie string) (ory.Session, error)
 	GetSession(ctx context.Context, id string) (ory.Session, error)
+	// DisableSession revokes a session.
+	DisableSession(ctx context.Context, id string) error
 }
 
 // outcomeUnbound: the hook had no binding; the flow continued.
@@ -58,6 +60,9 @@ const outcomeUnbound = "unbound"
 
 // UnavailableMessage is shown when a flow hook fails and is not fail-open.
 const UnavailableMessage = 5000001
+
+// SessionIssuedHook admits a stored session before its credential leaves.
+const SessionIssuedHook = "SessionIssued"
 
 // Flows declares the hooks and events and serves Kratos's callbacks.
 type Flows struct {
@@ -68,6 +73,7 @@ type Flows struct {
 	sessions Sessions
 
 	deliver hook.Ref[DeliverIn, DeliverOut]
+	issued  hook.Ref[SessionIssuedIn, SessionIssuedOut]
 	points  map[string]hook.Ref[FlowIn, FlowOut] // by hook name
 	events  map[string]event.Ref[FlowEvent]      // by flow
 	logout  event.Ref[FlowEvent]
@@ -133,6 +139,10 @@ func New(parent deps.Scope, key string, failOpen config.Live[[]string], sessions
 			event.Describe("an identity completed the "+flow+" flow"))
 	}
 
+	f.issued = hook.Declare[SessionIssuedIn, SessionIssuedOut](f, SessionIssuedHook, hook.DefaultTimeout(flowTimeout),
+		hook.Describe("Kratos stored a new session and its credential (cookie or token) has not left: deny "+
+			"to revoke it and refuse the client; an error or a timeout refuses too"))
+
 	f.logout = event.Declare[FlowEvent](f, "LoggedOut",
 		event.Describe("an identity signed out: Kratos ended the session of a self-service logout"))
 
@@ -157,8 +167,11 @@ func describePoint(when, flow string) string {
 
 // Bound reports whether a hook (short name) is bound.
 func (f *Flows) Bound(name string) bool {
-	if name == overlay.DeliverHook {
+	switch name {
+	case overlay.DeliverHook:
 		return f.deliver.Bound()
+	case SessionIssuedHook:
+		return f.issued.Bound()
 	}
 
 	ref, ok := f.points[name]
@@ -166,16 +179,17 @@ func (f *Flows) Bound(name string) bool {
 	return ok && ref.Bound()
 }
 
-// Hooks are the declared hook names, Deliver first.
+// Hooks are the declared hook names, Deliver first, SessionIssued last.
 func (f *Flows) Hooks() []string {
-	out := make([]string, 0, 1+2*len(overlay.Flows()))
+	// Deliver, every flow's before and after, SessionIssued.
+	out := make([]string, 0, 1+2*len(overlay.Flows())+1)
 	out = append(out, overlay.DeliverHook)
 
 	for _, flow := range overlay.Flows() {
 		out = append(out, overlay.HookName(overlay.Before, flow), overlay.HookName(overlay.After, flow))
 	}
 
-	return out
+	return append(out, SessionIssuedHook)
 }
 
 // BindingChanges signals when the set of bound hooks changes.
@@ -351,7 +365,8 @@ func (c kratosCtx) flowIn(flow, method string) FlowIn {
 	headers := map[string]string{}
 
 	for k, vs := range c.RequestHeaders {
-		if strings.EqualFold(k, "Cookie") || strings.EqualFold(k, "Authorization") || len(vs) == 0 {
+		if strings.EqualFold(k, "Cookie") || strings.EqualFold(k, "Authorization") ||
+			strings.EqualFold(k, overlay.FlowHeader) || len(vs) == 0 {
 			continue
 		}
 
@@ -511,6 +526,8 @@ func (f *Flows) hook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	in := c.flowIn(flow, method)
+	in.ClientFlowID = f.clientFlow(c.RequestHeaders)
+
 	if name == overlay.HookName(overlay.After, overlay.FlowRegistration) {
 		in.Identity = withoutID(in.Identity)
 	}
@@ -529,6 +546,17 @@ func (f *Flows) hook(w http.ResponseWriter, r *http.Request) {
 
 	f.record(point, start, outcome, err)
 	writeJSON(w, status, body)
+}
+
+// clientFlow is the flow FlowHeader vouches for; empty when it is absent,
+// forged or expired.
+func (f *Flows) clientFlow(headers map[string][]string) string {
+	p, ok := f.open(purposeHeader, http.Header(headers).Get(overlay.FlowHeader))
+	if !ok {
+		return ""
+	}
+
+	return p.Flow
 }
 
 // verdict is Kratos's answer to a hook's result: status, body, outcome.
@@ -720,6 +748,9 @@ func (f *Flows) stored(ctx context.Context, identity string, match func(ory.Sess
 
 // DeliverRef, Point and Event are the declared refs (tests, wiring code).
 func (f *Flows) DeliverRef() hook.Ref[DeliverIn, DeliverOut] { return f.deliver }
+
+// SessionIssued is the hook that admits a new session.
+func (f *Flows) SessionIssued() hook.Ref[SessionIssuedIn, SessionIssuedOut] { return f.issued }
 
 // Point is a flow hook by name, e.g. AfterRegistration.
 func (f *Flows) Point(name string) hook.Ref[FlowIn, FlowOut] { return f.points[name] }

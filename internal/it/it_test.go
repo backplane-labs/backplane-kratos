@@ -42,6 +42,9 @@ import (
 const (
 	adminURL  = "http://127.0.0.1:34434"
 	publicURL = "http://127.0.0.1:34433"
+	// frontAddr is the TLS front every test serves (Kratos's base_url).
+	frontAddr = "127.0.0.1:34435"
+	frontURL  = "https://" + frontAddr
 	key       = "it-callback-key-5f2c9a"
 	password  = "Very-Long-Pass-123!x"
 )
@@ -55,6 +58,8 @@ type env struct {
 	settings   config.Live[overlay.Settings]
 	tokenKey   config.Live[config.Secret]
 	kratos     ory.Client
+	// front is flows.Public at frontURL, Kratos's base_url.
+	front *httptest.Server
 }
 
 // defaults are Settings's schema defaults (Kratos's own).
@@ -153,6 +158,8 @@ func startKeyed(t *testing.T, tokenKey string, edit func(*overlay.Settings), bin
 
 	t.Cleanup(func() { _ = srv.Close() })
 
+	e.front = serveFront(t, e)
+
 	h.Start()
 
 	// Kratos reloads the file within a second or two; the callbacks URL
@@ -168,6 +175,29 @@ func startKeyed(t *testing.T, tokenKey string, edit func(*overlay.Settings), bin
 	time.Sleep(reload)
 
 	return e
+}
+
+// serveFront serves e's flows.Public over TLS at frontAddr.
+func serveFront(t *testing.T, e env) *httptest.Server {
+	t.Helper()
+
+	public, err := url.Parse(publicURL)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	lis, err := (&net.ListenConfig{}).Listen(t.Context(), "tcp", frontAddr)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	front := httptest.NewUnstartedServer(e.flows.Public(public, nil, 5*time.Minute, e.settings))
+	_ = front.Listener.Close()
+	front.Listener = lis
+	front.StartTLS()
+	t.Cleanup(front.Close)
+
+	return front
 }
 
 // oidcSecrets is a client secret for every OIDC provider of s; the test
