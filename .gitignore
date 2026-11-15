@@ -13,3 +13,7 @@ web/dist/
 internal/ui/dist/*
 !internal/ui/dist/.keep
 /kratos
+# Yarn 4 state; patches and plugins would be committed.
+**/.yarn/*
+!**/.yarn/patches
+!**/.yarn/plugins
