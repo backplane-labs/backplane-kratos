@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/backplane-labs/backplane/pkg/backplane/event"
@@ -186,7 +187,9 @@ func (f *Flows) enqueueSettings(ctx context.Context, c kratosCtx, identityID, sc
 }
 
 // enqueueSession enqueues flowEvent, the event of a stored session: its id is
-// the session's, so the front and the flow's callback enqueue one message.
+// the session's and its authentication step (the number of methods it holds),
+// so the front and the flow's callback enqueue one message, and a step-up of
+// the same session (a second factor) is an event of its own.
 func (f *Flows) enqueueSession(ctx context.Context, name string, flowEvent FlowEvent) error {
 	payload, err := protojson.Marshal(flowEvent)
 	if err != nil {
@@ -194,7 +197,8 @@ func (f *Flows) enqueueSession(ctx context.Context, name string, flowEvent FlowE
 	}
 
 	return f.box.Enqueue(ctx, outbox.Message{
-		ID: outbox.ID(name + "-" + flowEvent.GetSession().GetId()), Topic: name,
+		ID:           outbox.ID(sessionKey(name, flowEvent.GetSession())),
+		Topic:        name,
 		PartitionKey: flowEvent.GetIdentityId(), Payload: payload, ContentType: contentJSON,
 	})
 }
@@ -224,4 +228,9 @@ func (f *Flows) recordIssued(ctx context.Context, a *answerOf, iss issuance, ses
 
 		return
 	}
+}
+
+// sessionKey names the event name of session at its authentication step.
+func sessionKey(name string, session *kratoseventsv1.Session) string {
+	return name + "-" + session.GetId() + "-" + strconv.Itoa(len(session.GetAuthenticationMethods()))
 }

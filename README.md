@@ -245,7 +245,10 @@ by what it reports, so writing it again is the same message:
   cannot, the change is refused (message `5000002`);
 - **a session issued** (login, registration, recovery, the native token
   exchange): on its way to the client the answer waits until the message is
-  written (id: event and session); when it cannot be, the session is revoked
+  written (id: event, session and its authentication step — the number of
+  methods it holds, so a second factor that steps the same session up to AAL2
+  is a `LoggedIn` of its own with every method and the new AAL); when it
+  cannot be, the session is revoked
   and the client refused — the credential never leaves without its event. A
   session Kratos issues past this service (a browser flow) is written once
   Kratos stored it, from the flow's `after` callback, under the same id;

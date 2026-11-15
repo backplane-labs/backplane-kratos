@@ -1,6 +1,7 @@
 package it_test
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -123,4 +124,102 @@ func waitLong(t *testing.T, what string, cond func() bool) {
 
 		time.Sleep(500 * time.Millisecond)
 	}
+}
+
+// TestStepUpSecurityEvent: a backup code that steps a password session up to
+// AAL2 is a LoggedIn of its own, with both methods and the new AAL.
+func TestStepUpSecurityEvent(t *testing.T) {
+	t.Parallel()
+
+	e := startWith(t, func(s *overlay.Settings) { s.Methods.LookupSecret.Enabled = true }, nil)
+	email := unique("stepup")
+	id := e.newUser(t, email)
+	token := passwordLogin(t, email)
+	auth := http.Header{"X-Session-Token": {token}}
+
+	_, settings := e.callAt(t, http.MethodGet, publicURL+"/self-service/settings/api", nil, auth)
+	settingsURL := fmt.Sprintf("%s/self-service/settings?flow=%v", publicURL, settings["id"])
+
+	status, generated := e.callAt(t, http.MethodPost, settingsURL,
+		map[string]any{"method": "lookup_secret", "lookup_secret_regenerate": true}, auth)
+	codes := lookupCodes(generated)
+
+	if status != http.StatusOK || len(codes) == 0 {
+		t.Fatalf("regenerate: %d %v", status, generated)
+	}
+
+	if confirmed, body := e.callAt(t, http.MethodPost, settingsURL,
+		map[string]any{"method": "lookup_secret", "lookup_secret_confirm": true}, auth); confirmed != http.StatusOK {
+		t.Fatalf("confirm: %d %v", confirmed, body)
+	}
+
+	_, login := e.callAt(t, http.MethodGet, publicURL+"/self-service/login/api?aal=aal2&refresh=true", nil, auth)
+	if stepped, body := e.callAt(t, http.MethodPost, fmt.Sprintf("%s/self-service/login?flow=%v", publicURL, login["id"]),
+		map[string]any{"method": "lookup_secret", "lookup_secret": codes[0]}, auth); stepped != http.StatusOK {
+		t.Fatalf("step-up: %d %v", stepped, body)
+	}
+
+	logins := func() []*kratoseventsv1.FlowEvent {
+		var out []*kratoseventsv1.FlowEvent
+
+		for _, ev := range backplanetest.Events(e.h, e.flows.Event(overlay.FlowLogin)) {
+			if ev.GetIdentityId() == id {
+				out = append(out, ev)
+			}
+		}
+
+		return out
+	}
+
+	waitFor(t, "both LoggedIn published", func() bool { return len(logins()) == 2 })
+
+	// Kratos may list the second factor more than once; the step is one
+	// event all the same (the front and the callback agree on it).
+	first, second := logins()[0], logins()[1]
+	methods := second.GetSession().GetAuthenticationMethods()
+
+	if first.GetSession().GetId() != second.GetSession().GetId() || second.GetSession().GetAal() != "aal2" ||
+		len(methods) < 2 || methods[0].GetMethod() != "password" || methods[len(methods)-1].GetMethod() != "lookup_secret" {
+		t.Fatalf("step-up event %+v", second)
+	}
+
+	time.Sleep(3 * time.Second)
+
+	if n := len(logins()); n != 2 {
+		t.Fatalf("%d LoggedIn events, want 2", n)
+	}
+}
+
+// lookupCodes are the backup codes a lookup_secret_regenerate answer shows.
+func lookupCodes(flow map[string]any) []string {
+	var parsed struct {
+		UI struct {
+			Nodes []struct {
+				Attributes struct {
+					Text struct {
+						Context struct {
+							Secrets []struct {
+								Text string `json:"text"`
+							} `json:"secrets"`
+						} `json:"context"`
+					} `json:"text"`
+				} `json:"attributes"`
+			} `json:"nodes"`
+		} `json:"ui"`
+	}
+
+	raw, err := json.Marshal(flow)
+	if err != nil || json.Unmarshal(raw, &parsed) != nil {
+		return nil
+	}
+
+	var out []string
+
+	for _, n := range parsed.UI.Nodes {
+		for _, secret := range n.Attributes.Text.Context.Secrets {
+			out = append(out, secret.Text)
+		}
+	}
+
+	return out
 }

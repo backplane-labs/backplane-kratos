@@ -135,26 +135,47 @@ func TestSettingsChangeRefusedWhenItsEventCannotBeKept(t *testing.T) {
 	}
 }
 
-// An issued session's event is in the outbox before its credential leaves;
-// one that cannot be written refuses the client and revokes the session.
+// An issued session's event is in the outbox before its credential leaves,
+// one per authentication step (a second factor on the same session is an
+// event of its own); one that cannot be written refuses the client and
+// revokes the session.
 func TestIssuedSessionRecorded(t *testing.T) {
 	t.Parallel()
 
+	stepUp := stored()
+	stepUp.AuthenticatorAssuranceLevel = "aal2"
+	stepUp.AuthenticationMethods = append(stepUp.AuthenticationMethods,
+		ory.AuthenticationMethod{Method: "lookup_secret", AAL: "aal2"})
+
 	tests := []struct {
-		name, kind, event string
-		fail              error
-		wantStatus        int
+		name, kind, event, wantKey string
+		session                    ory.Session
+		fail                       error
+		wantStatus                 int
 	}{
-		{name: "login", kind: "login", event: "LoggedIn", wantStatus: http.StatusOK},
-		{name: "registration", kind: "registration", event: "Registered", wantStatus: http.StatusOK},
-		{name: "not recorded", kind: "login", fail: errors.New("kratos down"), wantStatus: http.StatusServiceUnavailable},
+		{
+			name: "login", kind: "login", event: "LoggedIn", session: stored(), wantKey: "LoggedIn-s-1-1",
+			wantStatus: http.StatusOK,
+		},
+		{
+			name: "step-up", kind: "login", event: "LoggedIn", session: stepUp, wantKey: "LoggedIn-s-1-2",
+			wantStatus: http.StatusOK,
+		},
+		{
+			name: "registration", kind: "registration", event: "Registered", session: stored(),
+			wantKey: "Registered-s-1-1", wantStatus: http.StatusOK,
+		},
+		{
+			name: "not recorded", kind: "login", session: stored(), fail: errors.New("kratos down"),
+			wantStatus: http.StatusServiceUnavailable,
+		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			kratos := &sessions{after: stored()}
+			kratos := &sessions{after: tc.session}
 			b := outboxtest.New()
 			b.Fail(tc.fail)
 			_, f, _ := harnessBox(t, kratos, b)
@@ -180,7 +201,7 @@ func TestIssuedSessionRecorded(t *testing.T) {
 			}
 
 			e := b.Pending()
-			if len(e) != 1 || e[0].Topic != tc.event || e[0].ID != outbox.ID(tc.event+"-s-1") {
+			if len(e) != 1 || e[0].Topic != tc.event || e[0].ID != outbox.ID(tc.wantKey) {
 				t.Fatalf("messages %+v", e)
 			}
 
@@ -189,7 +210,9 @@ func TestIssuedSessionRecorded(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			if ev.GetSession().GetAuthenticationMethods()[0].GetMethod() != "password" ||
+			methods := ev.GetSession().GetAuthenticationMethods()
+			if len(methods) != len(tc.session.AuthenticationMethods) || methods[0].GetMethod() != "password" ||
+				ev.GetSession().GetAal() != tc.session.AuthenticatorAssuranceLevel ||
 				ev.GetTransientPayload().GetFields()["qr"].GetStringValue() != "q-1" {
 				t.Fatalf("event %+v", &ev)
 			}
@@ -220,15 +243,16 @@ func TestStoredSessionRecorded(t *testing.T) {
 	recovery := []ory.AuthenticationMethod{{Method: "code_recovery", AAL: "aal1"}}
 
 	tests := []struct {
-		name, path, fixture, event, want string
-		stored                           []ory.Session
+		name, path, fixture, event, wantKey string
+		stored                              []ory.Session
 	}{
 		{
-			name: "login", path: "/events/login/password", fixture: "after_login.json", event: "LoggedIn", want: "stored",
+			name: "login", path: "/events/login/password", fixture: "after_login.json", event: "LoggedIn", wantKey: "LoggedIn-stored-0",
 			stored: []ory.Session{{ID: "older", AuthenticatedAt: &older}, {ID: "stored", AuthenticatedAt: &authenticated}},
 		},
 		{
-			name: "recovery", path: "/events/recovery/any", fixture: "after_recovery.json", event: "Recovered", want: "recovered",
+			name: "recovery", path: "/events/recovery/any", fixture: "after_recovery.json", event: "Recovered",
+			wantKey: "Recovered-recovered-1",
 			stored: []ory.Session{
 				{ID: "older recovery", AuthenticatedAt: &before, AuthenticationMethods: recovery},
 				{ID: "password", AuthenticatedAt: &after, AuthenticationMethods: []ory.AuthenticationMethod{{Method: "password"}}},
@@ -255,7 +279,7 @@ func TestStoredSessionRecorded(t *testing.T) {
 				e = b.Pending()
 			}
 
-			if len(e) != 1 || e[0].Topic != tc.event || e[0].ID != outbox.ID(tc.event+"-"+tc.want) {
+			if len(e) != 1 || e[0].Topic != tc.event || e[0].ID != outbox.ID(tc.wantKey) {
 				t.Fatalf("entries %+v", e)
 			}
 		})
