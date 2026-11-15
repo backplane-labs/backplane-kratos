@@ -19,11 +19,30 @@ import {
   Textarea,
 } from '@backplane-labs/backplane-ui';
 import { create } from '@bufbuild/protobuf';
-import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 
 /** A JSON value edited in place. */
+export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
+type Obj = { [key: string]: Json };
+
+/** The error value the platform's query and action hooks report. */
+type PlatformError = ReturnType<typeof usePlatformQuery>['error'];
+
+/** The strings of a JSON array value; [] when the value is not a string array. */
+export function stringArray(value: Json | undefined): string[] {
+  return Array.isArray(value) ? value.filter((x): x is string => typeof x === 'string') : [];
+}
+
+/** A JSON object of string values; {} when the value is not one. */
+export function stringRecord(value: Json | undefined): Record<string, string> {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return {};
+  return Object.fromEntries(
+    Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === 'string'),
+  );
+}
+
 /** ActionError shows why an action failed; nothing when it did not. */
-export function ActionError({ error }: { error: unknown }) {
+export function ActionError({ error }: { error: PlatformError }) {
   if (error === undefined) return null;
   return (
     <span role="alert" style={{ color: 'var(--destructive)', fontSize: 12 }}>
@@ -32,10 +51,12 @@ export function ActionError({ error }: { error: unknown }) {
   );
 }
 
-export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
-type Obj = { [key: string]: Json };
-
-const NS: Record<string, number> = { h: 3_600_000_000_000, m: 60_000_000_000, s: 1_000_000_000, ms: 1_000_000 };
+const NS: Record<'h' | 'm' | 's' | 'ms', number> = {
+  h: 3_600_000_000_000,
+  m: 60_000_000_000,
+  s: 1_000_000_000,
+  ms: 1_000_000,
+};
 
 /** Go's duration text of nanoseconds: 3600000000000 -> "1h". */
 export function durationText(ns: number): string {
@@ -43,10 +64,10 @@ export function durationText(ns: number): string {
   let rest = ns,
     out = '';
   for (const unit of ['h', 'm', 's', 'ms'] as const) {
-    const n = Math.floor(rest / NS[unit]!);
+    const n = Math.floor(rest / NS[unit]);
     if (n) {
       out += `${n}${unit}`;
-      rest -= n * NS[unit]!;
+      rest -= n * NS[unit];
     }
   }
   return out || `${ns}ns`;
@@ -58,10 +79,12 @@ export function parseDuration(text: string): number | undefined {
   if (t === '0' || t === '0s') return 0;
   const re = /(\d+)(ms|h|m|s)/gy;
   let total = 0,
-    m: RegExpExecArray | null,
     at = 0;
-  while ((m = re.exec(t))) {
-    total += Number(m[1]) * NS[m[2]!]!;
+  for (let m = re.exec(t); m !== null; m = re.exec(t)) {
+    const unit = m[2];
+    const step = unit === 'h' || unit === 'm' || unit === 's' || unit === 'ms' ? NS[unit] : undefined;
+    if (step === undefined) return undefined;
+    total += Number(m[1]) * step;
     at = re.lastIndex;
   }
   return at === t.length && at > 0 ? total : undefined;
@@ -71,7 +94,7 @@ export function getIn(obj: Json, path: string): Json | undefined {
   let cur: Json | undefined = obj;
   for (const key of path.split('.')) {
     if (cur === null || typeof cur !== 'object' || Array.isArray(cur)) return undefined;
-    cur = (cur as Obj)[key];
+    cur = cur[key];
   }
   return cur;
 }
@@ -80,11 +103,11 @@ export function setIn(obj: Json, path: string, value: Json | undefined): Json {
   const [head, ...rest] = path.split('.');
   const base: Obj = obj !== null && typeof obj === 'object' && !Array.isArray(obj) ? { ...obj } : {};
   if (!rest.length) {
-    if (value === undefined) delete base[head!];
-    else base[head!] = value;
+    if (value === undefined) delete base[head];
+    else base[head] = value;
     return base;
   }
-  base[head!] = setIn(base[head!] ?? {}, rest.join('.'), value);
+  base[head] = setIn(base[head] ?? {}, rest.join('.'), value);
   return base;
 }
 
@@ -107,7 +130,7 @@ export function useLiveConfig(service: string, durations: Record<string, readonl
     for (const live of instance?.live ?? [])
       if (live.value) {
         try {
-          out[live.path] = JSON.parse(live.value) as Json;
+          out[live.path] = JSON.parse(live.value);
         } catch {
           /* not JSON */
         }
@@ -303,9 +326,13 @@ export function Duration({
   const raw = cfg.get(path, field),
     v = typeof raw === 'string' ? parseDuration(raw) : typeof raw === 'number' ? raw : undefined;
   const [text, setText] = useState(v !== undefined ? durationText(v) : '');
+  // Resync the text only when the external value moves, never while typing.
+  const synced = useRef(v);
   useEffect(() => {
+    if (synced.current === v) return;
+    synced.current = v;
     if (v !== undefined && parseDuration(text) !== v) setText(durationText(v));
-  }, [v]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [v, text]);
   const bad = text !== '' && parseDuration(text) === undefined;
   return (
     <Row label={label} hint={hint}>
@@ -382,7 +409,11 @@ export function Lines({
   const v = cfg.get(path, field),
     list = Array.isArray(v) ? v.map(String) : [];
   const [text, setText] = useState(list.join('\n'));
+  // Resync the text only when the external value moves, never while typing.
+  const synced = useRef(v);
   useEffect(() => {
+    if (synced.current === v) return;
+    synced.current = v;
     if (
       text
         .split('\n')
@@ -391,7 +422,7 @@ export function Lines({
         .join('\n') !== list.join('\n')
     )
       setText(list.join('\n'));
-  }, [v]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [v, text, list]);
   return (
     <Row label={label} hint={hint}>
       <Textarea
@@ -465,8 +496,8 @@ export function SaveBar({
         </Stack>
         {violations && violations.length > 0 && (
           <ul role="alert" style={{ margin: 0, paddingLeft: 18, color: 'var(--destructive)', fontSize: 12 }}>
-            {violations.map((v, i) => (
-              <li key={i}>
+            {violations.map((v) => (
+              <li key={`${v.path}|${v.message}`}>
                 <code>{v.path || '—'}</code> {v.message}
                 {v.instance && <span style={muted}> ({v.instance})</span>}
               </li>

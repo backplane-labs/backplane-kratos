@@ -21,15 +21,13 @@ import '@fontsource/ibm-plex-mono/400.css';
 import './standalone.css';
 
 const i18n = i18next.createInstance();
-await i18n
-  .use(initReactI18next)
-  .init({
-    lng: 'en',
-    fallbackLng: 'en',
-    supportedLngs: ['en'],
-    interpolation: { escapeValue: false },
-    resources: { en: { 'backplane.ui': englishResources } },
-  });
+await i18n.use(initReactI18next).init({
+  lng: 'en',
+  fallbackLng: 'en',
+  supportedLngs: ['en'],
+  interpolation: { escapeValue: false },
+  resources: { en: { 'backplane.ui': englishResources } },
+});
 installPluginTranslations(i18n, navigation);
 function Standalone() {
   const { t } = useTranslation('module.kratos');
@@ -68,7 +66,9 @@ function Standalone() {
     </ThemeContext.Provider>
   );
 }
-createRoot(document.getElementById('root')!).render(
+const root = document.getElementById('root');
+if (!root) throw new Error('standalone: #root element not found');
+createRoot(root).render(
   <I18nextProvider i18n={i18n}>
     <BrowserRouter>
       <Standalone />

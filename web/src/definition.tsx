@@ -62,7 +62,7 @@ import {
 import { AdminServiceClient } from './gen/proto/kratos/console/v1/admin_ws_pb';
 import navigation from './navigation';
 import { Settings } from './settings';
-import { ActionError } from './settings-kit';
+import { ActionError, getIn, type Json } from './settings-kit';
 
 const mono = { fontFamily: 'var(--font-mono)' } as const;
 const muted = { color: 'var(--muted-foreground)', fontSize: 12 } as const;
@@ -81,7 +81,10 @@ function Loading() {
   );
 }
 
-function Failure({ error }: { error: unknown }) {
+/** The error value the platform's query and action hooks report. */
+type PlatformError = ReturnType<typeof usePlatformQuery>['error'];
+
+function Failure({ error }: { error: PlatformError }) {
   const t = useText();
   return (
     <EmptyState role="alert" title={t('error')} description={error instanceof Error ? error.message : String(error)} />
@@ -290,24 +293,21 @@ function Overview() {
 /** Keys and required keys of a schema's traits. */
 function traitsOf(schema?: Schema): { keys: string[]; required: string[]; scaffold: string } {
   try {
-    const doc = JSON.parse(schema?.schemaJson ?? '{}') as {
-      properties?: { traits?: { properties?: Record<string, { type?: string }>; required?: string[] } };
-    };
-    const props = doc.properties?.traits?.properties ?? {},
-      required = doc.properties?.traits?.required ?? [];
+    const doc: Json = JSON.parse(schema?.schemaJson ?? '{}');
+    const rawProps = getIn(doc, 'properties.traits.properties');
+    const props = rawProps !== null && typeof rawProps === 'object' && !Array.isArray(rawProps) ? rawProps : {};
+    const rawRequired = getIn(doc, 'properties.traits.required');
+    const required = Array.isArray(rawRequired) ? rawRequired.filter((x): x is string => typeof x === 'string') : [];
     const scaffold = Object.fromEntries(
       Object.entries(props)
         .filter(([k]) => required.includes(k) || Object.keys(props).length <= 4)
-        .map(([k, v]) => [
-          k,
-          v.type === 'object'
-            ? {}
-            : v.type === 'boolean'
-              ? false
-              : v.type === 'number' || v.type === 'integer'
-                ? 0
-                : '',
-        ]),
+        .map(([k, v]) => {
+          const type = v !== null && typeof v === 'object' && !Array.isArray(v) ? v.type : undefined;
+          return [
+            k,
+            type === 'object' ? {} : type === 'boolean' ? false : type === 'number' || type === 'integer' ? 0 : '',
+          ];
+        }),
     );
     return { keys: Object.keys(props), required, scaffold: JSON.stringify(scaffold, null, 2) };
   } catch {
@@ -345,6 +345,36 @@ function TraitsEditor({
   const t = useText(),
     { mode } = usePluginContext(),
     traits = useMemo(() => traitsOf(schema), [schema]);
+  const diagnostics = (text: string): EditorDiagnostic[] => {
+    const out: EditorDiagnostic[] = [];
+    let parsed: Json;
+    try {
+      parsed = JSON.parse(text || '{}');
+    } catch (e) {
+      return [{ from: 0, to: text.length, severity: 'error', message: e instanceof Error ? e.message : String(e) }];
+    }
+    if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed))
+      return [{ from: 0, to: text.length, severity: 'error', message: t('traitsObject') }];
+    for (const key of traits.required)
+      if (!(key in parsed))
+        out.push({
+          from: 0,
+          to: Math.min(1, text.length),
+          severity: 'error',
+          message: t('traitsMissing', { key }),
+        });
+    for (const key of Object.keys(parsed))
+      if (traits.keys.length && !traits.keys.includes(key)) {
+        const at = text.indexOf(`"${key}"`);
+        out.push({
+          from: Math.max(0, at),
+          to: Math.max(0, at) + key.length + 2,
+          severity: 'warning',
+          message: t('traitsUnknown', { key }),
+        });
+      }
+    return out;
+  };
   return (
     <CodeEditor
       label={label}
@@ -354,46 +384,20 @@ function TraitsEditor({
       mode={mode}
       height={120}
       readOnly={readOnly}
-      complete={async ({ value: text, position }) => {
+      complete={({ value: text, position }) => {
         const before = text.slice(0, position),
           quote = before.lastIndexOf('"');
-        if (quote < 0 || (/[:,]\s*"[^"]*$/.test(before) === false && !/[{,]\s*"[^"]*$/.test(before))) return null;
-        return traits.keys.map((key) => ({
-          label: key,
-          apply: key,
-          detail: traits.required.includes(key) ? t('required') : undefined,
-        }));
+        if (quote < 0 || (/[:,]\s*"[^"]*$/.test(before) === false && !/[{,]\s*"[^"]*$/.test(before)))
+          return Promise.resolve(null);
+        return Promise.resolve(
+          traits.keys.map((key) => ({
+            label: key,
+            apply: key,
+            detail: traits.required.includes(key) ? t('required') : undefined,
+          })),
+        );
       }}
-      validate={async (text) => {
-        const out: EditorDiagnostic[] = [];
-        let parsed: unknown;
-        try {
-          parsed = JSON.parse(text || '{}');
-        } catch (e) {
-          return [{ from: 0, to: text.length, severity: 'error', message: e instanceof Error ? e.message : String(e) }];
-        }
-        if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed))
-          return [{ from: 0, to: text.length, severity: 'error', message: t('traitsObject') }];
-        for (const key of traits.required)
-          if (!(key in parsed))
-            out.push({
-              from: 0,
-              to: Math.min(1, text.length),
-              severity: 'error',
-              message: t('traitsMissing', { key }),
-            });
-        for (const key of Object.keys(parsed))
-          if (traits.keys.length && !traits.keys.includes(key)) {
-            const at = text.indexOf(`"${key}"`);
-            out.push({
-              from: Math.max(0, at),
-              to: Math.max(0, at) + key.length + 2,
-              severity: 'warning',
-              message: t('traitsUnknown', { key }),
-            });
-          }
-        return out;
-      }}
+      validate={(text) => Promise.resolve(diagnostics(text))}
     />
   );
 }
@@ -920,8 +924,11 @@ function CreateIdentity({ onClose, onCreated }: { onClose: () => void; onCreated
         <Loading />
       ) : (
         <Stack gap={12}>
-          <label style={muted}>{t('schema')}</label>
+          <label htmlFor="create-identity-schema" style={muted}>
+            {t('schema')}
+          </label>
           <NativeSelect
+            id="create-identity-schema"
             aria-label={t('schema')}
             value={schemaId}
             onChange={(e) => {
@@ -1327,8 +1334,8 @@ function MessageCard({ message, onClose }: { message: Message; onClose: () => vo
           ) : (
             <Table>
               <TableBody>
-                {m.dispatches.map((d, i) => (
-                  <TableRow key={i}>
+                {m.dispatches.map((d) => (
+                  <TableRow key={`${d.createdAt?.seconds ?? ''}:${d.status}:${d.error ?? ''}`}>
                     <TableCell>
                       <Timestamp value={date(d.createdAt)} absolute />
                     </TableCell>
@@ -1408,6 +1415,15 @@ function Import() {
     { mode } = usePluginContext();
   const [json, setJson] = useState(importScaffold),
     run = usePlatformAction<ImportResult[]>();
+  const diagnostics = (text: string): readonly EditorDiagnostic[] => {
+    let parsed: Json;
+    try {
+      parsed = JSON.parse(text);
+    } catch (e) {
+      return [{ from: 0, to: text.length, severity: 'error', message: e instanceof Error ? e.message : String(e) }];
+    }
+    return Array.isArray(parsed) ? [] : [{ from: 0, to: text.length, severity: 'error', message: t('importArray') }];
+  };
   return (
     <Stack gap={16}>
       <ConnectionNotice />
@@ -1443,18 +1459,7 @@ function Import() {
           language="json"
           mode={mode}
           height={360}
-          validate={async (text) => {
-            try {
-              const v = JSON.parse(text);
-              return Array.isArray(v)
-                ? []
-                : [{ from: 0, to: text.length, severity: 'error', message: t('importArray') }];
-            } catch (e) {
-              return [
-                { from: 0, to: text.length, severity: 'error', message: e instanceof Error ? e.message : String(e) },
-              ];
-            }
-          }}
+          validate={(text) => Promise.resolve(diagnostics(text))}
         />
       </Panel>
       {run.value && (
@@ -1462,7 +1467,7 @@ function Import() {
           <Table>
             <TableBody>
               {run.value.map((r, i) => (
-                <TableRow key={i}>
+                <TableRow key={`${r.action}:${r.identityId}:${r.error ?? ''}`}>
                   <TableCell>{i + 1}</TableCell>
                   <TableCell>
                     {r.action === 'create' ? (

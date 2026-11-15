@@ -1,11 +1,6 @@
 import { BindingServiceClient, SaveBindingRequestSchema } from '@backplane-labs/backplane-api';
 import { CodeEditor } from '@backplane-labs/backplane-editors';
-import {
-  ConnectionNotice,
-  parseDraft,
-  usePlatformAction,
-  usePlatformQuery,
-} from '@backplane-labs/backplane-platform-ui';
+import { ConnectionNotice, parseDraft, usePlatformQuery } from '@backplane-labs/backplane-platform-ui';
 import { usePluginContext } from '@backplane-labs/backplane-plugin-sdk';
 import { useClient } from '@backplane-labs/backplane-react';
 import {
@@ -40,7 +35,7 @@ import {
   type TryFlowResponse,
 } from './gen/proto/kratos/console/v1/admin_pb';
 import { AdminServiceClient } from './gen/proto/kratos/console/v1/admin_ws_pb';
-import { Choice, Duration, type LiveConfig, SaveBar, Text, Toggle, useLiveConfig } from './settings-kit';
+import { Choice, Duration, type LiveConfig, SaveBar, stringArray, Text, Toggle, useLiveConfig } from './settings-kit';
 
 const S = 'settings';
 const mono = { fontFamily: 'var(--font-mono)' } as const;
@@ -64,7 +59,7 @@ function useText() {
 /** The console's Wiring page, next to this module's route. */
 export function wiringHref() {
   const at = window.location.pathname.indexOf('/s/');
-  return (at >= 0 ? window.location.pathname.slice(0, at) : '') + '/wiring';
+  return `${at >= 0 ? window.location.pathname.slice(0, at) : ''}/wiring`;
 }
 
 /**
@@ -161,9 +156,9 @@ function Findings({ findings }: { findings: Finding[] }) {
   if (!findings.length) return null;
   return (
     <Stack gap={6}>
-      {findings.map((f, i) => (
+      {findings.map((f) => (
         <div
-          key={i}
+          key={`${f.level}|${f.text}|${f.field ?? ''}`}
           role={f.level === 'error' ? 'alert' : 'status'}
           style={{ display: 'flex', gap: 8, alignItems: 'baseline', fontSize: 13 }}
         >
@@ -201,7 +196,7 @@ export function Flows() {
     if (cfg.revision === undefined) return undefined;
     const id = setTimeout(refresh, 2000);
     return () => clearTimeout(id);
-  }, [cfg.revision]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [cfg.revision, refresh]);
   const labels = {
     comment: t('changeComment'),
     validate: t('validate'),
@@ -359,7 +354,7 @@ function Card({ card, cfg, onTry }: { card: FlowCard; cfg: LiveConfig; onTry: ()
 
 function HookRow({ hook, cfg }: { hook: FlowHook; cfg: LiveConfig }) {
   const t = useText();
-  const open = (cfg.get('fail_open') as string[] | null | undefined) ?? [];
+  const open = stringArray(cfg.get('fail_open'));
   const checked = open.includes(hook.name);
   return (
     <TableRow>
@@ -447,8 +442,8 @@ function TryDrawer({ flow, onClose }: { flow: string; onClose: () => void }) {
         <EmptyState role="alert" title={t('tryFailed')} description={v.error} />
       ) : (
         <Stack gap={12}>
-          {v.messages.map((m, i) => (
-            <p key={i} style={{ margin: 0 }}>
+          {v.messages.map((m) => (
+            <p key={m} style={{ margin: 0 }}>
               <StatusBadge tone="info">{m}</StatusBadge>
             </p>
           ))}
@@ -475,8 +470,8 @@ function TryDrawer({ flow, onClose }: { flow: string; onClose: () => void }) {
                 <TableBody>
                   {v.nodes
                     .filter((n) => n.group === g)
-                    .map((n, i) => (
-                      <TableRow key={i}>
+                    .map((n) => (
+                      <TableRow key={n.name}>
                         <TableCell>{field(n)}</TableCell>
                         <TableCell style={muted}>
                           {n.type}

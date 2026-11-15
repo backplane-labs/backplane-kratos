@@ -1,4 +1,4 @@
-import { CodeEditor } from '@backplane-labs/backplane-editors';
+import { CodeEditor, type EditorDiagnostic } from '@backplane-labs/backplane-editors';
 import { ConnectionNotice, usePlatformAction, usePlatformQuery } from '@backplane-labs/backplane-platform-ui';
 import { usePluginContext } from '@backplane-labs/backplane-plugin-sdk';
 import { useClient } from '@backplane-labs/backplane-react';
@@ -30,6 +30,8 @@ import {
   NumberField,
   Row,
   SaveBar,
+  stringArray,
+  stringRecord,
   Text,
   Toggle,
   useLiveConfig,
@@ -77,7 +79,23 @@ type Provider = {
   scope?: string[];
   mapper?: string;
   extra?: Record<string, string>;
+  /** Unknown provider fields (Kratos's own `config` block) ride along untouched. */
+  [key: string]: Json | undefined;
 };
+
+/** A provider read out of the draft's JSON value, keeping fields this UI never names. */
+function toProvider(value: Json): Provider | undefined {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const provider: Provider = {};
+  for (const [key, field] of Object.entries(value)) if (field !== undefined) provider[key] = field;
+  return provider;
+}
+
+function providerJson(provider: Provider): Json {
+  const out: { [key: string]: Json } = {};
+  for (const [key, value] of Object.entries(provider)) if (value !== undefined) out[key] = value;
+  return out;
+}
 
 const mapperScaffold = `local claims = std.extVar('claims');
 {
@@ -201,11 +219,12 @@ function Methods({ cfg }: { cfg: LiveConfig }) {
 function Oidc({ cfg }: { cfg: LiveConfig }) {
   const t = useText(),
     { mode } = usePluginContext();
-  const list = (cfg.get(S, 'methods.oidc.providers') as Provider[] | undefined) ?? [];
-  const secrets = (cfg.get('oidc_secrets') as Record<string, string> | undefined) ?? {};
+  const rawList = cfg.get(S, 'methods.oidc.providers');
+  const list = Array.isArray(rawList) ? rawList.map(toProvider).filter((p): p is Provider => p !== undefined) : [];
+  const secrets = stringRecord(cfg.get('oidc_secrets'));
   const [entered, setEntered] = useState<Record<string, string>>({});
   const update = (i: number, p: Provider) =>
-    cfg.set(S, 'methods.oidc.providers', list.map((x, j) => (j === i ? p : x)) as unknown as Json);
+    cfg.set(S, 'methods.oidc.providers', list.map((x, j) => (j === i ? p : x)).map(providerJson));
   const ids = list.map((p) => p.id ?? '').filter(Boolean);
   const complete = ids.every((id) => entered[id]);
   return (
@@ -213,13 +232,13 @@ function Oidc({ cfg }: { cfg: LiveConfig }) {
       <Toggle cfg={cfg} path={S} field="methods.oidc.enabled" label={t('oidcEnabled')} />
       {list.map((p, i) => (
         <Panel
-          key={i}
+          key={p.id ?? `${p.provider ?? ''}:${p.label ?? ''}:${p.client_id ?? ''}`}
           title={p.label || p.id || t('newProvider')}
           actions={
             <Button
               size="sm"
               variant="ghost"
-              onClick={() => cfg.set(S, 'methods.oidc.providers', list.filter((_, j) => j !== i) as unknown as Json)}
+              onClick={() => cfg.set(S, 'methods.oidc.providers', list.filter((_, j) => j !== i).map(providerJson))}
             >
               {t('remove')}
             </Button>
@@ -298,9 +317,9 @@ function Oidc({ cfg }: { cfg: LiveConfig }) {
           variant="outline"
           onClick={() =>
             cfg.set(S, 'methods.oidc.providers', [
-              ...list,
+              ...list.map(providerJson),
               { provider: 'generic', scope: ['openid', 'email'], mapper: mapperScaffold },
-            ] as unknown as Json)
+            ])
           }
         >
           {t('addProvider')}
@@ -323,7 +342,7 @@ function Oidc({ cfg }: { cfg: LiveConfig }) {
               variant="outline"
               disabled={!complete}
               onClick={() =>
-                cfg.set('oidc_secrets', undefined, Object.fromEntries(ids.map((id) => [id, entered[id]!])))
+                cfg.set('oidc_secrets', undefined, Object.fromEntries(ids.map((id) => [id, entered[id] ?? ''])))
               }
             >
               {t('stageSecrets')}
@@ -393,11 +412,19 @@ function Sessions({ cfg }: { cfg: LiveConfig }) {
 type Jwk = { kid?: string; kty?: string; crv?: string; alg?: string; x?: string; y?: string };
 
 const jwkOf = (raw: string): Jwk => {
+  let parsed: Json;
   try {
-    return JSON.parse(raw) as Jwk;
+    parsed = JSON.parse(raw);
   } catch {
     return {};
   }
+  if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
+  const jwk: Jwk = {};
+  for (const key of ['kid', 'kty', 'crv', 'alg', 'x', 'y'] as const) {
+    const value = parsed[key];
+    if (typeof value === 'string') jwk[key] = value;
+  }
+  return jwk;
 };
 
 /** A new ES256 signing key: the private JWK for token_key, the public one for tokens.keys. */
@@ -418,9 +445,10 @@ function Tokens({ cfg }: { cfg: LiveConfig }) {
     client.getStatus(create(GetStatusRequestSchema), { signal }),
   );
   const tokens = status.value?.tokens;
-  const keys = (cfg.get(S, 'tokens.keys') as string[] | null | undefined) ?? [];
+  const keys = stringArray(cfg.get(S, 'tokens.keys'));
   const keySet = Boolean(cfg.get('token_key'));
-  const claims = (cfg.get(S, 'tokens.claims') as string | null | undefined) ?? '';
+  const rawClaims = cfg.get(S, 'tokens.claims');
+  const claims = typeof rawClaims === 'string' ? rawClaims : '';
   const defaults = tokens?.defaultClaims ?? '';
   const generate = usePlatformAction<string>();
   const rotate = () =>
@@ -558,10 +586,20 @@ const schemaScaffold = JSON.stringify(
   2,
 );
 
+/** The JSON syntax errors of a schema text; [] when it parses. */
+const schemaDiagnostics = (text: string): readonly EditorDiagnostic[] => {
+  try {
+    JSON.parse(text);
+    return [];
+  } catch (e) {
+    return [{ from: 0, to: text.length, severity: 'error', message: e instanceof Error ? e.message : String(e) }];
+  }
+};
+
 function Schemas({ cfg }: { cfg: LiveConfig }) {
   const t = useText(),
     { mode } = usePluginContext();
-  const schemas = (cfg.get(S, 'identity.schemas') as Record<string, string> | undefined) ?? {};
+  const schemas = stringRecord(cfg.get(S, 'identity.schemas'));
   const [name, setName] = useState('');
   const ids = Object.keys(schemas).sort();
   const put = (next: Record<string, string>) =>
@@ -596,16 +634,7 @@ function Schemas({ cfg }: { cfg: LiveConfig }) {
             language="json"
             mode={mode}
             height={260}
-            validate={async (text) => {
-              try {
-                JSON.parse(text);
-                return [];
-              } catch (e) {
-                return [
-                  { from: 0, to: text.length, severity: 'error', message: e instanceof Error ? e.message : String(e) },
-                ];
-              }
-            }}
+            validate={(text) => Promise.resolve(schemaDiagnostics(text))}
           />
         </Panel>
       ))}
@@ -636,7 +665,7 @@ function Schemas({ cfg }: { cfg: LiveConfig }) {
 
 function Hydra({ cfg }: { cfg: LiveConfig }) {
   const t = useText();
-  const headers = (cfg.get('oauth2_provider_headers') as Record<string, string> | undefined) ?? {};
+  const headers = stringRecord(cfg.get('oauth2_provider_headers'));
   const [header, setHeader] = useState('Authorization'),
     [value, setValue] = useState('');
   return (

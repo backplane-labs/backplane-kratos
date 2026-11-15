@@ -1,4 +1,4 @@
-export default {
+export const english = {
   overview: 'Overview',
   identities: 'Identities',
   importNav: 'Import',
