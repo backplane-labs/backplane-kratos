@@ -1,8 +1,8 @@
-# Local development: the Kratos of `make it-up` (34433/34434), the overlay
+# Local development: the Kratos of `make it-up` (24433/24434), the overlay
 # it loads, the local Backplane stack (`make run`).
 kratos:
-  admin_url: http://127.0.0.1:34434
-  public_url: http://127.0.0.1:34433
+  admin_url: http://127.0.0.1:24434
+  public_url: http://127.0.0.1:24433
 callbacks:
   listen: ":8090"
   url: http://127.0.0.1:8090

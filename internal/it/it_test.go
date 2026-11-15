@@ -40,10 +40,12 @@ import (
 )
 
 const (
-	adminURL  = "http://127.0.0.1:34434"
-	publicURL = "http://127.0.0.1:34433"
+	adminURL  = "http://127.0.0.1:24434"
+	publicURL = "http://127.0.0.1:24433"
 	// frontAddr is the TLS front every test serves (Kratos's base_url).
-	frontAddr = "127.0.0.1:34435"
+	// The ports sit below Linux's ephemeral range (32768-60999), so an
+	// outgoing connection never holds one when a test binds it.
+	frontAddr = "127.0.0.1:24435"
 	frontURL  = "https://" + frontAddr
 	key       = "it-callback-key-5f2c9a"
 	password  = "Very-Long-Pass-123!x"

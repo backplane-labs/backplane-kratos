@@ -25,7 +25,7 @@ const nativeCallback = "ru.komeet://auth/callback"
 
 // oidcIssuer is the test OIDC provider (make it-up): issuer default signs
 // in a new subject every time, returning always the same one.
-const oidcIssuer = "http://127.0.0.1:34480/"
+const oidcIssuer = "http://127.0.0.1:24480/"
 
 // oidcMapper makes the subject an email address.
 const oidcMapper = `local claims = std.extVar('claims');

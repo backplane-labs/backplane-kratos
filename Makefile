@@ -172,13 +172,13 @@ IT_DIR       ?= /tmp/backplane-kratos-it
 it-up: ## Start the Kratos and the OIDC provider of the integration tests (docker, host network)
 	mkdir -p "$(IT_DIR)" && echo '{}' > "$(IT_DIR)/overlay.yml" && chmod 0777 "$(IT_DIR)"
 	docker rm -f backplane-kratos-it backplane-kratos-it-oidc >/dev/null 2>&1 || true
-	docker run -d --name backplane-kratos-it-oidc --network host -e SERVER_PORT=34480 \
+	docker run -d --name backplane-kratos-it-oidc --network host -e SERVER_PORT=24480 \
 	  -e JSON_CONFIG="$$(cat internal/it/testdata/mock-oidc.json)" $(OIDC_IMAGE)
 	docker run -d --name backplane-kratos-it --network host \
 	  -v "$(CURDIR)/internal/it/testdata:/etc/kratos:ro" -v "$(IT_DIR):/etc/backplane" \
 	  $(KRATOS_IMAGE) serve -c /etc/kratos/kratos.yml -c /etc/backplane/overlay.yml --watch-courier
-	for i in $$(seq 1 60); do curl -sf http://127.0.0.1:34434/health/ready >/dev/null && \
-	  curl -sf http://127.0.0.1:34480/default/.well-known/openid-configuration >/dev/null && exit 0; sleep 1; done; \
+	for i in $$(seq 1 60); do curl -sf http://127.0.0.1:24434/health/ready >/dev/null && \
+	  curl -sf http://127.0.0.1:24480/default/.well-known/openid-configuration >/dev/null && exit 0; sleep 1; done; \
 	  docker logs backplane-kratos-it; docker logs backplane-kratos-it-oidc; exit 1
 
 .PHONY: it-down
