@@ -181,9 +181,6 @@ const (
 	// recheck is how soon a message is tried again while its change is not
 	// in Kratos yet.
 	recheck = 2 * time.Second
-	// skew is the clock difference allowed between PostgreSQL (the
-	// message's time) and Kratos (the change's).
-	skew = 5 * time.Second
 )
 
 var (
@@ -193,12 +190,12 @@ var (
 	ErrNeverStored = errors.New("outbox: the change was never stored in Kratos")
 )
 
-// Happened decides a message from when Kratos last changed what it reports
-// (changedAt, zero when it never did): published when the change is at or
-// after the message, else tried again while it is young and discarded once
-// it is old — a change that was never stored.
-func Happened(m Message, changedAt, now time.Time) error {
-	if !changedAt.IsZero() && !changedAt.Before(m.CreatedAt.Add(-skew)) {
+// Happened decides a message from whether Kratos holds the change it
+// reports (read by its publisher from Kratos's own versions, never from
+// clocks): published when it does, else tried again while the message is
+// young and discarded once it is old — a change that was never stored.
+func Happened(m Message, happened bool, now time.Time) error {
+	if happened {
 		return nil
 	}
 

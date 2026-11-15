@@ -31,22 +31,22 @@ func TestHappened(t *testing.T) {
 	m := outbox.Message{CreatedAt: created}
 
 	tests := []struct {
-		name           string
-		changedAt, now time.Time
-		want           string // published, retry, discard
+		name     string
+		happened bool
+		now      time.Time
+		want     string // published, retry, discard
 	}{
-		{name: "changed after", changedAt: created.Add(time.Second), now: created, want: "published"},
-		{name: "within the skew", changedAt: created.Add(-3 * time.Second), now: created, want: "published"},
-		{name: "not yet, young", changedAt: created.Add(-time.Hour), now: created.Add(time.Second), want: "retry"},
-		{name: "never, old", changedAt: created.Add(-time.Hour), now: created.Add(time.Hour), want: "discard"},
-		{name: "no change at all", now: created.Add(time.Hour), want: "discard"},
+		{name: "happened", happened: true, now: created, want: "published"},
+		{name: "happened, old", happened: true, now: created.Add(time.Hour), want: "published"},
+		{name: "not yet, young", now: created.Add(time.Second), want: "retry"},
+		{name: "never, old", now: created.Add(time.Hour), want: "discard"},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			err := outbox.Happened(m, tc.changedAt, tc.now)
+			err := outbox.Happened(m, tc.happened, tc.now)
 
 			var (
 				retry   *pgoutbox.RetryAfterError

@@ -35,9 +35,12 @@ func address(via, value string) ory.VerifiableAddress {
 func TestSettingsChangedStaged(t *testing.T) {
 	t.Parallel()
 
+	// The identity changed a moment ago (the login): a recent updated_at is
+	// not this change.
+	signedIn := time.Now()
 	kratos := &sessions{}
 	kratos.setIdentity(ory.Identity{
-		ID: settingsIdentity, MetadataAdmin: json.RawMessage(`{"crm":7}`),
+		ID: settingsIdentity, MetadataAdmin: json.RawMessage(`{"crm":7}`), UpdatedAt: &signedIn,
 		Credentials: map[string]ory.Credentials{
 			"password": credential("password", `{"hashed_password":"h1"}`, "old@example.com"),
 			"oidc":     credential("oidc", `{"providers":[]}`, "google:1"),
@@ -58,9 +61,17 @@ func TestSettingsChangedStaged(t *testing.T) {
 		t.Fatalf("enqueued %+v", e)
 	}
 
+	if err := b.Publish(t.Context()); !errors.Is(err, outbox.ErrNotYet) {
+		t.Fatalf("publish before the change is stored: %v", err)
+	}
+
+	if got := backplanetest.Events(h, f.Event("settings")); len(got) != 0 || len(b.Pending()) != 1 {
+		t.Fatalf("published before Kratos stored the change: %+v", got)
+	}
+
 	// Kratos stored the change: a new password, TOTP on, Google unlinked,
 	// GitHub linked, the email changed.
-	stored := time.Now()
+	stored := signedIn.Add(time.Millisecond)
 	after := ory.Identity{
 		ID: settingsIdentity, SchemaID: "default", Traits: json.RawMessage(`{"email":"new@example.com"}`),
 		UpdatedAt: &stored,

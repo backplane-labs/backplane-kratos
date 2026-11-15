@@ -253,8 +253,8 @@ by what it reports, so writing it again is the same message:
   [Corporate directories](#corporate-directories-scim-and-back-channel-logout).
 
 Before it publishes, a message checks in Kratos that the change happened: a
-settings message waits until the identity changed at or after it (5s clock
-skew allowed), retried every 2s, and is discarded after 2 minutes — a change
+settings message waits until the identity's `updated_at` moved past the one
+it had when the change began, retried every 2s, and is discarded after 2 minutes — a change
 Kratos never stored is never announced. A broker that is down delays the
 messages, it does not lose them or stop anyone; any replica relays the
 messages another left. A consumer dedupes by the event id: the outbox

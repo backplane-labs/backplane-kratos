@@ -160,7 +160,7 @@ func (e *Directories) publishDeleted(ctx context.Context, m outbox.Message) erro
 
 	switch {
 	case err == nil:
-		return outbox.Happened(m, time.Time{}, time.Now())
+		return outbox.Happened(m, false, time.Now())
 	case !ory.IsNotFound(err):
 		return fmt.Errorf("scim: read identity: %w", err)
 	}

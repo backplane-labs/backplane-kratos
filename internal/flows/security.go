@@ -27,12 +27,15 @@ type Outbox interface {
 }
 
 // settingsEntry is a pending SettingsChanged: the event as it is known
-// before the change, and the credentials and addresses it is compared with
-// once Kratos stored it.
+// before the change, and the identity's version, credentials and addresses
+// it is compared with once Kratos stored it.
 type settingsEntry struct {
-	Event       json.RawMessage `json:"event"`
-	Credentials credentials     `json:"credentials"`
-	Addresses   []address       `json:"addresses"`
+	Event json.RawMessage `json:"event"`
+	// Version is the identity's updated_at before the change: Kratos
+	// stored the change once its updated_at moved past it.
+	Version     time.Time   `json:"version"`
+	Credentials credentials `json:"credentials"`
+	Addresses   []address   `json:"addresses"`
 }
 
 // RecordMessage is shown when a change is refused because its security
@@ -65,9 +68,9 @@ func wrapPublish(err error) error {
 }
 
 // publishSettings publishes a SettingsChanged once Kratos stored its change
-// (the identity changed at or after the message; one it never stored is
-// discarded), completed with what the change did: the credentials and
-// addresses now against the ones before.
+// (the identity's updated_at moved past the one before it; one it never
+// stored is discarded), completed with what the change did: the credentials
+// and addresses now against the ones before.
 func (f *Flows) publishSettings(ctx context.Context, m outbox.Message) error {
 	var entry settingsEntry
 	if err := json.Unmarshal(m.Payload, &entry); err != nil {
@@ -84,12 +87,8 @@ func (f *Flows) publishSettings(ctx context.Context, m outbox.Message) error {
 		return fmt.Errorf("flows: read identity: %w", err)
 	}
 
-	var changedAt time.Time
-	if now.UpdatedAt != nil {
-		changedAt = *now.UpdatedAt
-	}
-
-	if err := outbox.Happened(m, changedAt, time.Now()); err != nil {
+	stored := now.UpdatedAt != nil && now.UpdatedAt.After(entry.Version)
+	if err := outbox.Happened(m, stored, time.Now()); err != nil {
 		return err
 	}
 
@@ -170,7 +169,12 @@ func (f *Flows) enqueueSettings(ctx context.Context, c kratosCtx, identityID, sc
 		return fmt.Errorf("flows: settings event: %w", err)
 	}
 
-	payload, err := json.Marshal(settingsEntry{Event: raw, Credentials: credentialsOf(cur), Addresses: addressesOf(cur)})
+	entry := settingsEntry{Event: raw, Credentials: credentialsOf(cur), Addresses: addressesOf(cur)}
+	if cur.UpdatedAt != nil {
+		entry.Version = *cur.UpdatedAt
+	}
+
+	payload, err := json.Marshal(entry)
 	if err != nil {
 		return fmt.Errorf("flows: settings entry: %w", err)
 	}
