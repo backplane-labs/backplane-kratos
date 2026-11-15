@@ -3,7 +3,7 @@ module github.com/backplane-labs/backplane-kratos
 go 1.27.4
 
 require (
-	github.com/backplane-labs/backplane v0.6.95
+	github.com/backplane-labs/backplane v0.6.100
 	github.com/go-jose/go-jose/v4 v4.1.6
 	github.com/google/uuid v1.6.0
 	github.com/gopherex/xlog v1.3.1
@@ -43,7 +43,7 @@ require (
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/google/cel-go v0.30.0 // indirect
 	github.com/gopherex/schemapb/go v1.10.1 // indirect
-	github.com/gopherex/ws-proto v1.9.1 // indirect
+	github.com/gopherex/ws-proto v1.11.1 // indirect
 	github.com/gopherex/xconf v1.4.2 // indirect
 	github.com/gopherex/xconf/contrib/decoders/json v1.4.2 // indirect
 	github.com/gopherex/xconf/contrib/decoders/yaml v1.4.2 // indirect
