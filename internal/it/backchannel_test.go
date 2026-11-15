@@ -80,7 +80,7 @@ func TestBackchannelLogout(t *testing.T) {
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := httpClient(t).Do(req)
 	if err != nil {
 		t.Fatal(err)
 	}

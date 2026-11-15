@@ -76,8 +76,8 @@ type Config struct {
 	// TokenExchange bounds the native apps' session token exchange.
 	TokenExchange TokenExchange `json:"token_exchange"`
 	// DB keeps the security events until the broker took them (pg-outbox);
-	// required with events (NATS).
-	DB postgres.Config `json:"db"`
+	// required with events (NATS), absent without them.
+	DB *postgres.Config `json:"db,omitempty"`
 	// Directories are the corporate IdPs provisioning people over SCIM; live.
 	Directories config.Live[[]scim.Directory] `json:"directories,omitempty" schemapb:"description=Corporate directories provisioning people over SCIM 2.0"`
 	// DirectoryTokens are the directories' bearer tokens by directory id;
@@ -144,7 +144,7 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("oidc_backchannel: %w", err)
 	}
 
-	if c.NATS.Enabled() && c.DB.DSN.Reveal() == "" {
+	if c.NATS.Enabled() && c.DB == nil {
 		return ErrNoDB
 	}
 
@@ -316,7 +316,7 @@ func securityOutbox(root backplane.Root[Config], cfg Config) *outbox.Outbox {
 		return outbox.Off()
 	}
 
-	db := deps.NewDependency(root, postgres.New(cfg.DB,
+	db := deps.NewDependency(root, postgres.New(*cfg.DB,
 		postgres.Schema(outbox.Schema), postgres.Migrations(outbox.Migrations())))
 	box := outbox.New(root, db, outbox.Schema)
 	box.Go(box.Run)

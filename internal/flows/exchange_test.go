@@ -68,7 +68,7 @@ func TestTokenExchange(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			res, err := http.DefaultClient.Do(req)
+			res, err := client(t).Do(req)
 			if err != nil {
 				t.Fatal(err)
 			}

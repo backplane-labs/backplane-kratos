@@ -58,7 +58,7 @@ func (d directory) send(method, path, body, auth string) (int, map[string]json.R
 	req.Header.Set("Authorization", auth)
 	req.Header.Set("Content-Type", "application/scim+json")
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := httpClient(d.t).Do(req)
 	if err != nil {
 		d.t.Fatal(err)
 	}

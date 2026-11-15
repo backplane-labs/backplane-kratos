@@ -166,7 +166,7 @@ func post(t *testing.T, srv *httptest.Server, path, fixture string) (int, map[st
 
 	req.SetBasicAuth(overlay.KeyUser, key)
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := client(t).Do(req)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -464,7 +464,7 @@ func TestKeyRequired(t *testing.T) {
 				req.SetBasicAuth(tc.user, tc.password)
 			}
 
-			res, err := http.DefaultClient.Do(req)
+			res, err := client(t).Do(req)
 			if err != nil {
 				t.Fatal(err)
 			}

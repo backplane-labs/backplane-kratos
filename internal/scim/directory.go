@@ -33,7 +33,7 @@ type Directory struct {
 	// SchemaID is the identity schema of the identities it creates.
 	SchemaID string `json:"schema_id,omitempty" schemapb:"description=Identity schema of created identities (empty: default)"`
 	// OnDelete is what a SCIM DELETE does.
-	OnDelete OnDelete `json:"on_delete,omitempty" schemapb:"enum=deactivate,delete;description=What a SCIM DELETE does"`
+	OnDelete OnDelete `json:"on_delete,omitempty" schemapb:"description=What a SCIM DELETE does: deactivate or delete" validate:"omitempty,oneof=deactivate delete"`
 }
 
 // Deletes reports whether a SCIM DELETE deletes the identity.

@@ -159,7 +159,7 @@ func startKeyed(t *testing.T, tokenKey string, edit func(*overlay.Settings), bin
 		e.activities.IdentityEvent("IdentityDeleted"))
 	e.logoutProviders = config.LiveOf([]backchannel.Provider(nil))
 	e.backchannel = backchannel.New(h.Root(), e.logoutProviders, client, e.activities.RevokedEvent(),
-		http.DefaultClient, time.Now)
+		httpClient(t), time.Now)
 	e.console = kratosadmin.New(h.Root(), client, e.flows, nil, config.LiveOf([]string(nil)), e.settings, e.tokenKey,
 		true, e.activities)
 	apply.New(h.Root(), path, 0o644, e.settings, apply.Secrets{
@@ -284,7 +284,7 @@ func callAs(t *testing.T, token, method, path string, body any) (int, map[string
 		req.Header.Set("X-Session-Token", token)
 	}
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := httpClient(t).Do(req)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -684,7 +684,7 @@ func TestLoggedOutEvent(t *testing.T) {
 
 	req.Header.Set("Content-Type", "application/json")
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := httpClient(t).Do(req)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1335,7 +1335,7 @@ func TestCallbacksContinueKratosTrace(t *testing.T) {
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Traceparent", "00-"+traceID+"-00f067aa0ba902b7-01")
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := httpClient(t).Do(req)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1370,4 +1370,15 @@ func itOutbox(t *testing.T, h *backplanetest.Harness) *outbox.Outbox {
 	box.Go(box.Run)
 
 	return box
+}
+
+// httpClient is a test's own HTTP client: on the shared default transport,
+// another test's server Close (CloseIdleConnections) breaks its requests.
+func httpClient(t *testing.T) *http.Client {
+	t.Helper()
+
+	transport := &http.Transport{}
+	t.Cleanup(transport.CloseIdleConnections)
+
+	return &http.Client{Transport: transport}
 }

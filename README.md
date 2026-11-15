@@ -456,7 +456,7 @@ cannot read leaves it on the previous configuration.
 | `token_exchange.max_age` | How long after sign-in a native app's exchange code pair is answered (default `5m`) |
 | `directories`, `directory_tokens` | Live: corporate directories (SCIM) and their bearer tokens, below |
 | `oidc_backchannel` | Live: OIDC providers whose IdPs send back-channel logout tokens (`id`, `issuer`, `audience`, `jwks_url`, https) |
-| `db.dsn` (and the rest of `db`) | PostgreSQL of the security events outbox; required when events (NATS) are on |
+| `db.dsn` (and the rest of `db`) | PostgreSQL of the security events outbox; required when events (NATS) are on, absent without them |
 
 ### Tracing
 

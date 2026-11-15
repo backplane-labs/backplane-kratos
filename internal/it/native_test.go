@@ -242,7 +242,7 @@ func exchangeVia(t *testing.T, base string, n native) int {
 	t.Helper()
 
 	q := url.Values{"init_code": {n.initCode}, "return_to_code": {n.returnToCode}}
-	status, _ := hop(t, http.DefaultClient, http.MethodGet, base+flows.TokenExchangePath+"?"+q.Encode(), nil)
+	status, _ := hop(t, httpClient(t), http.MethodGet, base+flows.TokenExchangePath+"?"+q.Encode(), nil)
 
 	return status
 }
@@ -372,7 +372,7 @@ func TestNativeOIDC(t *testing.T) {
 	proxy := httptest.NewServer(e.flows.Logout(public, nil))
 	t.Cleanup(proxy.Close)
 
-	if status, _ := hop(t, http.DefaultClient, http.MethodDelete, proxy.URL+"/self-service/logout/api",
+	if status, _ := hop(t, httpClient(t), http.MethodDelete, proxy.URL+"/self-service/logout/api",
 		map[string]string{"session_token": token}); status != http.StatusNoContent {
 		t.Fatalf("logout: %d", status)
 	}

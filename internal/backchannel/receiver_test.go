@@ -110,7 +110,7 @@ func (r *receiver) post(t *testing.T, path, token string) (int, string) {
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := r.srv.Client().Do(req)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -74,8 +74,26 @@ func public(t *testing.T, f *flows.Flows, k *kratosFake, errorURL string) *httpt
 	return srv
 }
 
-// noFollow sees every redirect.
-var noFollow = &http.Client{CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+// client is a test's own HTTP client: on the shared default transport,
+// another test's server Close (CloseIdleConnections) breaks its requests.
+func client(t *testing.T) *http.Client {
+	t.Helper()
+
+	transport := &http.Transport{}
+	t.Cleanup(transport.CloseIdleConnections)
+
+	return &http.Client{Transport: transport}
+}
+
+// noFollow is client seeing every redirect.
+func noFollow(t *testing.T) *http.Client {
+	t.Helper()
+
+	c := client(t)
+	c.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
+
+	return c
+}
 
 type reply struct {
 	status int
@@ -99,7 +117,7 @@ func do(t *testing.T, method, target, contentType, body string, header http.Head
 		req.Header.Set("Content-Type", contentType)
 	}
 
-	res, err := noFollow.Do(req)
+	res, err := noFollow(t).Do(req)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -413,7 +431,7 @@ func TestClientFlowID(t *testing.T) {
 
 		req.SetBasicAuth(overlay.KeyUser, key)
 
-		res, err := http.DefaultClient.Do(req)
+		res, err := client(t).Do(req)
 		if err != nil {
 			t.Fatal(err)
 		}

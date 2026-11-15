@@ -254,7 +254,7 @@ func admin(t *testing.T, method, path, body string) {
 
 	req.Header.Set("Content-Type", "application/json")
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := httpClient(t).Do(req)
 	if err != nil {
 		t.Fatal(err)
 	}
