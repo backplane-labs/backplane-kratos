@@ -374,7 +374,9 @@ and updating publish `kratos.IdentityCreated`/`kratos.IdentityUpdated` with
 A change's events go through the same outbox as the security events, with
 ids fixed by the identity's versions. Kratos is written first, then the
 events: a deactivation deletes every session before its event is written,
-and the relay deletes them again before it publishes. When the database (or
+and the relay deletes them again before it publishes — only while the
+identity is still in that deactivation, so one relayed after a reactivation
+ends none of the sessions signed in since. When the database (or
 the session delete) fails, the answer is a 503: the change stays in Kratos,
 and the IdP's retry writes the same events with the same ids, which are no
 second event. A `DELETE` that deletes the identity writes

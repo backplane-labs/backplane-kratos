@@ -19,12 +19,14 @@ import (
 const token = "directory-token"
 
 type fixture struct {
-	t                         *testing.T
-	h                         *backplanetest.Harness
-	k                         *kratos
-	dirs                      *scim.Directories
-	handler                   http.Handler
-	box                       *outboxtest.Memory
+	t       *testing.T
+	h       *backplanetest.Harness
+	k       *kratos
+	dirs    *scim.Directories
+	handler http.Handler
+	box     *outboxtest.Memory
+	// hold keeps the relay down: requests enqueue, nothing is published.
+	hold                      bool
 	created, updated, deleted event.Ref[scim.IdentityEvent]
 }
 
@@ -69,7 +71,9 @@ func (f *fixture) send(method, target, body, auth string) (int, map[string]json.
 	f.handler.ServeHTTP(w, r)
 
 	// The relay publishes what the request enqueued.
-	_ = f.box.Publish(f.t.Context())
+	if !f.hold {
+		_ = f.box.Publish(f.t.Context())
+	}
 
 	if w.Body.Len() > 0 && w.Header().Get("Content-Type") != "application/scim+json" {
 		f.t.Fatalf("%s %s: content type %q", method, target, w.Header().Get("Content-Type"))
@@ -318,6 +322,32 @@ func TestDeactivateAndReactivate(t *testing.T) {
 
 	if n := len(f.states()); n != 3 {
 		t.Fatalf("%d state events, want 3", n)
+	}
+}
+
+// A deactivation relayed after a reactivation (the broker was down) is
+// announced in order, and ends none of the sessions signed in since.
+func TestLateDeactivationKeepsNewSessions(t *testing.T) {
+	t.Parallel()
+
+	f := setup(t, scim.Deactivate)
+	id := f.create(okta)
+
+	f.hold = true
+	f.do(http.MethodPatch, "/Users/"+id, `{"Operations":[{"op":"replace","path":"active","value":false}]}`)
+	f.do(http.MethodPatch, "/Users/"+id, `{"Operations":[{"op":"replace","path":"active","value":true}]}`)
+
+	if err := f.box.Publish(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+
+	if n := f.k.deletedSessions(id); n != 1 {
+		t.Fatalf("sessions deleted %d times, want once (by the request)", n)
+	}
+
+	if states := f.states(); len(states) != 2 || states[0].Value.GetReason() != scim.ReasonDeactivated ||
+		states[1].Value.GetReason() != scim.ReasonReactivated {
+		t.Fatalf("state events %+v", states)
 	}
 }
 

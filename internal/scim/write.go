@@ -108,6 +108,9 @@ type statePayload struct {
 	Directory  string `json:"directory"`
 	State      string `json:"state"`
 	Reason     string `json:"reason"`
+	// Version is the identity's state_changed_at the change made: a
+	// deactivation relayed after a later change ends no session.
+	Version string `json:"version"`
 }
 
 // reactivatedAfter is how long after its creation a state change of an
@@ -165,7 +168,9 @@ func reactivated(id ory.Identity) bool {
 
 func (s Service) stateMessage(d Directory, id ory.Identity, reason string) outbox.Message {
 	return message(eventState, "state-"+id.ID+"-"+id.State+"-"+stamp(id.StateChangedAt),
-		statePayload{IdentityID: id.ID, Directory: d.ID, State: id.State, Reason: reason}, id.ID)
+		statePayload{
+			IdentityID: id.ID, Directory: d.ID, State: id.State, Reason: reason, Version: stamp(id.StateChangedAt),
+		}, id.ID)
 }
 
 // message is an outbox message of topic, its id named by key, ordered by the

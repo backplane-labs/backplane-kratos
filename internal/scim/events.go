@@ -116,14 +116,36 @@ func (e *Directories) publishState(ctx context.Context, m outbox.Message) error 
 	}
 
 	if p.State == inactive {
-		if err := e.kratos.DeleteIdentitySessions(ctx, p.IdentityID); err != nil && !ory.IsNotFound(err) {
-			return fmt.Errorf("scim: sessions: %w", err)
+		if err := e.endSessions(ctx, p); err != nil {
+			return err
 		}
 	}
 
 	return e.wrap(e.state.Publish(ctx, &kratoseventsv1.IdentityStateChanged{
 		IdentityId: p.IdentityID, State: p.State, By: ByDirectory, Directory: p.Directory, Reason: p.Reason,
 	}, event.Key(p.IdentityID), event.ID(m.ID)))
+}
+
+// endSessions deletes the sessions of the identity p deactivated while it is
+// still that deactivation: a message relayed late, after a reactivation,
+// leaves the sessions signed in since alone.
+func (e *Directories) endSessions(ctx context.Context, p statePayload) error {
+	id, err := e.kratos.GetIdentity(ctx, p.IdentityID)
+
+	switch {
+	case ory.IsNotFound(err):
+		return nil
+	case err != nil:
+		return fmt.Errorf("scim: read identity: %w", err)
+	case id.State != inactive || stamp(id.StateChangedAt) != p.Version:
+		return nil
+	}
+
+	if err := e.kratos.DeleteIdentitySessions(ctx, p.IdentityID); err != nil && !ory.IsNotFound(err) {
+		return fmt.Errorf("scim: sessions: %w", err)
+	}
+
+	return nil
 }
 
 // publishDeleted publishes a deletion once the identity is gone; one that
