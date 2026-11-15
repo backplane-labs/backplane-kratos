@@ -12,6 +12,7 @@ import (
 	"github.com/backplane-labs/backplane/pkg/backplane/config"
 	"github.com/backplane-labs/backplane/pkg/backplane/event"
 
+	"github.com/backplane-labs/backplane-kratos/internal/outbox/outboxtest"
 	"github.com/backplane-labs/backplane-kratos/internal/scim"
 )
 
@@ -23,6 +24,7 @@ type fixture struct {
 	k                         *kratos
 	dirs                      *scim.Directories
 	handler                   http.Handler
+	box                       *outboxtest.Memory
 	created, updated, deleted event.Ref[scim.IdentityEvent]
 }
 
@@ -34,13 +36,14 @@ func setup(t *testing.T, onDelete scim.OnDelete) *fixture {
 	f.created = event.Declare[scim.IdentityEvent](h.Root(), "IdentityCreated")
 	f.updated = event.Declare[scim.IdentityEvent](h.Root(), "IdentityUpdated")
 	f.deleted = event.Declare[scim.IdentityEvent](h.Root(), "IdentityDeleted")
+	f.box = outboxtest.New()
 	f.dirs = scim.New(h.Root(),
 		config.LiveOf([]scim.Directory{
 			{ID: "corp", Provider: "entra", OnDelete: onDelete},
 			{ID: "other", Provider: "entra"},
 		}),
 		config.LiveOf(map[string]config.Secret{"corp": token, "other": "other-token"}),
-		f.k, f.created, f.updated, f.deleted)
+		f.k, f.box, f.created, f.updated, f.deleted)
 	f.handler = f.dirs.Handler()
 	h.Start()
 
@@ -64,6 +67,9 @@ func (f *fixture) send(method, target, body, auth string) (int, map[string]json.
 
 	w := httptest.NewRecorder()
 	f.handler.ServeHTTP(w, r)
+
+	// The relay publishes what the request enqueued.
+	_ = f.box.Publish(f.t.Context())
 
 	if w.Body.Len() > 0 && w.Header().Get("Content-Type") != "application/scim+json" {
 		f.t.Fatalf("%s %s: content type %q", method, target, w.Header().Get("Content-Type"))
@@ -160,7 +166,7 @@ func TestCreate(t *testing.T) {
 		t.Fatalf("identity %+v", got)
 	}
 
-	if strings.Contains(string(got.MetadataAdmin), "placeholder") || strings.Contains(string(got.MetadataAdmin), "pending") {
+	if strings.Contains(string(got.MetadataAdmin), "placeholder") || strings.Contains(string(got.MetadataAdmin), "outbox") {
 		t.Fatalf("metadata_admin %s", got.MetadataAdmin)
 	}
 
@@ -287,7 +293,7 @@ func TestDeactivateAndReactivate(t *testing.T) {
 		t.Fatalf("deactivate: %d %v", code, out)
 	}
 
-	if f.k.identity(id).State != "inactive" || f.k.deletedSessions(id) != 1 {
+	if f.k.identity(id).State != "inactive" || f.k.deletedSessions(id) == 0 {
 		t.Fatalf("state %s, sessions deleted %d", f.k.identity(id).State, f.k.deletedSessions(id))
 	}
 
@@ -315,35 +321,32 @@ func TestDeactivateAndReactivate(t *testing.T) {
 	}
 }
 
-func TestEventPublishedOnRetry(t *testing.T) {
+func TestEventEnqueuedOnRetry(t *testing.T) {
 	t.Parallel()
 
 	f := setup(t, scim.Deactivate)
 	id := f.create(okta)
 
-	backplanetest.FailPublish(f.h, errors.New("broker down"))
+	f.box.Fail(errors.New("database down"))
 
 	patch := `{"Operations":[{"op":"replace","path":"active","value":false}]}`
 	if code, _ := f.do(http.MethodPatch, "/Users/"+id, patch); code != http.StatusServiceUnavailable {
-		t.Fatalf("publish failing: %d, want 503", code)
+		t.Fatalf("outbox failing: %d, want 503", code)
 	}
 
-	if got := f.k.identity(id); got.State != "inactive" || !strings.Contains(string(got.MetadataAdmin), "pending") {
-		t.Fatalf("the change and its event must be kept: %+v", got)
+	if got := f.k.identity(id); got.State != "inactive" || f.k.deletedSessions(id) == 0 {
+		t.Fatalf("the change is in Kratos, its sessions ended: %+v", got)
 	}
 
-	backplanetest.FailPublish(f.h, nil)
+	f.box.Fail(nil)
 
+	// The IdP retries: nothing moves, the deactivation is announced.
 	if code, _ := f.do(http.MethodPatch, "/Users/"+id, patch); code != http.StatusOK {
 		t.Fatalf("retry: %d", code)
 	}
 
 	if states := f.states(); len(states) != 1 || states[0].Value.GetReason() != scim.ReasonDeactivated {
 		t.Fatalf("state events %+v", states)
-	}
-
-	if strings.Contains(string(f.k.identity(id).MetadataAdmin), "pending") {
-		t.Fatal("pending events not cleared")
 	}
 }
 

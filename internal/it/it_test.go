@@ -22,6 +22,9 @@ import (
 
 	"github.com/backplane-labs/backplane/pkg/backplane/backplanetest"
 	"github.com/backplane-labs/backplane/pkg/backplane/config"
+	"github.com/backplane-labs/backplane/pkg/backplane/deps"
+	"github.com/backplane-labs/backplane/pkg/backplane/infra/postgres"
+	"github.com/google/uuid"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
@@ -35,6 +38,7 @@ import (
 	"github.com/backplane-labs/backplane-kratos/internal/events"
 	"github.com/backplane-labs/backplane-kratos/internal/flows"
 	"github.com/backplane-labs/backplane-kratos/internal/ory"
+	"github.com/backplane-labs/backplane-kratos/internal/outbox"
 	"github.com/backplane-labs/backplane-kratos/internal/overlay"
 	"github.com/backplane-labs/backplane-kratos/internal/scim"
 	consolev1 "github.com/backplane-labs/backplane-kratos/proto/kratos/console/v1"
@@ -62,6 +66,8 @@ type env struct {
 	settings   config.Live[overlay.Settings]
 	tokenKey   config.Live[config.Secret]
 	kratos     ory.Client
+	// outbox keeps the security events in this run's own schema.
+	outbox *outbox.Outbox
 	// directories are testDirectories over SCIM.
 	directories *scim.Directories
 	// backchannel receives logout tokens of logoutProviders.
@@ -144,10 +150,11 @@ func startKeyed(t *testing.T, tokenKey string, edit func(*overlay.Settings), bin
 	}
 
 	e := env{h: h, kratos: client, settings: config.LiveOf(settings), tokenKey: config.LiveOf(config.Secret(tokenKey))}
-	e.flows = flows.New(h.Root(), key, config.LiveOf([]string(nil)), client)
+	e.outbox = itOutbox(t, h)
+	e.flows = flows.New(h.Root(), key, config.LiveOf([]string(nil)), client, e.outbox)
 	e.activities = activities.New(h.Root(), client)
 	e.directories = scim.New(h.Root(), config.LiveOf(testDirectories()),
-		config.LiveOf(map[string]config.Secret{"corp": directoryToken, "gone": directoryToken}), client,
+		config.LiveOf(map[string]config.Secret{"corp": directoryToken, "gone": directoryToken}), client, e.outbox,
 		e.activities.IdentityEvent("IdentityCreated"), e.activities.IdentityEvent("IdentityUpdated"),
 		e.activities.IdentityEvent("IdentityDeleted"))
 	e.logoutProviders = config.LiveOf([]backchannel.Provider(nil))
@@ -1343,4 +1350,24 @@ func TestCallbacksContinueKratosTrace(t *testing.T) {
 	case <-time.After(30 * time.Second):
 		t.Fatalf("AfterRegistration not called (registration %d)", res.StatusCode)
 	}
+}
+
+// itOutbox is an outbox in a schema of its own: every test's relay publishes
+// only its own events. KRATOS_IT_DB is the PostgreSQL of make it-up.
+func itOutbox(t *testing.T, h *backplanetest.Harness) *outbox.Outbox {
+	t.Helper()
+
+	dsn := os.Getenv("KRATOS_IT_DB")
+	if dsn == "" {
+		t.Skip("KRATOS_IT_DB not set: make it-up it")
+	}
+
+	schema := "it_" + strings.ReplaceAll(uuid.NewString()[:8], "-", "")
+	db := deps.NewDependency(h.Root(), postgres.New(postgres.Config{DSN: config.Secret(dsn)},
+		postgres.Schema(schema), postgres.Migrations(outbox.Migrations())))
+
+	box := outbox.New(h.Root(), db, schema)
+	box.Go(box.Run)
+
+	return box
 }

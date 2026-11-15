@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"slices"
+	"time"
 
 	"github.com/backplane-labs/backplane-kratos/internal/ory"
+	"github.com/backplane-labs/backplane-kratos/internal/outbox"
 )
 
 const inactive = "inactive"
@@ -22,17 +23,10 @@ type updateBody struct {
 	State          string          `json:"state"`
 }
 
-// jsonPatch is one RFC 6902 operation.
-type jsonPatch struct {
-	Op    string          `json:"op"`
-	Path  string          `json:"path"`
-	Value json.RawMessage `json:"value"`
-}
-
-// write makes cur the directory's user u: one Kratos write carrying the
-// change and its pending events (kind, and a state change for an active flag
-// that moved, a deactivation for offReason), then flush. A user the directory
-// already holds unchanged is only flushed.
+// write makes cur the directory's user u in Kratos (a user the directory
+// already holds unchanged is not written again), then announces it: kind
+// when it was written, and the identity's state (a deactivation for
+// offReason).
 func (s Service) write(ctx context.Context, d Directory, cur ory.Identity, u User, kind, offReason string) (
 	ory.Identity, error,
 ) {
@@ -47,7 +41,7 @@ func (s Service) write(ctx context.Context, d Directory, cur ory.Identity, u Use
 	moved := (cur.State == inactive) != (next == inactive)
 
 	if mine && r.Directory == d.ID && r.User.Equal(u) && !moved {
-		return s.flush(ctx, cur)
+		return s.announce(ctx, d, cur, "", offReason, false)
 	}
 
 	mapped, err := d.Map(u)
@@ -55,20 +49,9 @@ func (s Service) write(ctx context.Context, d Directory, cur ory.Identity, u Use
 		return ory.Identity{}, err
 	}
 
-	pending := append(slices.Clone(r.Pending), Pending{Kind: kind, ID: eventID()})
-
-	if moved {
-		reason := ReasonReactivated
-		if next == inactive {
-			reason = offReason
-		}
-
-		pending = append(pending, Pending{Kind: kindState, Reason: reason, ID: eventID()})
-	}
-
-	meta, err := withRecord(cur.MetadataAdmin, record{Directory: d.ID, User: u, Pending: pending})
+	meta, err := withRecord(cur.MetadataAdmin, record{Directory: d.ID, User: u})
 	if err != nil {
-		return ory.Identity{}, err
+		return ory.Identity{}, fmt.Errorf("scim: metadata: %w", err)
 	}
 
 	public := mapped.MetadataPublic
@@ -91,7 +74,7 @@ func (s Service) write(ctx context.Context, d Directory, cur ory.Identity, u Use
 		return ory.Identity{}, kratosFailure(err)
 	}
 
-	return s.flush(ctx, updated)
+	return s.announce(ctx, d, updated, kind, offReason, moved)
 }
 
 // keepExternalID refuses a change of externalId (it is the OIDC credential
@@ -114,42 +97,96 @@ func keepExternalID(was, u User) error {
 	return nil
 }
 
-// flush publishes cur's pending events and clears them. A deactivation ends
-// every session before it is published: Kratos's state alone keeps them.
-func (s Service) flush(ctx context.Context, cur ory.Identity) (ory.Identity, error) {
-	r, ok := stored(cur)
-	if !ok || len(r.Pending) == 0 {
-		return cur, nil
+// identityPayload is what an identity event's message keeps.
+type identityPayload struct {
+	IdentityID string `json:"identity_id"`
+}
+
+// statePayload is what an IdentityStateChanged message keeps.
+type statePayload struct {
+	IdentityID string `json:"identity_id"`
+	Directory  string `json:"directory"`
+	State      string `json:"state"`
+	Reason     string `json:"reason"`
+}
+
+// reactivatedAfter is how long after its creation a state change of an
+// active identity is a reactivation, not the creation itself.
+const reactivatedAfter = time.Second
+
+// announce enqueues what the directory did to id, as Kratos holds it now:
+// kind (IdentityCreated or IdentityUpdated, none when nothing was written),
+// and its state — a deactivation (for offReason) once its sessions are
+// deleted, or a reactivation (this request moved it, or one before did). The ids come from the identity's versions, so
+// the IdP's retry after a failure enqueues the same messages again, which
+// are no second event; a failure is errUnavailable, for the IdP to retry.
+func (s Service) announce(ctx context.Context, d Directory, id ory.Identity, kind, offReason string, moved bool) (
+	ory.Identity, error,
+) {
+	var msgs []outbox.Message
+
+	switch kind {
+	case eventCreated:
+		msgs = append(msgs, message(eventCreated, "created-"+id.ID, identityPayload{IdentityID: id.ID}, id.ID))
+	case eventUpdated:
+		msgs = append(msgs, message(eventUpdated, "updated-"+id.ID+"-"+stamp(id.UpdatedAt),
+			identityPayload{IdentityID: id.ID}, id.ID))
 	}
 
-	if cur.State == inactive && slices.ContainsFunc(r.Pending, func(p Pending) bool { return p.Kind == kindState }) {
-		if err := s.kratos.DeleteIdentitySessions(ctx, cur.ID); err != nil && !ory.IsNotFound(err) {
+	switch {
+	case id.State == inactive:
+		// Kratos's state alone keeps the sessions: they end before the
+		// deactivation is announced, on every request (deleting none is
+		// harmless).
+		if err := s.kratos.DeleteIdentitySessions(ctx, id.ID); err != nil && !ory.IsNotFound(err) {
 			return ory.Identity{}, fmt.Errorf("%w: sessions: %w", errUnavailable, err)
 		}
+
+		msgs = append(msgs, s.stateMessage(d, id, offReason))
+	case moved || reactivated(id):
+		msgs = append(msgs, s.stateMessage(d, id, ReasonReactivated))
 	}
 
-	for _, p := range r.Pending {
-		if err := s.events.Publish(ctx, cur, r.Directory, p); err != nil {
+	for i := range msgs {
+		if err := s.outbox.Enqueue(ctx, msgs[i]); err != nil {
 			return ory.Identity{}, fmt.Errorf("%w: %w", errUnavailable, err)
 		}
 	}
 
-	r.Pending = nil
+	return id, nil
+}
 
-	meta, err := withRecord(cur.MetadataAdmin, r)
+// reactivated: an active identity whose state changed after its creation —
+// how a retry, which moves nothing itself, tells a reactivation.
+func reactivated(id ory.Identity) bool {
+	return id.State != inactive && id.StateChangedAt != nil && id.CreatedAt != nil &&
+		id.StateChangedAt.Sub(*id.CreatedAt) > reactivatedAfter
+}
+
+func (s Service) stateMessage(d Directory, id ory.Identity, reason string) outbox.Message {
+	return message(eventState, "state-"+id.ID+"-"+id.State+"-"+stamp(id.StateChangedAt),
+		statePayload{IdentityID: id.ID, Directory: d.ID, State: id.State, Reason: reason}, id.ID)
+}
+
+// message is an outbox message of topic, its id named by key, ordered by the
+// identity.
+func message(topic, key string, payload any, identityID string) outbox.Message {
+	raw, err := json.Marshal(payload)
 	if err != nil {
-		return ory.Identity{}, err
+		raw = []byte("{}")
 	}
 
-	patch, err := json.Marshal([]jsonPatch{{Op: "replace", Path: "/metadata_admin", Value: meta}})
-	if err != nil {
-		return ory.Identity{}, fmt.Errorf("scim: patch: %w", err)
+	return outbox.Message{
+		ID: outbox.ID("scim-" + key), Topic: topic, PartitionKey: identityID, Payload: raw,
+		ContentType: "application/json",
+	}
+}
+
+// stamp is a version time as part of a message key.
+func stamp(t *time.Time) string {
+	if t == nil {
+		return "0"
 	}
 
-	out, err := s.kratos.PatchIdentity(ctx, cur.ID, patch)
-	if err != nil {
-		return ory.Identity{}, fmt.Errorf("%w: clear pending: %w", errUnavailable, err)
-	}
-
-	return out, nil
+	return t.UTC().Format(time.RFC3339Nano)
 }

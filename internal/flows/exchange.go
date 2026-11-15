@@ -51,7 +51,7 @@ func (f *Flows) TokenExchange(public *url.URL, headers map[string]string, maxAge
 
 			if !freshSession(raw, maxAge) {
 				a.status, a.raw = http.StatusNotFound, []byte(refusedExchange)
-				a.header.Set("Content-Type", "application/json")
+				a.header.Set("Content-Type", contentJSON)
 			} else {
 				f.admit(ctx, &a, iss, "")
 			}

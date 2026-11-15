@@ -47,25 +47,23 @@ service sits next to it and turns it into parts of Wiring:
   the new identity (e.g. legal evidence). An error or a denial fails the
   flow, but the identity stays stored.
 - **Completed flows → events** `Registered`, `LoggedIn`, `SettingsChanged`,
-  `Recovered`, `Verified` for rules and reactors. Kratos runs its after-login
-  hooks before it stores the session, so `LoggedIn` waits until the session
-  is stored and carries it (id, `authenticated_at`, AAL, address, user agent);
-  a login whose session is never stored publishes nothing. A registration
-  that signs the identity in (setting *Sign the new identity in*) publishes
-  `Registered` the same way, with the session the registration issued; one
-  that does not sign in publishes it at once, without a session. A redeemed
-  recovery signs the identity in too, and Kratos stores that session only after
-  its hooks and sends none to them (`kratos.AfterRecovery` gets the identity
-  alone). So `Recovered` waits for the session authenticated by a recovery
-  method (`code_recovery`, `link_recovery`) since the recovery flow began, and
-  carries it. A recovery whose session is never stored publishes nothing. Every flow event
-  carries the flow's `transient_payload`, the same one its `Deliver` saw:
-  Kratos gives a courier message no flow id, so a client marker in the
-  payload is how a message and its completed flow are matched.
-  `SettingsChanged` also carries `previous_traits`, the traits before the
-  change as the signed-in session held them (Kratos changes a copy of the
-  identity), so a product can notify the old address of an email change
-  without keeping a copy. They equal `traits` when the flow changed no trait.
+  `Recovered`, `Verified` for rules and reactors. The ones a hijacker could
+  hide behind — every session issued and every settings change — are
+  [security events](#security-events): kept in an outbox and published
+  only once Kratos holds what they report, never lost. `LoggedIn` carries the session the login issued
+  (id, `authenticated_at`, AAL, its `authentication_methods`, address, user
+  agent); a registration that signs the identity in (setting *Sign the new
+  identity in*) publishes `Registered` with its session, one that does not
+  publishes it without one; a redeemed recovery signs the identity in and
+  `Recovered` carries that session (authenticated by `code_recovery` or
+  `link_recovery`). Every flow event carries the flow's `transient_payload`,
+  the same one its `Deliver` saw: Kratos gives a courier message no flow id,
+  so a client marker in the payload is how a message and its completed flow
+  are matched. `SettingsChanged` also carries `previous_traits`, the traits
+  before the change as the signed-in session held them (Kratos changes a copy
+  of the identity), so a product can notify the old address of an email
+  change without keeping a copy; they equal `traits` when the flow changed no
+  trait.
 - **Self-service logout → event `LoggedOut`**. Kratos has no logout hooks, so
   this service serves Kratos's logout endpoints (`/self-service/logout`,
   `/self-service/logout/browser`, `/self-service/logout/api`) on its HTTP
@@ -224,6 +222,58 @@ How the client's flow travels:
 - Apple's form_post callback works: Kratos answers the POST with a
   redirect to a GET, and the session is issued on that GET.
 
+## Security events
+
+A product notifies a person of every dangerous change to their account, so
+these events are never lost and never report what did not happen:
+
+| Event | When |
+| --- | --- |
+| `LoggedIn` | a login issued a session |
+| `Registered` | a registration signed the new identity in |
+| `Recovered` | a recovery signed the identity in |
+| `SettingsChanged` | a settings flow changed the identity |
+| `IdentityStateChanged` | a directory deactivated, reactivated or deleted it |
+
+They go through an outbox in PostgreSQL ([pg-outbox](https://github.com/gopherex/pg-outbox),
+config `db`, schema `backplane_kratos`, required when events are on). A
+message is written before the change it reports is done, and its id is fixed
+by what it reports, so writing it again is the same message:
+
+- **settings**: a hook Kratos waits for before it stores the change reads the
+  identity as it is and writes the message (id: flow and method); when it
+  cannot, the change is refused (message `5000002`);
+- **a session issued** (login, registration, recovery, the native token
+  exchange): on its way to the client the answer waits until the message is
+  written (id: event and session); when it cannot be, the session is revoked
+  and the client refused — the credential never leaves without its event. A
+  session Kratos issues past this service (a browser flow) is written once
+  Kratos stored it, from the flow's `after` callback, under the same id;
+- **a directory's change**: see
+  [Corporate directories](#corporate-directories-scim-and-back-channel-logout).
+
+Before it publishes, a message checks in Kratos that the change happened: a
+settings message waits until the identity changed at or after it (5s clock
+skew allowed), retried every 2s, and is discarded after 2 minutes — a change
+Kratos never stored is never announced. A broker that is down delays the
+messages, it does not lose them or stop anyone; any replica relays the
+messages another left. A consumer dedupes by the event id: the outbox
+delivers at least once, and the same change always carries the same id.
+`Verified` and `LoggedOut` stay best effort.
+
+`SettingsChanged` says what changed, so "two-step sign-in fully off" or "a
+new password" is read from the event, not guessed from `method`:
+
+- `session`: the session that made the change (id, AAL, its
+  `authentication_methods`, address, user agent);
+- `changes`: one per credential that changed — `type` (`password`, `totp`,
+  `webauthn`, `passkey`, `lookup_secret`, `oidc`, `code`), `change`
+  (`added`, `removed`, `replaced`), and for `oidc` the `provider`;
+  `lookup_secret` `replaced` is a regeneration, `removed` its disabling;
+- `credentials`: the credential types the identity has after the change;
+- `addresses`: verifiable addresses that changed — `via` (`email`, `sms`),
+  `previous`, `current` (empty when added or removed).
+
 ## Corporate directories: SCIM and back-channel logout
 
 A corporate IdP (Entra ID, Okta, Keycloak with a SCIM extension, Authentik,
@@ -321,13 +371,15 @@ directory and the reason (`deactivated`, `reactivated`, `deleted`); creating
 and updating publish `kratos.IdentityCreated`/`kratos.IdentityUpdated` with
 `by: directory`. A request that changes nothing publishes nothing.
 
-A change and its events commit together: the events are written into the
-identity's `metadata_admin.scim.pending` with the change, each with an id
-fixed then, published after it and cleared. A deactivation deletes every
-session before its event goes out. When the broker (or the session delete)
-fails, the answer is a 503: the change stays in Kratos, and the IdP's retry
-publishes the same events with the same ids. A `DELETE` that deletes the
-identity publishes `kratos.IdentityDeleted` first, then deletes. A
+A change's events go through the same outbox as the security events, with
+ids fixed by the identity's versions. Kratos is written first, then the
+events: a deactivation deletes every session before its event is written,
+and the relay deletes them again before it publishes. When the database (or
+the session delete) fails, the answer is a 503: the change stays in Kratos,
+and the IdP's retry writes the same events with the same ids, which are no
+second event. A `DELETE` that deletes the identity writes
+`kratos.IdentityDeleted` first, then deletes; the event is published only
+once the identity is gone. A
 back-channel logout publishes `kratos.SessionsRevoked` with
 `by: backchannel`.
 
@@ -399,6 +451,7 @@ cannot read leaves it on the previous configuration.
 | `token_exchange.max_age` | How long after sign-in a native app's exchange code pair is answered (default `5m`) |
 | `directories`, `directory_tokens` | Live: corporate directories (SCIM) and their bearer tokens, below |
 | `oidc_backchannel` | Live: OIDC providers whose IdPs send back-channel logout tokens (`id`, `issuer`, `audience`, `jwks_url`, https) |
+| `db.dsn` (and the rest of `db`) | PostgreSQL of the security events outbox; required when events (NATS) are on |
 
 ### Tracing
 

@@ -23,6 +23,7 @@ import (
 	"github.com/backplane-labs/backplane/pkg/backplane/config"
 	"github.com/backplane-labs/backplane/pkg/backplane/deps"
 	"github.com/backplane-labs/backplane/pkg/backplane/drivers/standard"
+	"github.com/backplane-labs/backplane/pkg/backplane/infra/postgres"
 	"github.com/backplane-labs/backplane/pkg/backplane/tracehttp"
 	"go.opentelemetry.io/otel"
 	"google.golang.org/grpc"
@@ -37,6 +38,7 @@ import (
 	"github.com/backplane-labs/backplane-kratos/internal/flows"
 	"github.com/backplane-labs/backplane-kratos/internal/jwks"
 	"github.com/backplane-labs/backplane-kratos/internal/ory"
+	"github.com/backplane-labs/backplane-kratos/internal/outbox"
 	"github.com/backplane-labs/backplane-kratos/internal/overlay"
 	"github.com/backplane-labs/backplane-kratos/internal/scim"
 	"github.com/backplane-labs/backplane-kratos/internal/ui"
@@ -73,6 +75,9 @@ type Config struct {
 	FailOpen config.Live[[]string] `json:"fail_open,omitempty" schemapb:"description=Flow hooks (e.g. AfterLogin) whose failure lets the flow continue"`
 	// TokenExchange bounds the native apps' session token exchange.
 	TokenExchange TokenExchange `json:"token_exchange"`
+	// DB keeps the security events until the broker took them (pg-outbox);
+	// required with events (NATS).
+	DB postgres.Config `json:"db"`
 	// Directories are the corporate IdPs provisioning people over SCIM; live.
 	Directories config.Live[[]scim.Directory] `json:"directories,omitempty" schemapb:"description=Corporate directories provisioning people over SCIM 2.0"`
 	// DirectoryTokens are the directories' bearer tokens by directory id;
@@ -139,6 +144,10 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("oidc_backchannel: %w", err)
 	}
 
+	if c.NATS.Enabled() && c.DB.DSN.Reveal() == "" {
+		return ErrNoDB
+	}
+
 	return nil
 }
 
@@ -163,6 +172,9 @@ func (c *Config) callbackKey() (string, error) {
 // ErrOverlayMode: overlay_mode is not octal permission bits.
 var ErrOverlayMode = errors.New("kratos: overlay_mode must be octal permission bits like 0640")
 
+// ErrNoDB: events are on (NATS) and no database keeps them until published.
+var ErrNoDB = errors.New("kratos: db.dsn is required with events (nats): it keeps the security events")
+
 // ErrNoKey: neither a callbacks key nor an internal secret is configured.
 var ErrNoKey = errors.New("kratos: callbacks.key or backplane.internal_secret is required")
 
@@ -177,6 +189,7 @@ type State struct {
 	Activities  *activities.Activities
 	Admin       *admin.Admin
 	Directories *scim.Directories
+	Outbox      *outbox.Outbox
 	Backchannel *backchannel.Receiver
 
 	callbacks string                        // listen address of the callbacks
@@ -250,7 +263,10 @@ func newState(root backplane.Root[Config]) (*State, error) {
 		callbacks: cfg.Callbacks.Listen,
 		settings:  cfg.Settings,
 	}
-	st.Flows = flows.New(root, key, cfg.FailOpen, client)
+
+	st.Outbox = securityOutbox(root, cfg)
+
+	st.Flows = flows.New(root, key, cfg.FailOpen, client, st.Outbox)
 	events.NewLogin(root, cfg.Settings, client, cfg.Kratos.SchemaPoll)
 
 	public, err := url.Parse(client.PublicURL())
@@ -281,7 +297,7 @@ func newState(root backplane.Root[Config]) (*State, error) {
 		},
 	)
 	st.Activities = activities.New(root, client)
-	st.Directories = scim.New(root, cfg.Directories, cfg.DirectoryTokens, client,
+	st.Directories = scim.New(root, cfg.Directories, cfg.DirectoryTokens, client, st.Outbox,
 		st.Activities.IdentityEvent("IdentityCreated"), st.Activities.IdentityEvent("IdentityUpdated"),
 		st.Activities.IdentityEvent("IdentityDeleted"))
 	st.Backchannel = backchannel.New(root, cfg.OIDCBackchannel, client, st.Activities.RevokedEvent(),
@@ -291,6 +307,21 @@ func newState(root backplane.Root[Config]) (*State, error) {
 	)
 
 	return st, nil
+}
+
+// securityOutbox keeps the security events in cfg.DB until the broker took
+// them; without a broker there are no events and nothing is kept.
+func securityOutbox(root backplane.Root[Config], cfg Config) *outbox.Outbox {
+	if !cfg.NATS.Enabled() {
+		return outbox.Off()
+	}
+
+	db := deps.NewDependency(root, postgres.New(cfg.DB,
+		postgres.Schema(outbox.Schema), postgres.Migrations(outbox.Migrations())))
+	box := outbox.New(root, db, outbox.Schema)
+	box.Go(box.Run)
+
+	return box
 }
 
 // installation is the Kratos installation under parent: probed, never part

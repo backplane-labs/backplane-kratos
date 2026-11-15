@@ -53,10 +53,25 @@ type Sessions interface {
 	GetSession(ctx context.Context, id string) (ory.Session, error)
 	// DisableSession revokes a session.
 	DisableSession(ctx context.Context, id string) error
+	// GetIdentity reads an identity, with the configurations of the
+	// credential types named.
+	GetIdentity(ctx context.Context, id string, includeCredential ...string) (ory.Identity, error)
 }
 
 // outcomeUnbound: the hook had no binding; the flow continued.
 const outcomeUnbound = "unbound"
+
+// unavailableText is the message of UnavailableMessage.
+const unavailableText = "This is unavailable right now. Please try again later."
+
+// keyIdentity is the identity in Kratos's hook context and answers.
+const keyIdentity = "identity"
+
+// contentJSON is the media type of JSON.
+const contentJSON = "application/json"
+
+// jsonNull is JSON's null.
+const jsonNull = "null"
 
 // UnavailableMessage is shown when a flow hook fails and is not fail-open.
 const UnavailableMessage = 5000001
@@ -71,6 +86,7 @@ type Flows struct {
 	key      string
 	failOpen config.Live[[]string]
 	sessions Sessions
+	box      Outbox
 
 	deliver hook.Ref[DeliverIn, DeliverOut]
 	issued  hook.Ref[SessionIssuedIn, SessionIssuedOut]
@@ -111,10 +127,11 @@ func eventName(flow string) string {
 
 // New declares the hooks and events under parent; key authenticates
 // Kratos; hooks named in failOpen let the flow continue when they fail;
-// sessions confirms a login's session is stored before LoggedIn.
-func New(parent deps.Scope, key string, failOpen config.Live[[]string], sessions Sessions) *Flows {
+// sessions reads Kratos's sessions and identities; box keeps the security
+// events with what they report.
+func New(parent deps.Scope, key string, failOpen config.Live[[]string], sessions Sessions, box Outbox) *Flows {
 	f := &Flows{
-		Component: deps.NewComponent(parent, "flows"), key: key, failOpen: failOpen, sessions: sessions,
+		Component: deps.NewComponent(parent, "flows"), key: key, failOpen: failOpen, sessions: sessions, box: box,
 		points: map[string]hook.Ref[FlowIn, FlowOut]{}, events: map[string]event.Ref[FlowEvent]{},
 		stats: map[string]*Stat{},
 	}
@@ -145,6 +162,7 @@ func New(parent deps.Scope, key string, failOpen config.Live[[]string], sessions
 
 	f.logout = event.Declare[FlowEvent](f, "LoggedOut",
 		event.Describe("an identity signed out: Kratos ended the session of a self-service logout"))
+	f.register()
 
 	return f
 }
@@ -238,6 +256,7 @@ func (f *Flows) Handler() http.Handler {
 	mux.HandleFunc("POST /courier/{channel}", f.courier)
 	mux.HandleFunc("POST /hooks/{when}/{flow}/{method}", f.hook)
 	mux.HandleFunc("POST /events/{flow}/{method}", f.event)
+	mux.HandleFunc("POST "+overlay.SecurityPath+"{method}", f.security)
 
 	return f.authorized(mux)
 }
@@ -340,7 +359,7 @@ func splitTemplateData(in *DeliverIn, data map[string]json.RawMessage) {
 		var s string
 
 		switch {
-		case k == "identity":
+		case k == keyIdentity:
 			in.Identity = v
 		case k == "transient_payload":
 			in.TransientPayload = v
@@ -357,7 +376,9 @@ func splitTemplateData(in *DeliverIn, data map[string]json.RawMessage) {
 	}
 
 	if len(rest) > 0 {
-		in.Data, _ = json.Marshal(rest) //nolint:errchkjson // raw JSON values marshal
+		if raw, err := json.Marshal(rest); err == nil {
+			in.Data = raw
+		}
 	}
 }
 
@@ -378,7 +399,7 @@ func (c kratosCtx) flowIn(flow, method string) FlowIn {
 		TransientPayload: c.Flow.TransientPayload, RequestURL: c.RequestURL, RequestMethod: c.RequestMethod,
 		RequestHeaders: headers,
 	}
-	if len(in.Identity) == 0 || string(in.Identity) == "null" {
+	if len(in.Identity) == 0 || string(in.Identity) == jsonNull {
 		in.Identity = nil
 	}
 
@@ -491,9 +512,12 @@ func (d *Deny) kratos() kratosMessages {
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", contentJSON)
 	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(v) //nolint:errchkjson // the client went away
+	// An answer that does not reach the client is lost with the client.
+	if err := json.NewEncoder(w).Encode(v); err != nil {
+		return
+	}
 }
 
 func (f *Flows) hook(w http.ResponseWriter, r *http.Request) {
@@ -569,12 +593,12 @@ func (f *Flows) verdict(name, when, flow string, out FlowOut, err error) (int, a
 		return http.StatusOK, map[string]any{}, "failed_open"
 	case err != nil:
 		return http.StatusBadRequest, (&Deny{Messages: []Message{{
-			ID: UnavailableMessage, Text: "This is unavailable right now. Please try again later.",
+			ID: UnavailableMessage, Text: unavailableText,
 		}}}).kratos(), "failed"
 	case out.Deny != nil && len(out.Deny.Messages) > 0:
 		return http.StatusBadRequest, out.Deny.kratos(), "denied"
 	case out.Identity != nil && changes:
-		return http.StatusOK, map[string]any{"identity": out.Identity}, "changed"
+		return http.StatusOK, map[string]any{keyIdentity: out.Identity}, "changed"
 	default:
 		return http.StatusOK, map[string]any{}, "continued"
 	}
@@ -626,20 +650,23 @@ func (f *Flows) event(w http.ResponseWriter, r *http.Request) {
 		flowEvent.PreviousTraits = events.Traits(c.Session.Identity.Traits)
 	}
 
-	// Kratos does not wait for this answer: the event is best effort.
+	// Kratos does not wait for this answer. A settings change's event was
+	// enqueued before Kratos stored it; a session's is enqueued here too for a
+	// session issued past the front (the front enqueued it before its
+	// credential left, under the same message id).
 	switch {
+	case flow == overlay.FlowSettings:
+		f.record(point, start, "outbox", nil)
 	case flow == overlay.FlowLogin && c.Session != nil && c.Session.AuthenticatedAt != nil:
 		// LoggedIn means the session exists: wait for Kratos to store it.
 		login := *c.Session
-		go f.publishSession(context.WithoutCancel(r.Context()), ref, flowEvent, flow, point, start, &login,
-			func(s ory.Session) bool {
-				return s.AuthenticatedAt.Sub(*login.AuthenticatedAt).Abs() < time.Millisecond
-			})
+		f.recordLater(flowEvent, flow, point, start, &login, func(s ory.Session) bool {
+			return s.AuthenticatedAt.Sub(*login.AuthenticatedAt).Abs() < time.Millisecond
+		})
 	case flow == overlay.FlowRegistration && r.URL.Query().Get(overlay.SessionQuery) == "1":
 		// The session hook after this one signs the new identity in: its
 		// only session is the registration's.
-		go f.publishSession(context.WithoutCancel(r.Context()), ref, flowEvent, flow, point, start, nil,
-			func(ory.Session) bool { return true })
+		f.recordLater(flowEvent, flow, point, start, nil, func(ory.Session) bool { return true })
 	case flow == overlay.FlowRecovery:
 		// A redeemed recovery signs the identity in, and Kratos stores that
 		// session only after the hooks, sending none to them: Recovered
@@ -647,8 +674,7 @@ func (f *Flows) event(w http.ResponseWriter, r *http.Request) {
 		// the flow began.
 		issued := c.Flow.IssuedAt
 
-		go f.publishSession(context.WithoutCancel(r.Context()), ref, flowEvent, flow, point, start, nil,
-			func(s ory.Session) bool { return recoveredSince(s, issued) })
+		f.recordLater(flowEvent, flow, point, start, nil, func(s ory.Session) bool { return recoveredSince(s, issued) })
 	default:
 		f.publish(r.Context(), ref, flowEvent, flow, point, start)
 	}
@@ -670,36 +696,45 @@ func (f *Flows) publish(
 	f.record(point, start, "published", nil)
 }
 
-// publishLogin publishes LoggedIn with the login's session once Kratos has
-// stored it; a session never stored (the login failed after the hooks)
-// publishes nothing.
-// publishSession publishes flowEvent once Kratos stored the session that
-// matches, with it; details (AAL, devices) come from known, the flow's own
-// session, when there is one, else from the stored one.
-func (f *Flows) publishSession(ctx context.Context, ref event.Ref[FlowEvent], flowEvent FlowEvent,
-	flow, point string, start time.Time, known *ory.Session, match func(ory.Session) bool,
+// recordLater records flowEvent into the outbox once Kratos stored the
+// session that matches, with it — the way a session issued past the front
+// is recorded; one the front recorded has the same event id. Details (AAL,
+// devices) come from known, the flow's own session, when there is one.
+func (f *Flows) recordLater(flowEvent FlowEvent, flow, point string, start time.Time, known *ory.Session,
+	match func(ory.Session) bool,
 ) {
-	ctx, cancel := context.WithTimeout(ctx, storedWait)
-	defer cancel()
+	f.Go(func(ctx context.Context) error {
+		ctx, cancel := context.WithTimeout(ctx, storedWait)
+		defer cancel()
 
-	stored, err := f.stored(ctx, flowEvent.GetIdentityId(), match)
-	if err != nil {
-		f.record(point, start, "not_stored", err)
-		f.Log().Ctx().Warn(ctx, "flow event not published: no session stored", xlog.String("flow", flow),
-			xlog.String("identity", flowEvent.GetIdentityId()), xlog.Err(err))
+		stored, err := f.stored(ctx, flowEvent.GetIdentityId(), match)
+		if err != nil {
+			f.record(point, start, "not_stored", err)
+			f.Log().Ctx().Warn(ctx, "flow event not recorded: no session stored", xlog.String("flow", flow),
+				xlog.String("identity", flowEvent.GetIdentityId()), xlog.Err(err))
 
-		return
-	}
+			return nil
+		}
 
-	details := stored
-	if known != nil {
-		details = *known
-	}
+		details := stored
+		if known != nil {
+			details = *known
+		}
 
-	details.ID, details.AuthenticatedAt = stored.ID, stored.AuthenticatedAt
-	flowEvent.Session = sessionEvent(details)
+		details.ID, details.AuthenticatedAt = stored.ID, stored.AuthenticatedAt
+		flowEvent.Session = sessionEvent(details)
 
-	f.publish(ctx, ref, flowEvent, flow, point, start)
+		if err := f.enqueueSession(ctx, eventName(flow), flowEvent); err != nil {
+			f.record(point, start, "failed", err)
+			f.Log().Ctx().Warn(ctx, "flow event not recorded", xlog.String("flow", flow), xlog.Err(err))
+
+			return nil
+		}
+
+		f.record(point, start, "recorded", nil)
+
+		return nil
+	})
 }
 
 // recoveredSince: s was authenticated by a recovery method (Kratos's

@@ -104,7 +104,8 @@ func (k *kratos) CreateIdentity(_ context.Context, raw json.RawMessage) (ory.Ide
 	id := ory.Identity{
 		ID: fmt.Sprintf("id-%d", k.next), SchemaID: "default", Traits: b.Traits, MetadataPublic: b.MetadataPublic,
 		MetadataAdmin: b.MetadataAdmin, ExternalID: b.ExternalID, State: b.State, CreatedAt: &now, UpdatedAt: &now,
-		Credentials: map[string]ory.Credentials{},
+		StateChangedAt: &now,
+		Credentials:    map[string]ory.Credentials{},
 	}
 
 	for _, p := range b.Credentials.OIDC.Config.Providers {
@@ -149,6 +150,10 @@ func (k *kratos) UpdateIdentity(_ context.Context, id string, raw json.RawMessag
 	}
 
 	now := time.Now()
+	if i.State != b.State {
+		i.StateChangedAt = &now
+	}
+
 	i.Traits, i.MetadataPublic, i.MetadataAdmin = b.Traits, b.MetadataPublic, b.MetadataAdmin
 	i.ExternalID, i.State, i.UpdatedAt = b.ExternalID, b.State, &now
 	k.identities[id] = i

@@ -31,6 +31,37 @@ message FlowEvent {
   // session held them; set on kratos.SettingsChanged. Equal to traits when
   // the flow changed no trait (a password, a passkey).
   google.protobuf.Struct previous_traits = 8;
+  // Credentials the settings flow changed; set on kratos.SettingsChanged.
+  repeated CredentialChange changes = 9;
+  // Credential types the identity has after the settings change: password,
+  // totp, webauthn, passkey, lookup_secret, oidc, code. Set on
+  // kratos.SettingsChanged.
+  repeated string credentials = 10;
+  // Verifiable addresses the settings flow changed; set on
+  // kratos.SettingsChanged.
+  repeated AddressChange addresses = 11;
+}
+
+// CredentialChange is one credential a settings flow changed.
+message CredentialChange {
+  // Credential type: password, totp, webauthn, passkey, lookup_secret,
+  // oidc, code.
+  string type = 1;
+  // added, removed or replaced (a new password over an old one; for
+  // lookup_secret, regenerated codes).
+  string change = 2;
+  // OIDC provider id, for type oidc.
+  string provider = 3;
+}
+
+// AddressChange is a verifiable address a settings flow changed.
+message AddressChange {
+  // email or sms.
+  string via = 1;
+  // The address before; empty when it was added.
+  string previous = 2;
+  // The address after; empty when it was removed.
+  string current = 3;
 }
 
 // Session is a Kratos session as a login issued it.
@@ -47,6 +78,23 @@ message Session {
   string user_agent = 5;
   // Location Kratos derived from the request, if any.
   string location = 6;
+  // How the session was authenticated, in order: a step-up adds one, a
+  // backup code is method lookup_secret, a recovery code_recovery or
+  // link_recovery.
+  repeated AuthenticationMethod authentication_methods = 7;
+}
+
+// AuthenticationMethod is one way a session was authenticated.
+message AuthenticationMethod {
+  // password, code, totp, webauthn, passkey, lookup_secret, oidc,
+  // code_recovery, link_recovery, ...
+  string method = 1;
+  // Assurance level it reached: aal1, aal2.
+  string aal = 2;
+  // OIDC provider id, for method oidc.
+  string provider = 3;
+  // When it completed.
+  google.protobuf.Timestamp completed_at = 4;
 }
 
 // IdentityEvent is an identity changed through backplane-kratos (wiring, the

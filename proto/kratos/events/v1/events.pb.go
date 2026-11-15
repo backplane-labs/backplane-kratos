@@ -48,8 +48,17 @@ type FlowEvent struct {
 	// session held them; set on kratos.SettingsChanged. Equal to traits when
 	// the flow changed no trait (a password, a passkey).
 	PreviousTraits *structpb.Struct `protobuf:"bytes,8,opt,name=previous_traits,json=previousTraits,proto3" json:"previous_traits,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	// Credentials the settings flow changed; set on kratos.SettingsChanged.
+	Changes []*CredentialChange `protobuf:"bytes,9,rep,name=changes,proto3" json:"changes,omitempty"`
+	// Credential types the identity has after the settings change: password,
+	// totp, webauthn, passkey, lookup_secret, oidc, code. Set on
+	// kratos.SettingsChanged.
+	Credentials []string `protobuf:"bytes,10,rep,name=credentials,proto3" json:"credentials,omitempty"`
+	// Verifiable addresses the settings flow changed; set on
+	// kratos.SettingsChanged.
+	Addresses     []*AddressChange `protobuf:"bytes,11,rep,name=addresses,proto3" json:"addresses,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *FlowEvent) Reset() {
@@ -138,6 +147,157 @@ func (x *FlowEvent) GetPreviousTraits() *structpb.Struct {
 	return nil
 }
 
+func (x *FlowEvent) GetChanges() []*CredentialChange {
+	if x != nil {
+		return x.Changes
+	}
+	return nil
+}
+
+func (x *FlowEvent) GetCredentials() []string {
+	if x != nil {
+		return x.Credentials
+	}
+	return nil
+}
+
+func (x *FlowEvent) GetAddresses() []*AddressChange {
+	if x != nil {
+		return x.Addresses
+	}
+	return nil
+}
+
+// CredentialChange is one credential a settings flow changed.
+type CredentialChange struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Credential type: password, totp, webauthn, passkey, lookup_secret,
+	// oidc, code.
+	Type string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	// added, removed or replaced (a new password over an old one; for
+	// lookup_secret, regenerated codes).
+	Change string `protobuf:"bytes,2,opt,name=change,proto3" json:"change,omitempty"`
+	// OIDC provider id, for type oidc.
+	Provider      string `protobuf:"bytes,3,opt,name=provider,proto3" json:"provider,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CredentialChange) Reset() {
+	*x = CredentialChange{}
+	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CredentialChange) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CredentialChange) ProtoMessage() {}
+
+func (x *CredentialChange) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CredentialChange.ProtoReflect.Descriptor instead.
+func (*CredentialChange) Descriptor() ([]byte, []int) {
+	return file_proto_kratos_events_v1_events_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *CredentialChange) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *CredentialChange) GetChange() string {
+	if x != nil {
+		return x.Change
+	}
+	return ""
+}
+
+func (x *CredentialChange) GetProvider() string {
+	if x != nil {
+		return x.Provider
+	}
+	return ""
+}
+
+// AddressChange is a verifiable address a settings flow changed.
+type AddressChange struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// email or sms.
+	Via string `protobuf:"bytes,1,opt,name=via,proto3" json:"via,omitempty"`
+	// The address before; empty when it was added.
+	Previous string `protobuf:"bytes,2,opt,name=previous,proto3" json:"previous,omitempty"`
+	// The address after; empty when it was removed.
+	Current       string `protobuf:"bytes,3,opt,name=current,proto3" json:"current,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddressChange) Reset() {
+	*x = AddressChange{}
+	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddressChange) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddressChange) ProtoMessage() {}
+
+func (x *AddressChange) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddressChange.ProtoReflect.Descriptor instead.
+func (*AddressChange) Descriptor() ([]byte, []int) {
+	return file_proto_kratos_events_v1_events_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *AddressChange) GetVia() string {
+	if x != nil {
+		return x.Via
+	}
+	return ""
+}
+
+func (x *AddressChange) GetPrevious() string {
+	if x != nil {
+		return x.Previous
+	}
+	return ""
+}
+
+func (x *AddressChange) GetCurrent() string {
+	if x != nil {
+		return x.Current
+	}
+	return ""
+}
+
 // Session is a Kratos session as a login issued it.
 type Session struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -152,14 +312,18 @@ type Session struct {
 	// User agent of the login.
 	UserAgent string `protobuf:"bytes,5,opt,name=user_agent,json=userAgent,proto3" json:"user_agent,omitempty"`
 	// Location Kratos derived from the request, if any.
-	Location      string `protobuf:"bytes,6,opt,name=location,proto3" json:"location,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Location string `protobuf:"bytes,6,opt,name=location,proto3" json:"location,omitempty"`
+	// How the session was authenticated, in order: a step-up adds one, a
+	// backup code is method lookup_secret, a recovery code_recovery or
+	// link_recovery.
+	AuthenticationMethods []*AuthenticationMethod `protobuf:"bytes,7,rep,name=authentication_methods,json=authenticationMethods,proto3" json:"authentication_methods,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *Session) Reset() {
 	*x = Session{}
-	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[1]
+	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -171,7 +335,7 @@ func (x *Session) String() string {
 func (*Session) ProtoMessage() {}
 
 func (x *Session) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[1]
+	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -184,7 +348,7 @@ func (x *Session) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Session.ProtoReflect.Descriptor instead.
 func (*Session) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_events_v1_events_proto_rawDescGZIP(), []int{1}
+	return file_proto_kratos_events_v1_events_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Session) GetId() string {
@@ -229,6 +393,87 @@ func (x *Session) GetLocation() string {
 	return ""
 }
 
+func (x *Session) GetAuthenticationMethods() []*AuthenticationMethod {
+	if x != nil {
+		return x.AuthenticationMethods
+	}
+	return nil
+}
+
+// AuthenticationMethod is one way a session was authenticated.
+type AuthenticationMethod struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// password, code, totp, webauthn, passkey, lookup_secret, oidc,
+	// code_recovery, link_recovery, ...
+	Method string `protobuf:"bytes,1,opt,name=method,proto3" json:"method,omitempty"`
+	// Assurance level it reached: aal1, aal2.
+	Aal string `protobuf:"bytes,2,opt,name=aal,proto3" json:"aal,omitempty"`
+	// OIDC provider id, for method oidc.
+	Provider string `protobuf:"bytes,3,opt,name=provider,proto3" json:"provider,omitempty"`
+	// When it completed.
+	CompletedAt   *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=completed_at,json=completedAt,proto3" json:"completed_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuthenticationMethod) Reset() {
+	*x = AuthenticationMethod{}
+	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuthenticationMethod) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuthenticationMethod) ProtoMessage() {}
+
+func (x *AuthenticationMethod) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuthenticationMethod.ProtoReflect.Descriptor instead.
+func (*AuthenticationMethod) Descriptor() ([]byte, []int) {
+	return file_proto_kratos_events_v1_events_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *AuthenticationMethod) GetMethod() string {
+	if x != nil {
+		return x.Method
+	}
+	return ""
+}
+
+func (x *AuthenticationMethod) GetAal() string {
+	if x != nil {
+		return x.Aal
+	}
+	return ""
+}
+
+func (x *AuthenticationMethod) GetProvider() string {
+	if x != nil {
+		return x.Provider
+	}
+	return ""
+}
+
+func (x *AuthenticationMethod) GetCompletedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CompletedAt
+	}
+	return nil
+}
+
 // IdentityEvent is an identity changed through backplane-kratos (wiring, the
 // console or a corporate directory): kratos.IdentityCreated, kratos.IdentityUpdated,
 // kratos.IdentityDeleted. A deleted identity carries its id only.
@@ -248,7 +493,7 @@ type IdentityEvent struct {
 
 func (x *IdentityEvent) Reset() {
 	*x = IdentityEvent{}
-	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[2]
+	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -260,7 +505,7 @@ func (x *IdentityEvent) String() string {
 func (*IdentityEvent) ProtoMessage() {}
 
 func (x *IdentityEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[2]
+	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -273,7 +518,7 @@ func (x *IdentityEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IdentityEvent.ProtoReflect.Descriptor instead.
 func (*IdentityEvent) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_events_v1_events_proto_rawDescGZIP(), []int{2}
+	return file_proto_kratos_events_v1_events_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *IdentityEvent) GetIdentityId() string {
@@ -323,7 +568,7 @@ type SessionsRevoked struct {
 
 func (x *SessionsRevoked) Reset() {
 	*x = SessionsRevoked{}
-	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[3]
+	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -335,7 +580,7 @@ func (x *SessionsRevoked) String() string {
 func (*SessionsRevoked) ProtoMessage() {}
 
 func (x *SessionsRevoked) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[3]
+	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -348,7 +593,7 @@ func (x *SessionsRevoked) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SessionsRevoked.ProtoReflect.Descriptor instead.
 func (*SessionsRevoked) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_events_v1_events_proto_rawDescGZIP(), []int{3}
+	return file_proto_kratos_events_v1_events_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *SessionsRevoked) GetIdentityId() string {
@@ -395,7 +640,7 @@ type IdentityStateChanged struct {
 
 func (x *IdentityStateChanged) Reset() {
 	*x = IdentityStateChanged{}
-	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[4]
+	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -407,7 +652,7 @@ func (x *IdentityStateChanged) String() string {
 func (*IdentityStateChanged) ProtoMessage() {}
 
 func (x *IdentityStateChanged) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[4]
+	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -420,7 +665,7 @@ func (x *IdentityStateChanged) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IdentityStateChanged.ProtoReflect.Descriptor instead.
 func (*IdentityStateChanged) Descriptor() ([]byte, []int) {
-	return file_proto_kratos_events_v1_events_proto_rawDescGZIP(), []int{4}
+	return file_proto_kratos_events_v1_events_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *IdentityStateChanged) GetIdentityId() string {
@@ -462,7 +707,7 @@ var File_proto_kratos_events_v1_events_proto protoreflect.FileDescriptor
 
 const file_proto_kratos_events_v1_events_proto_rawDesc = "" +
 	"\n" +
-	"#proto/kratos/events/v1/events.proto\x12\x10kratos.events.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xe8\x02\n" +
+	"#proto/kratos/events/v1/events.proto\x12\x10kratos.events.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x87\x04\n" +
 	"\tFlowEvent\x12\x1f\n" +
 	"\videntity_id\x18\x01 \x01(\tR\n" +
 	"identityId\x12\x1b\n" +
@@ -472,7 +717,19 @@ const file_proto_kratos_events_v1_events_proto_rawDesc = "" +
 	"\x06traits\x18\x05 \x01(\v2\x17.google.protobuf.StructR\x06traits\x123\n" +
 	"\asession\x18\x06 \x01(\v2\x19.kratos.events.v1.SessionR\asession\x12D\n" +
 	"\x11transient_payload\x18\a \x01(\v2\x17.google.protobuf.StructR\x10transientPayload\x12@\n" +
-	"\x0fprevious_traits\x18\b \x01(\v2\x17.google.protobuf.StructR\x0epreviousTraits\"\xcc\x01\n" +
+	"\x0fprevious_traits\x18\b \x01(\v2\x17.google.protobuf.StructR\x0epreviousTraits\x12<\n" +
+	"\achanges\x18\t \x03(\v2\".kratos.events.v1.CredentialChangeR\achanges\x12 \n" +
+	"\vcredentials\x18\n" +
+	" \x03(\tR\vcredentials\x12=\n" +
+	"\taddresses\x18\v \x03(\v2\x1f.kratos.events.v1.AddressChangeR\taddresses\"Z\n" +
+	"\x10CredentialChange\x12\x12\n" +
+	"\x04type\x18\x01 \x01(\tR\x04type\x12\x16\n" +
+	"\x06change\x18\x02 \x01(\tR\x06change\x12\x1a\n" +
+	"\bprovider\x18\x03 \x01(\tR\bprovider\"W\n" +
+	"\rAddressChange\x12\x10\n" +
+	"\x03via\x18\x01 \x01(\tR\x03via\x12\x1a\n" +
+	"\bprevious\x18\x02 \x01(\tR\bprevious\x12\x18\n" +
+	"\acurrent\x18\x03 \x01(\tR\acurrent\"\xab\x02\n" +
 	"\aSession\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12E\n" +
 	"\x10authenticated_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x0fauthenticatedAt\x12\x10\n" +
@@ -481,7 +738,13 @@ const file_proto_kratos_events_v1_events_proto_rawDesc = "" +
 	"ip_address\x18\x04 \x01(\tR\tipAddress\x12\x1d\n" +
 	"\n" +
 	"user_agent\x18\x05 \x01(\tR\tuserAgent\x12\x1a\n" +
-	"\blocation\x18\x06 \x01(\tR\blocation\"\x8e\x01\n" +
+	"\blocation\x18\x06 \x01(\tR\blocation\x12]\n" +
+	"\x16authentication_methods\x18\a \x03(\v2&.kratos.events.v1.AuthenticationMethodR\x15authenticationMethods\"\x9b\x01\n" +
+	"\x14AuthenticationMethod\x12\x16\n" +
+	"\x06method\x18\x01 \x01(\tR\x06method\x12\x10\n" +
+	"\x03aal\x18\x02 \x01(\tR\x03aal\x12\x1a\n" +
+	"\bprovider\x18\x03 \x01(\tR\bprovider\x12=\n" +
+	"\fcompleted_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\vcompletedAt\"\x8e\x01\n" +
 	"\rIdentityEvent\x12\x1f\n" +
 	"\videntity_id\x18\x01 \x01(\tR\n" +
 	"identityId\x12\x1b\n" +
@@ -514,28 +777,35 @@ func file_proto_kratos_events_v1_events_proto_rawDescGZIP() []byte {
 	return file_proto_kratos_events_v1_events_proto_rawDescData
 }
 
-var file_proto_kratos_events_v1_events_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_proto_kratos_events_v1_events_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_proto_kratos_events_v1_events_proto_goTypes = []any{
 	(*FlowEvent)(nil),             // 0: kratos.events.v1.FlowEvent
-	(*Session)(nil),               // 1: kratos.events.v1.Session
-	(*IdentityEvent)(nil),         // 2: kratos.events.v1.IdentityEvent
-	(*SessionsRevoked)(nil),       // 3: kratos.events.v1.SessionsRevoked
-	(*IdentityStateChanged)(nil),  // 4: kratos.events.v1.IdentityStateChanged
-	(*structpb.Struct)(nil),       // 5: google.protobuf.Struct
-	(*timestamppb.Timestamp)(nil), // 6: google.protobuf.Timestamp
+	(*CredentialChange)(nil),      // 1: kratos.events.v1.CredentialChange
+	(*AddressChange)(nil),         // 2: kratos.events.v1.AddressChange
+	(*Session)(nil),               // 3: kratos.events.v1.Session
+	(*AuthenticationMethod)(nil),  // 4: kratos.events.v1.AuthenticationMethod
+	(*IdentityEvent)(nil),         // 5: kratos.events.v1.IdentityEvent
+	(*SessionsRevoked)(nil),       // 6: kratos.events.v1.SessionsRevoked
+	(*IdentityStateChanged)(nil),  // 7: kratos.events.v1.IdentityStateChanged
+	(*structpb.Struct)(nil),       // 8: google.protobuf.Struct
+	(*timestamppb.Timestamp)(nil), // 9: google.protobuf.Timestamp
 }
 var file_proto_kratos_events_v1_events_proto_depIdxs = []int32{
-	5, // 0: kratos.events.v1.FlowEvent.traits:type_name -> google.protobuf.Struct
-	1, // 1: kratos.events.v1.FlowEvent.session:type_name -> kratos.events.v1.Session
-	5, // 2: kratos.events.v1.FlowEvent.transient_payload:type_name -> google.protobuf.Struct
-	5, // 3: kratos.events.v1.FlowEvent.previous_traits:type_name -> google.protobuf.Struct
-	6, // 4: kratos.events.v1.Session.authenticated_at:type_name -> google.protobuf.Timestamp
-	5, // 5: kratos.events.v1.IdentityEvent.traits:type_name -> google.protobuf.Struct
-	6, // [6:6] is the sub-list for method output_type
-	6, // [6:6] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	8,  // 0: kratos.events.v1.FlowEvent.traits:type_name -> google.protobuf.Struct
+	3,  // 1: kratos.events.v1.FlowEvent.session:type_name -> kratos.events.v1.Session
+	8,  // 2: kratos.events.v1.FlowEvent.transient_payload:type_name -> google.protobuf.Struct
+	8,  // 3: kratos.events.v1.FlowEvent.previous_traits:type_name -> google.protobuf.Struct
+	1,  // 4: kratos.events.v1.FlowEvent.changes:type_name -> kratos.events.v1.CredentialChange
+	2,  // 5: kratos.events.v1.FlowEvent.addresses:type_name -> kratos.events.v1.AddressChange
+	9,  // 6: kratos.events.v1.Session.authenticated_at:type_name -> google.protobuf.Timestamp
+	4,  // 7: kratos.events.v1.Session.authentication_methods:type_name -> kratos.events.v1.AuthenticationMethod
+	9,  // 8: kratos.events.v1.AuthenticationMethod.completed_at:type_name -> google.protobuf.Timestamp
+	8,  // 9: kratos.events.v1.IdentityEvent.traits:type_name -> google.protobuf.Struct
+	10, // [10:10] is the sub-list for method output_type
+	10, // [10:10] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_proto_kratos_events_v1_events_proto_init() }
@@ -549,7 +819,7 @@ func file_proto_kratos_events_v1_events_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_kratos_events_v1_events_proto_rawDesc), len(file_proto_kratos_events_v1_events_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

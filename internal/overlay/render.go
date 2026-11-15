@@ -261,6 +261,10 @@ func (r renderer) selfservice() {
 	r.methods()
 }
 
+// SecurityPath is the callback that stages a settings change's security
+// event.
+const SecurityPath = "/security/settings/"
+
 // How Kratos treats a web hook's answer.
 type answer int
 
@@ -331,11 +335,24 @@ func (r renderer) eventsPath(flow, method string) string {
 	return path
 }
 
+// security is the last hook Kratos waits for before it stores a settings
+// change: the change's security event is staged into it (README, Security
+// events).
+func (r renderer) security(flow, method string) []any {
+	if flow != FlowSettings || !r.w.Events {
+		return nil
+	}
+
+	return []any{r.webHook(SecurityPath+method, parsed)}
+}
+
 func (r renderer) after(flow, method string) []any {
 	hooks := []any{}
 	if r.bound(HookName(After, flow)) {
 		hooks = append(hooks, r.webHook("/hooks/after/"+flow+"/"+method, parsed))
 	}
+
+	hooks = append(hooks, r.security(flow, method)...)
 
 	// Ahead of the session hook, which ends the flow.
 	if flow == FlowRegistration && r.bound(StoredHook) {

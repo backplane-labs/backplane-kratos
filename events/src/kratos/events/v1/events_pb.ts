@@ -12,7 +12,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file kratos/events/v1/events.proto.
  */
 export const file_kratos_events_v1_events: GenFile = /*@__PURE__*/
-  fileDesc("Ch1rcmF0b3MvZXZlbnRzL3YxL2V2ZW50cy5wcm90bxIQa3JhdG9zLmV2ZW50cy52MSKPAgoJRmxvd0V2ZW50EhMKC2lkZW50aXR5X2lkGAEgASgJEhEKCXNjaGVtYV9pZBgCIAEoCRIOCgZtZXRob2QYAyABKAkSDwoHZmxvd19pZBgEIAEoCRInCgZ0cmFpdHMYBSABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0EioKB3Nlc3Npb24YBiABKAsyGS5rcmF0b3MuZXZlbnRzLnYxLlNlc3Npb24SMgoRdHJhbnNpZW50X3BheWxvYWQYByABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0EjAKD3ByZXZpb3VzX3RyYWl0cxgIIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QikgEKB1Nlc3Npb24SCgoCaWQYASABKAkSNAoQYXV0aGVudGljYXRlZF9hdBgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASCwoDYWFsGAMgASgJEhIKCmlwX2FkZHJlc3MYBCABKAkSEgoKdXNlcl9hZ2VudBgFIAEoCRIQCghsb2NhdGlvbhgGIAEoCSJsCg1JZGVudGl0eUV2ZW50EhMKC2lkZW50aXR5X2lkGAEgASgJEhEKCXNjaGVtYV9pZBgCIAEoCRInCgZ0cmFpdHMYAyABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0EgoKAmJ5GAQgASgJIkYKD1Nlc3Npb25zUmV2b2tlZBITCgtpZGVudGl0eV9pZBgBIAEoCRISCgpzZXNzaW9uX2lkGAIgASgJEgoKAmJ5GAMgASgJImkKFElkZW50aXR5U3RhdGVDaGFuZ2VkEhMKC2lkZW50aXR5X2lkGAEgASgJEg0KBXN0YXRlGAIgASgJEgoKAmJ5GAMgASgJEhEKCWRpcmVjdG9yeRgEIAEoCRIOCgZyZWFzb24YBSABKAlCUlpQZ2l0aHViLmNvbS9iYWNrcGxhbmUtbGFicy9iYWNrcGxhbmUta3JhdG9zL3Byb3RvL2tyYXRvcy9ldmVudHMvdjE7a3JhdG9zZXZlbnRzdjFiBnByb3RvMw", [file_google_protobuf_struct, file_google_protobuf_timestamp]);
+  fileDesc("Ch1rcmF0b3MvZXZlbnRzL3YxL2V2ZW50cy5wcm90bxIQa3JhdG9zLmV2ZW50cy52MSKNAwoJRmxvd0V2ZW50EhMKC2lkZW50aXR5X2lkGAEgASgJEhEKCXNjaGVtYV9pZBgCIAEoCRIOCgZtZXRob2QYAyABKAkSDwoHZmxvd19pZBgEIAEoCRInCgZ0cmFpdHMYBSABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0EioKB3Nlc3Npb24YBiABKAsyGS5rcmF0b3MuZXZlbnRzLnYxLlNlc3Npb24SMgoRdHJhbnNpZW50X3BheWxvYWQYByABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0EjAKD3ByZXZpb3VzX3RyYWl0cxgIIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QSMwoHY2hhbmdlcxgJIAMoCzIiLmtyYXRvcy5ldmVudHMudjEuQ3JlZGVudGlhbENoYW5nZRITCgtjcmVkZW50aWFscxgKIAMoCRIyCglhZGRyZXNzZXMYCyADKAsyHy5rcmF0b3MuZXZlbnRzLnYxLkFkZHJlc3NDaGFuZ2UiQgoQQ3JlZGVudGlhbENoYW5nZRIMCgR0eXBlGAEgASgJEg4KBmNoYW5nZRgCIAEoCRIQCghwcm92aWRlchgDIAEoCSI/Cg1BZGRyZXNzQ2hhbmdlEgsKA3ZpYRgBIAEoCRIQCghwcmV2aW91cxgCIAEoCRIPCgdjdXJyZW50GAMgASgJItoBCgdTZXNzaW9uEgoKAmlkGAEgASgJEjQKEGF1dGhlbnRpY2F0ZWRfYXQYAiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEgsKA2FhbBgDIAEoCRISCgppcF9hZGRyZXNzGAQgASgJEhIKCnVzZXJfYWdlbnQYBSABKAkSEAoIbG9jYXRpb24YBiABKAkSRgoWYXV0aGVudGljYXRpb25fbWV0aG9kcxgHIAMoCzImLmtyYXRvcy5ldmVudHMudjEuQXV0aGVudGljYXRpb25NZXRob2QidwoUQXV0aGVudGljYXRpb25NZXRob2QSDgoGbWV0aG9kGAEgASgJEgsKA2FhbBgCIAEoCRIQCghwcm92aWRlchgDIAEoCRIwCgxjb21wbGV0ZWRfYXQYBCABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wImwKDUlkZW50aXR5RXZlbnQSEwoLaWRlbnRpdHlfaWQYASABKAkSEQoJc2NoZW1hX2lkGAIgASgJEicKBnRyYWl0cxgDIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QSCgoCYnkYBCABKAkiRgoPU2Vzc2lvbnNSZXZva2VkEhMKC2lkZW50aXR5X2lkGAEgASgJEhIKCnNlc3Npb25faWQYAiABKAkSCgoCYnkYAyABKAkiaQoUSWRlbnRpdHlTdGF0ZUNoYW5nZWQSEwoLaWRlbnRpdHlfaWQYASABKAkSDQoFc3RhdGUYAiABKAkSCgoCYnkYAyABKAkSEQoJZGlyZWN0b3J5GAQgASgJEg4KBnJlYXNvbhgFIAEoCUJSWlBnaXRodWIuY29tL2JhY2twbGFuZS1sYWJzL2JhY2twbGFuZS1rcmF0b3MvcHJvdG8va3JhdG9zL2V2ZW50cy92MTtrcmF0b3NldmVudHN2MWIGcHJvdG8z", [file_google_protobuf_struct, file_google_protobuf_timestamp]);
 
 /**
  * FlowEvent is a completed self-service flow: kratos.Registered,
@@ -81,6 +81,30 @@ export type FlowEvent = Message<"kratos.events.v1.FlowEvent"> & {
    * @generated from field: google.protobuf.Struct previous_traits = 8;
    */
   previousTraits?: JsonObject | undefined;
+
+  /**
+   * Credentials the settings flow changed; set on kratos.SettingsChanged.
+   *
+   * @generated from field: repeated kratos.events.v1.CredentialChange changes = 9;
+   */
+  changes: CredentialChange[];
+
+  /**
+   * Credential types the identity has after the settings change: password,
+   * totp, webauthn, passkey, lookup_secret, oidc, code. Set on
+   * kratos.SettingsChanged.
+   *
+   * @generated from field: repeated string credentials = 10;
+   */
+  credentials: string[];
+
+  /**
+   * Verifiable addresses the settings flow changed; set on
+   * kratos.SettingsChanged.
+   *
+   * @generated from field: repeated kratos.events.v1.AddressChange addresses = 11;
+   */
+  addresses: AddressChange[];
 };
 
 /**
@@ -89,6 +113,78 @@ export type FlowEvent = Message<"kratos.events.v1.FlowEvent"> & {
  */
 export const FlowEventSchema: GenMessage<FlowEvent> = /*@__PURE__*/
   messageDesc(file_kratos_events_v1_events, 0);
+
+/**
+ * CredentialChange is one credential a settings flow changed.
+ *
+ * @generated from message kratos.events.v1.CredentialChange
+ */
+export type CredentialChange = Message<"kratos.events.v1.CredentialChange"> & {
+  /**
+   * Credential type: password, totp, webauthn, passkey, lookup_secret,
+   * oidc, code.
+   *
+   * @generated from field: string type = 1;
+   */
+  type: string;
+
+  /**
+   * added, removed or replaced (a new password over an old one; for
+   * lookup_secret, regenerated codes).
+   *
+   * @generated from field: string change = 2;
+   */
+  change: string;
+
+  /**
+   * OIDC provider id, for type oidc.
+   *
+   * @generated from field: string provider = 3;
+   */
+  provider: string;
+};
+
+/**
+ * Describes the message kratos.events.v1.CredentialChange.
+ * Use `create(CredentialChangeSchema)` to create a new message.
+ */
+export const CredentialChangeSchema: GenMessage<CredentialChange> = /*@__PURE__*/
+  messageDesc(file_kratos_events_v1_events, 1);
+
+/**
+ * AddressChange is a verifiable address a settings flow changed.
+ *
+ * @generated from message kratos.events.v1.AddressChange
+ */
+export type AddressChange = Message<"kratos.events.v1.AddressChange"> & {
+  /**
+   * email or sms.
+   *
+   * @generated from field: string via = 1;
+   */
+  via: string;
+
+  /**
+   * The address before; empty when it was added.
+   *
+   * @generated from field: string previous = 2;
+   */
+  previous: string;
+
+  /**
+   * The address after; empty when it was removed.
+   *
+   * @generated from field: string current = 3;
+   */
+  current: string;
+};
+
+/**
+ * Describes the message kratos.events.v1.AddressChange.
+ * Use `create(AddressChangeSchema)` to create a new message.
+ */
+export const AddressChangeSchema: GenMessage<AddressChange> = /*@__PURE__*/
+  messageDesc(file_kratos_events_v1_events, 2);
 
 /**
  * Session is a Kratos session as a login issued it.
@@ -137,6 +233,15 @@ export type Session = Message<"kratos.events.v1.Session"> & {
    * @generated from field: string location = 6;
    */
   location: string;
+
+  /**
+   * How the session was authenticated, in order: a step-up adds one, a
+   * backup code is method lookup_secret, a recovery code_recovery or
+   * link_recovery.
+   *
+   * @generated from field: repeated kratos.events.v1.AuthenticationMethod authentication_methods = 7;
+   */
+  authenticationMethods: AuthenticationMethod[];
 };
 
 /**
@@ -144,7 +249,50 @@ export type Session = Message<"kratos.events.v1.Session"> & {
  * Use `create(SessionSchema)` to create a new message.
  */
 export const SessionSchema: GenMessage<Session> = /*@__PURE__*/
-  messageDesc(file_kratos_events_v1_events, 1);
+  messageDesc(file_kratos_events_v1_events, 3);
+
+/**
+ * AuthenticationMethod is one way a session was authenticated.
+ *
+ * @generated from message kratos.events.v1.AuthenticationMethod
+ */
+export type AuthenticationMethod = Message<"kratos.events.v1.AuthenticationMethod"> & {
+  /**
+   * password, code, totp, webauthn, passkey, lookup_secret, oidc,
+   * code_recovery, link_recovery, ...
+   *
+   * @generated from field: string method = 1;
+   */
+  method: string;
+
+  /**
+   * Assurance level it reached: aal1, aal2.
+   *
+   * @generated from field: string aal = 2;
+   */
+  aal: string;
+
+  /**
+   * OIDC provider id, for method oidc.
+   *
+   * @generated from field: string provider = 3;
+   */
+  provider: string;
+
+  /**
+   * When it completed.
+   *
+   * @generated from field: google.protobuf.Timestamp completed_at = 4;
+   */
+  completedAt?: Timestamp | undefined;
+};
+
+/**
+ * Describes the message kratos.events.v1.AuthenticationMethod.
+ * Use `create(AuthenticationMethodSchema)` to create a new message.
+ */
+export const AuthenticationMethodSchema: GenMessage<AuthenticationMethod> = /*@__PURE__*/
+  messageDesc(file_kratos_events_v1_events, 4);
 
 /**
  * IdentityEvent is an identity changed through backplane-kratos (wiring, the
@@ -188,7 +336,7 @@ export type IdentityEvent = Message<"kratos.events.v1.IdentityEvent"> & {
  * Use `create(IdentityEventSchema)` to create a new message.
  */
 export const IdentityEventSchema: GenMessage<IdentityEvent> = /*@__PURE__*/
-  messageDesc(file_kratos_events_v1_events, 2);
+  messageDesc(file_kratos_events_v1_events, 5);
 
 /**
  * SessionsRevoked (kratos.SessionsRevoked): one session of an identity was
@@ -227,7 +375,7 @@ export type SessionsRevoked = Message<"kratos.events.v1.SessionsRevoked"> & {
  * Use `create(SessionsRevokedSchema)` to create a new message.
  */
 export const SessionsRevokedSchema: GenMessage<SessionsRevoked> = /*@__PURE__*/
-  messageDesc(file_kratos_events_v1_events, 3);
+  messageDesc(file_kratos_events_v1_events, 6);
 
 /**
  * IdentityStateChanged (kratos.IdentityStateChanged): a corporate directory
@@ -280,5 +428,5 @@ export type IdentityStateChanged = Message<"kratos.events.v1.IdentityStateChange
  * Use `create(IdentityStateChangedSchema)` to create a new message.
  */
 export const IdentityStateChangedSchema: GenMessage<IdentityStateChanged> = /*@__PURE__*/
-  messageDesc(file_kratos_events_v1_events, 4);
+  messageDesc(file_kratos_events_v1_events, 7);
 

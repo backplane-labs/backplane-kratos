@@ -11,13 +11,6 @@ import (
 // metadataKey is the identity's metadata_admin key this service owns.
 const metadataKey = "scim"
 
-// Kinds of a pending event.
-const (
-	kindCreated = "created"
-	kindUpdated = "updated"
-	kindState   = "state"
-)
-
 // Reasons of a state change.
 const (
 	ReasonDeactivated = "deactivated"
@@ -25,22 +18,10 @@ const (
 	ReasonDeleted     = "deleted"
 )
 
-// Pending is an event written with the change it reports, published after
-// it and then cleared: the change and its notification commit together, and
-// any later request of the IdP publishes what an earlier one could not.
-type Pending struct {
-	Kind   string `json:"kind"`
-	Reason string `json:"reason,omitempty"`
-	// ID is the event's id, fixed when the change is written, so publishing
-	// it again is the same event.
-	ID string `json:"id"`
-}
-
 // record is what the identity's metadata_admin holds for its directory.
 type record struct {
-	Directory string    `json:"directory"`
-	User      User      `json:"user"`
-	Pending   []Pending `json:"pending,omitempty"`
+	Directory string `json:"directory"`
+	User      User   `json:"user"`
 }
 
 // stored is the directory record of an identity; false when the identity is

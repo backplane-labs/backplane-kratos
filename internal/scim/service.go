@@ -2,8 +2,6 @@ package scim
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/backplane-labs/backplane-kratos/internal/ory"
+	"github.com/backplane-labs/backplane-kratos/internal/outbox"
 )
 
 // Kratos is the admin API the directories need.
@@ -26,21 +25,21 @@ type Kratos interface {
 	DeleteIdentitySessions(ctx context.Context, id string) error
 }
 
-// Publisher publishes what a directory changes.
-type Publisher interface {
-	Publish(ctx context.Context, id ory.Identity, dir string, p Pending) error
-	PublishDeleted(ctx context.Context, id ory.Identity) error
+// Outbox keeps a directory's events until the broker took them.
+type Outbox interface {
+	Register(topic string, p outbox.Publisher)
+	Enqueue(ctx context.Context, m outbox.Message) error
 }
 
 // Service is the directories' scenarios against Kratos.
 type Service struct {
 	kratos Kratos
-	events Publisher
+	outbox Outbox
 }
 
-// NewService is the scenarios over kratos, publishing on events.
-func NewService(kratos Kratos, events Publisher) Service {
-	return Service{kratos: kratos, events: events}
+// NewService is the scenarios over kratos, their events kept in box.
+func NewService(kratos Kratos, box Outbox) Service {
+	return Service{kratos: kratos, outbox: box}
 }
 
 // errUnavailable: the change is in Kratos but its event is not out yet; the
@@ -71,9 +70,9 @@ func (s Service) Create(ctx context.Context, d Directory, u User) (ory.Identity,
 			return ory.Identity{}, uniqueness("the user belongs to another directory")
 		}
 
-		kind := kindUpdated
+		kind := eventUpdated
 		if mine {
-			kind = kindCreated
+			kind = eventCreated
 		}
 
 		return s.write(ctx, d, found, u, kind, ReasonDeactivated)
@@ -119,11 +118,9 @@ func (s Service) create(ctx context.Context, d Directory, u User, ext string) (o
 		return ory.Identity{}, err
 	}
 
-	meta, err := withRecord(nil, record{
-		Directory: d.ID, User: u, Pending: []Pending{{Kind: kindCreated, ID: eventID()}},
-	})
+	meta, err := withRecord(nil, record{Directory: d.ID, User: u})
 	if err != nil {
-		return ory.Identity{}, err
+		return ory.Identity{}, fmt.Errorf("scim: metadata: %w", err)
 	}
 
 	name, _ := u.String("userName")
@@ -143,7 +140,7 @@ func (s Service) create(ctx context.Context, d Directory, u User, ext string) (o
 		return ory.Identity{}, kratosFailure(err)
 	}
 
-	return s.flush(ctx, created)
+	return s.announce(ctx, d, created, eventCreated, ReasonDeactivated, false)
 }
 
 // Get is a directory's user.
@@ -158,7 +155,7 @@ func (s Service) Replace(ctx context.Context, d Directory, id string, u User) (o
 		return ory.Identity{}, err
 	}
 
-	return s.write(ctx, d, cur, u, kindUpdated, ReasonDeactivated)
+	return s.write(ctx, d, cur, u, eventUpdated, ReasonDeactivated)
 }
 
 // Patch applies ops to the user as the directory last wrote it, with active
@@ -177,7 +174,7 @@ func (s Service) Patch(ctx context.Context, d Directory, id string, ops []Operat
 		return ory.Identity{}, err
 	}
 
-	return s.write(ctx, d, cur, u, kindUpdated, ReasonDeactivated)
+	return s.write(ctx, d, cur, u, eventUpdated, ReasonDeactivated)
 }
 
 // Delete deletes the identity, or deactivates it and keeps it readable.
@@ -192,14 +189,16 @@ func (s Service) Delete(ctx context.Context, d Directory, id string) error {
 		u := maps.Clone(r.User)
 		u.setBool("active", false)
 
-		_, err := s.write(ctx, d, cur, u, kindUpdated, ReasonDeleted)
+		_, err := s.write(ctx, d, cur, u, eventUpdated, ReasonDeleted)
 
 		return err
 	}
 
-	// Published first: a deleted identity keeps no pending event, and a retry
-	// after a failed delete publishes the same event again.
-	if err := s.events.PublishDeleted(ctx, cur); err != nil {
+	// Enqueued first: a deleted identity cannot be announced after; the
+	// event is published once the identity is gone, discarded if it never
+	// goes.
+	if err := s.outbox.Enqueue(ctx, message(eventDeleted, "deleted-"+cur.ID,
+		identityPayload{IdentityID: cur.ID}, cur.ID)); err != nil {
 		return fmt.Errorf("%w: %w", errUnavailable, err)
 	}
 
@@ -300,17 +299,6 @@ func (s Service) owned(ctx context.Context, d Directory, id string) (ory.Identit
 	}
 
 	return cur, nil
-}
-
-// eventIDBytes is the randomness of an event id: 128 bits.
-const eventIDBytes = 16
-
-// eventID is a new event's id, kept with the change until it is published.
-func eventID() string {
-	b := make([]byte, eventIDBytes)
-	_, _ = rand.Read(b)
-
-	return "scim-" + hex.EncodeToString(b)
 }
 
 // kratosFailure turns a failed Kratos call into a SCIM refusal where it is

@@ -166,25 +166,30 @@ KRATOS_IMAGE ?= oryd/kratos:v26.2.0
 # An OIDC provider for the native sign-in tests: no login page, issuer
 # default gives a new subject every time, returning always the same one.
 OIDC_IMAGE   ?= ghcr.io/navikt/mock-oauth2-server:3.0.0
+DB_IMAGE     ?= postgres:17-alpine
+IT_DB        ?= postgres://postgres:it@127.0.0.1:24432/postgres?sslmode=disable
 IT_DIR       ?= /tmp/backplane-kratos-it
 
 .PHONY: it-up
-it-up: ## Start the Kratos and the OIDC provider of the integration tests (docker, host network)
+it-up: ## Start the Kratos, the OIDC provider and the PostgreSQL of the integration tests (docker, host network)
 	mkdir -p "$(IT_DIR)" && echo '{}' > "$(IT_DIR)/overlay.yml" && chmod 0777 "$(IT_DIR)"
-	docker rm -f backplane-kratos-it backplane-kratos-it-oidc >/dev/null 2>&1 || true
+	docker rm -f backplane-kratos-it backplane-kratos-it-oidc backplane-kratos-it-db >/dev/null 2>&1 || true
+	docker run -d --name backplane-kratos-it-db --network host -e POSTGRES_PASSWORD=it -e PGPORT=24432 $(DB_IMAGE)
 	docker run -d --name backplane-kratos-it-oidc --network host -e SERVER_PORT=24480 \
 	  -e JSON_CONFIG="$$(cat internal/it/testdata/mock-oidc.json)" $(OIDC_IMAGE)
 	docker run -d --name backplane-kratos-it --network host \
 	  -v "$(CURDIR)/internal/it/testdata:/etc/kratos:ro" -v "$(IT_DIR):/etc/backplane" \
 	  $(KRATOS_IMAGE) serve -c /etc/kratos/kratos.yml -c /etc/backplane/overlay.yml --watch-courier
 	for i in $$(seq 1 60); do curl -sf http://127.0.0.1:24434/health/ready >/dev/null && \
-	  curl -sf http://127.0.0.1:24480/default/.well-known/openid-configuration >/dev/null && exit 0; sleep 1; done; \
+	  curl -sf http://127.0.0.1:24480/default/.well-known/openid-configuration >/dev/null && \
+	  docker exec backplane-kratos-it-db pg_isready -q -p 24432 && exit 0; sleep 1; done; \
 	  docker logs backplane-kratos-it; docker logs backplane-kratos-it-oidc; exit 1
 
 .PHONY: it-down
-it-down: ## Stop the Kratos and the OIDC provider of the integration tests
-	docker rm -f backplane-kratos-it backplane-kratos-it-oidc >/dev/null 2>&1 || true
+it-down: ## Stop the Kratos, the OIDC provider and the PostgreSQL of the integration tests
+	docker rm -f backplane-kratos-it backplane-kratos-it-oidc backplane-kratos-it-db >/dev/null 2>&1 || true
 
 .PHONY: it
 it: ## Integration tests against the Kratos of it-up
-	KRATOS_IT_OVERLAY="$(IT_DIR)/overlay.yml" KRATOS_IT_CONTAINER=backplane-kratos-it go test -count=1 -v ./internal/it/
+	KRATOS_IT_OVERLAY="$(IT_DIR)/overlay.yml" KRATOS_IT_CONTAINER=backplane-kratos-it KRATOS_IT_DB="$(IT_DB)" \
+	  go test -count=1 -v ./internal/it/

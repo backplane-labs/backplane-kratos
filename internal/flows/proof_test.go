@@ -12,6 +12,7 @@ import (
 	"github.com/backplane-labs/backplane/pkg/backplane/config"
 
 	"github.com/backplane-labs/backplane-kratos/internal/flows"
+	"github.com/backplane-labs/backplane-kratos/internal/outbox"
 )
 
 func newProver(t *testing.T, key string) *flows.Flows {
@@ -19,7 +20,7 @@ func newProver(t *testing.T, key string) *flows.Flows {
 
 	h := backplanetest.New(t, backplanetest.Name("kratos"))
 
-	return flows.New(h.Root(), key, config.LiveOf([]string(nil)), nil)
+	return flows.New(h.Root(), key, config.LiveOf([]string(nil)), nil, outbox.Off())
 }
 
 // A proof opens only for its purpose, under its key, intact and in time.
@@ -98,7 +99,7 @@ func TestHopRefuses(t *testing.T) {
 
 func BenchmarkProof(b *testing.B) {
 	h := backplanetest.New(b, backplanetest.Name("kratos"))
-	f := flows.New(h.Root(), "k-1", config.LiveOf([]string(nil)), nil)
+	f := flows.New(h.Root(), "k-1", config.LiveOf([]string(nil)), nil, outbox.Off())
 	p := flows.Proof{Kind: "login", Flow: "0b4c1d7e-0b4c-4d7e-9b4c-1d7e0b4c1d7e", Exp: time.Now().Add(time.Hour).Unix()}
 
 	for b.Loop() {

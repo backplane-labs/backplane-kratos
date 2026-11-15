@@ -138,5 +138,14 @@ func sessionEvent(s ory.Session) *kratoseventsv1.Session {
 		out.IpAddress, out.UserAgent, out.Location = d.IPAddress, d.UserAgent, d.Location
 	}
 
+	for _, m := range s.AuthenticationMethods {
+		method := &kratoseventsv1.AuthenticationMethod{Method: m.Method, Aal: m.AAL, Provider: m.Provider}
+		if m.CompletedAt != nil {
+			method.CompletedAt = timestamppb.New(*m.CompletedAt)
+		}
+
+		out.AuthenticationMethods = append(out.AuthenticationMethods, method)
+	}
+
 	return out
 }

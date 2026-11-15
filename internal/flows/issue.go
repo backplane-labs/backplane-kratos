@@ -183,12 +183,12 @@ func transientPayload(contentType string, raw []byte) json.RawMessage {
 	media, _, _ := mime.ParseMediaType(contentType)
 
 	switch media {
-	case "application/json":
+	case contentJSON:
 		var body struct {
 			TransientPayload json.RawMessage `json:"transient_payload"`
 		}
 
-		if json.Unmarshal(raw, &body) == nil && len(body.TransientPayload) > 0 && string(body.TransientPayload) != "null" {
+		if json.Unmarshal(raw, &body) == nil && len(body.TransientPayload) > 0 && string(body.TransientPayload) != jsonNull {
 			return body.TransientPayload
 		}
 	case "application/x-www-form-urlencoded":
@@ -349,7 +349,7 @@ func readAnswer(res *http.Response) (answerOf, error) {
 	a := answerOf{status: res.StatusCode, header: res.Header}
 
 	media, _, _ := mime.ParseMediaType(res.Header.Get("Content-Type"))
-	if media != "application/json" {
+	if media != contentJSON {
 		return a, nil
 	}
 
@@ -425,7 +425,7 @@ func (a *answerOf) replace(status int, body any) {
 	}
 
 	a.status, a.raw, a.replaced = status, raw, true
-	a.header.Set("Content-Type", "application/json")
+	a.header.Set("Content-Type", contentJSON)
 	a.header.Del("Location")
 }
 
@@ -523,13 +523,10 @@ func sessionCookies(h http.Header) string {
 	return strings.Join(out, "; ")
 }
 
-// admit runs SessionIssued for the session the answer issues; refused,
+// admit runs SessionIssued for the session the answer issues and records
+// its security event; refused, or with an event that cannot be recorded,
 // the session is revoked and the answer refuses the client.
 func (f *Flows) admit(ctx context.Context, a *answerOf, iss issuance, errorURL string) {
-	if !f.issued.Bound() {
-		return
-	}
-
 	start := time.Now()
 
 	sid, channel, err := f.issuedSession(ctx, a)
@@ -549,7 +546,11 @@ func (f *Flows) admit(ctx context.Context, a *answerOf, iss issuance, errorURL s
 
 	var out SessionIssuedOut
 
-	if err == nil {
+	switch {
+	case err != nil:
+	case !f.issued.Bound():
+		err = hook.ErrNoBinding
+	default:
 		in := SessionIssuedIn{
 			Flow: iss.kind, Method: lastMethod(session), FlowID: iss.flowID, Channel: channel, Session: session,
 			TransientPayload: iss.transient,
@@ -566,12 +567,13 @@ func (f *Flows) admit(ctx context.Context, a *answerOf, iss issuance, errorURL s
 	switch {
 	case errors.Is(err, hook.ErrNoBinding):
 		f.record(issuedPoint, start, outcomeUnbound, nil)
+		f.recordIssued(ctx, a, iss, session, errorURL)
 	case err != nil:
 		f.Log().Ctx().Warn(ctx, "new session refused: SessionIssued failed", xlog.String("session", sid), xlog.Err(err))
 		f.record(issuedPoint, start, "failed", err)
 		f.refuse(ctx, a, sid, errorURL, refusal{
 			id: errUnavailable, status: http.StatusServiceUnavailable, reason: "unavailable",
-			messages: []Message{{ID: UnavailableMessage, Text: "This is unavailable right now. Please try again later."}},
+			messages: []Message{{ID: UnavailableMessage, Text: unavailableText}},
 		})
 	case out.Deny != nil:
 		f.record(issuedPoint, start, "denied", nil)
@@ -580,6 +582,7 @@ func (f *Flows) admit(ctx context.Context, a *answerOf, iss issuance, errorURL s
 		})
 	default:
 		f.record(issuedPoint, start, "admitted", nil)
+		f.recordIssued(ctx, a, iss, session, errorURL)
 	}
 }
 

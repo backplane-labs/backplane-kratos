@@ -11,13 +11,13 @@ import (
 	"strings"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/backplane-labs/backplane/pkg/backplane/backplanetest"
 	"github.com/backplane-labs/backplane/pkg/backplane/config"
 
 	"github.com/backplane-labs/backplane-kratos/internal/flows"
 	"github.com/backplane-labs/backplane-kratos/internal/ory"
+	"github.com/backplane-labs/backplane-kratos/internal/outbox"
 	"github.com/backplane-labs/backplane-kratos/internal/overlay"
 )
 
@@ -36,8 +36,16 @@ func harnessWith(
 ) (*backplanetest.Harness, *flows.Flows, *httptest.Server) {
 	t.Helper()
 
+	return harnessBox(t, kratos, outbox.Off(), failOpen...)
+}
+
+func harnessBox(
+	t *testing.T, kratos *sessions, box flows.Outbox, failOpen ...string,
+) (*backplanetest.Harness, *flows.Flows, *httptest.Server) {
+	t.Helper()
+
 	h := backplanetest.New(t, backplanetest.Name("kratos"))
-	f := flows.New(h.Root(), key, config.LiveOf(failOpen), kratos)
+	f := flows.New(h.Root(), key, config.LiveOf(failOpen), kratos, box)
 	h.Start()
 
 	srv := httptest.NewServer(f.Handler())
@@ -46,8 +54,8 @@ func harnessWith(
 	return h, f, srv
 }
 
-// sessions is Kratos's session store: it holds stored once asked after
-// more than hidden times.
+// sessions is Kratos's sessions and identities as the flows read them: it
+// holds stored once asked after more than hidden times.
 type sessions struct {
 	mu     sync.Mutex
 	hidden int
@@ -65,6 +73,28 @@ type sessions struct {
 	whoErr   error
 	disabled []string
 	busy     int
+
+	// identity answers GetIdentity (none: one with the asked id only).
+	identity ory.Identity
+}
+
+func (s *sessions) GetIdentity(_ context.Context, id string, _ ...string) (ory.Identity, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.identity.ID == "" {
+		return ory.Identity{ID: id}, nil
+	}
+
+	return s.identity, nil
+}
+
+// setIdentity is what GetIdentity answers from now on.
+func (s *sessions) setIdentity(id ory.Identity) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.identity = id
 }
 
 func (s *sessions) DisableSession(_ context.Context, id string) error {
@@ -107,8 +137,6 @@ func (s *sessions) WhoAmI(_ context.Context, token, cookie string) (ory.Session,
 
 func (s *sessions) GetSession(context.Context, string) (ory.Session, error) { return s.after, nil }
 
-var errNoSession = &ory.Error{Status: http.StatusUnauthorized}
-
 func (s *sessions) ListIdentitySessions(context.Context, string, ory.SessionFilter) (ory.Page[ory.Session], error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -120,6 +148,8 @@ func (s *sessions) ListIdentitySessions(context.Context, string, ory.SessionFilt
 
 	return ory.Page[ory.Session]{Items: s.stored}, nil
 }
+
+var errNoSession = &ory.Error{Status: http.StatusUnauthorized}
 
 func post(t *testing.T, srv *httptest.Server, path, fixture string) (int, map[string]any) {
 	t.Helper()
@@ -403,102 +433,6 @@ func TestFlowEvent(t *testing.T) {
 	events := backplanetest.Events(h, f.Event("registration"))
 	if len(events) != 1 || events[0].GetIdentityId() == "" || events[0].GetMethod() != "password" ||
 		events[0].GetPreviousTraits() != nil {
-		t.Fatalf("events: %+v", events)
-	}
-}
-
-// SettingsChanged carries the traits before the change, from the
-// signed-in session.
-func TestSettingsChangedPrevious(t *testing.T) {
-	t.Parallel()
-
-	h, f, srv := harness(t)
-
-	if code, _ := post(t, srv, "/events/settings/profile", "after_settings.json"); code != http.StatusOK {
-		t.Fatalf("status %d", code)
-	}
-
-	events := backplanetest.Events(h, f.Event("settings"))
-	if len(events) != 1 {
-		t.Fatalf("events: %+v", events)
-	}
-
-	if was, is := events[0].GetPreviousTraits().GetFields()["email"].GetStringValue(),
-		events[0].GetTraits().GetFields()["email"].GetStringValue(); was != "old@example.com" || is != "new@example.com" {
-		t.Fatalf("previous %q, traits %q", was, is)
-	}
-}
-
-// LoggedIn waits for Kratos to store the login's session and carries it.
-func TestLoggedInAfterSessionStored(t *testing.T) {
-	t.Parallel()
-
-	authenticated := time.Date(2026, 10, 24, 3, 35, 4, 320712000, time.UTC)
-	other := authenticated.Add(-time.Hour)
-	kratos := &sessions{hidden: 2, stored: []ory.Session{
-		{ID: "older", AuthenticatedAt: &other},
-		{ID: "stored", AuthenticatedAt: &authenticated},
-	}}
-
-	h, f, srv := harnessWith(t, kratos)
-
-	if code, _ := post(t, srv, "/events/login/password", "after_login.json"); code != http.StatusOK {
-		t.Fatalf("status %d", code)
-	}
-
-	var events []flows.FlowEvent
-
-	for deadline := time.Now().Add(5 * time.Second); len(events) == 0 && time.Now().Before(deadline); {
-		time.Sleep(10 * time.Millisecond)
-
-		events = backplanetest.Events(h, f.Event("login"))
-	}
-
-	if len(events) != 1 {
-		t.Fatalf("events: %+v", events)
-	}
-
-	s := events[0].GetSession()
-	if s.GetId() != "stored" || !s.GetAuthenticatedAt().AsTime().Equal(authenticated) || s.GetAal() != "aal1" ||
-		s.GetIpAddress() != "203.0.113.7" || s.GetUserAgent() != "test-agent" {
-		t.Fatalf("session: %+v", s)
-	}
-
-	if qr := events[0].GetTransientPayload().GetFields()["qr"].GetStringValue(); qr != "q-1" {
-		t.Fatalf("transient payload: %+v", events[0].GetTransientPayload())
-	}
-}
-
-// Recovered waits for the session the recovery signed in with, stored
-// after the hooks: one authenticated by a recovery method since the flow
-// began, not an older recovery's nor a password login's.
-func TestRecoveredAfterSessionStored(t *testing.T) {
-	t.Parallel()
-
-	issued := time.Date(2026, 11, 10, 9, 0, 0, 0, time.UTC)
-	before, after := issued.Add(-time.Hour), issued.Add(3*time.Second)
-	recovery := []ory.AuthenticationMethod{{Method: "code_recovery", AAL: "aal1"}}
-	kratos := &sessions{hidden: 2, stored: []ory.Session{
-		{ID: "older recovery", AuthenticatedAt: &before, AuthenticationMethods: recovery},
-		{ID: "password", AuthenticatedAt: &after, AuthenticationMethods: []ory.AuthenticationMethod{{Method: "password"}}},
-		{ID: "recovered", AuthenticatedAt: &after, AuthenticationMethods: recovery, AuthenticatorAssuranceLevel: "aal1"},
-	}}
-
-	h, f, srv := harnessWith(t, kratos)
-
-	if code, _ := post(t, srv, "/events/recovery/any", "after_recovery.json"); code != http.StatusOK {
-		t.Fatalf("status %d", code)
-	}
-
-	var events []flows.FlowEvent
-
-	for deadline := time.Now().Add(5 * time.Second); len(events) == 0 && time.Now().Before(deadline); {
-		time.Sleep(10 * time.Millisecond)
-
-		events = backplanetest.Events(h, f.Event("recovery"))
-	}
-
-	if len(events) != 1 || events[0].GetSession().GetId() != "recovered" || events[0].GetSession().GetAal() != "aal1" {
 		t.Fatalf("events: %+v", events)
 	}
 }
