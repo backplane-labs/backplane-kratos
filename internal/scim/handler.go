@@ -241,7 +241,9 @@ func resource(id ory.Identity, dir string) map[string]any {
 	out := map[string]any{}
 
 	for k, v := range r.User {
-		out[k] = v
+		if !serverOwned(k) {
+			out[k] = v
+		}
 	}
 
 	out["schemas"] = []string{UserSchema}

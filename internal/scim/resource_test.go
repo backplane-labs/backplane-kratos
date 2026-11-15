@@ -60,12 +60,13 @@ func TestParseUser(t *testing.T) {
 func TestParseUserDropsServerAttributes(t *testing.T) {
 	t.Parallel()
 
-	u, err := scim.ParseUser([]byte(`{"userName":"a","id":"forged","meta":{},"password":"placeholder"}`))
+	u, err := scim.ParseUser([]byte(`{"userName":"a","ID":"forged","Meta":{},"PassWord":"placeholder",` +
+		`"password":"x","id":"y"}`))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	for _, k := range []string{"id", "meta", "password"} {
+	for _, k := range []string{"ID", "Meta", "PassWord", "password", "id"} {
 		if _, ok := u[k]; ok {
 			t.Errorf("%s kept", k)
 		}

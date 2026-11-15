@@ -2,6 +2,7 @@ package scim_test
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/backplane-labs/backplane-kratos/internal/scim"
@@ -96,6 +97,13 @@ func TestApplyPatch(t *testing.T) {
 			want: map[string]string{"active": "true"},
 		},
 		{name: "read-only id", patch: `{"Operations":[{"op":"replace","path":"id","value":"x"}]}`, bad: true},
+		{name: "read-only ID in any case", patch: `{"Operations":[{"op":"replace","path":"ID","value":"x"}]}`, bad: true},
+		{name: "read-only meta path-less", patch: `{"Operations":[{"op":"replace","value":{"Meta":{}}}]}`, bad: true},
+		{
+			name:  "a Password in any case is dropped",
+			patch: `{"Operations":[{"op":"add","value":{"PASSWORD":"x","displayName":"Ann"}}]}`,
+			want:  map[string]string{"displayName": `"Ann"`},
+		},
 		{name: "remove without a path", patch: `{"Operations":[{"op":"remove"}]}`, bad: true},
 		{name: "unknown op", patch: `{"Operations":[{"op":"move","path":"a"}]}`, bad: true},
 		{name: "no operations", patch: `{"Operations":[]}`, bad: true},
@@ -129,6 +137,12 @@ func TestApplyPatch(t *testing.T) {
 
 			if err != nil {
 				t.Fatalf("patch %s: %v", tc.patch, err)
+			}
+
+			for k := range u {
+				if strings.EqualFold(k, "password") {
+					t.Fatalf("a password was kept as %s", k)
+				}
 			}
 
 			for attr, want := range tc.want {

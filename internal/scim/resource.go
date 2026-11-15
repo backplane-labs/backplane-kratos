@@ -46,9 +46,11 @@ func ParseUser(body []byte) (User, error) {
 	}
 
 	// id and meta are the service's; a password is dropped unread (Okta sends
-	// a placeholder).
-	for _, k := range []string{"id", "meta", "password"} {
-		delete(u, k)
+	// a placeholder). Attribute names are case-insensitive.
+	for k := range u {
+		if serverOwned(k) {
+			delete(u, k)
+		}
 	}
 
 	if err := u.normalize(); err != nil {
@@ -56,6 +58,12 @@ func ParseUser(body []byte) (User, error) {
 	}
 
 	return u, nil
+}
+
+// serverOwned reports the attributes the IdP never sets, in any case: id and
+// meta are the service's, a password is never kept.
+func serverOwned(name string) bool {
+	return strings.EqualFold(name, "id") || strings.EqualFold(name, "meta") || strings.EqualFold(name, "password")
 }
 
 // normalize checks userName and turns active into a JSON boolean (true when

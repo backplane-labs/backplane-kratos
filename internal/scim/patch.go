@@ -108,14 +108,15 @@ func (u User) applyPath(verb, path string, value json.RawMessage) error {
 		return invalidPath(path)
 	}
 
-	key := keyOf(u, top)
-	if key == "id" || key == "meta" {
-		return refuse(http.StatusBadRequest, "mutability", key+" is read-only")
-	}
-
-	if key == "password" {
+	if strings.EqualFold(top, "password") {
 		return nil
 	}
+
+	if serverOwned(top) {
+		return refuse(http.StatusBadRequest, "mutability", top+" is read-only")
+	}
+
+	key := keyOf(u, top)
 
 	if verb == opRemove {
 		if len(rest) == 0 {
