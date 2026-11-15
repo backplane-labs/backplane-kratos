@@ -96,6 +96,9 @@ func defaults() overlay.Settings {
 			Password: overlay.Password{Enabled: true, MinLength: 8, IdentifierSimilarityCheck: true},
 			Code:     overlay.Code{Enabled: true, Lifespan: time.Hour},
 			Profile:  overlay.ToggleOn{Enabled: true},
+			// On for every test: Kratos restarts (losing its in-memory
+			// database) when a test turns a strategy on or off.
+			LookupSecret: overlay.Toggle{Enabled: true},
 		},
 		Features: overlay.Features{ContinueWith: true},
 		Session: overlay.Session{

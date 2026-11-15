@@ -131,7 +131,7 @@ func waitLong(t *testing.T, what string, cond func() bool) {
 func TestStepUpSecurityEvent(t *testing.T) {
 	t.Parallel()
 
-	e := startWith(t, func(s *overlay.Settings) { s.Methods.LookupSecret.Enabled = true }, nil)
+	e := start(t, nil)
 	email := unique("stepup")
 	id := e.newUser(t, email)
 	token := passwordLogin(t, email)
