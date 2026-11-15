@@ -412,6 +412,11 @@ otel` and `tracing.providers.otlp` (`server_url`, `insecure`,
 no `traceparent` and the callback starts a new trace.
 `TestCallbacksContinueKratosTrace` checks the whole chain on a real Kratos.
 
+The other way round, every call this service makes to Kratos's admin and
+public APIs is a client span (method, host and status; never the path, which
+can hold an identity id) and carries the trace context, so Kratos continues
+it.
+
 ### Secrets in Kratos's logs
 
 Kratos logs every webhook it dispatches with its request headers. The callback

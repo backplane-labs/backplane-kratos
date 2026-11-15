@@ -24,6 +24,7 @@ import (
 	"github.com/backplane-labs/backplane/pkg/backplane/deps"
 	"github.com/backplane-labs/backplane/pkg/backplane/drivers/standard"
 	"github.com/backplane-labs/backplane/pkg/backplane/tracehttp"
+	"go.opentelemetry.io/otel"
 	"google.golang.org/grpc"
 
 	"github.com/gopherex/xprobe/pkg/probe"
@@ -234,8 +235,11 @@ func newState(root backplane.Root[Config]) (*State, error) {
 		headers[k] = v.Reveal()
 	}
 
+	// Kratos is part of the installation and continues the trace: its admin
+	// and public calls carry the trace context.
 	client, err := ory.New(ory.Options{
 		Admin: cfg.Kratos.AdminURL, Public: cfg.Kratos.PublicURL, Headers: headers, Timeout: cfg.Kratos.Timeout,
+		Transport: tracehttp.NewTransport(nil, tracehttp.WithPropagator(otel.GetTextMapPropagator())),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("kratos: %w", err)
