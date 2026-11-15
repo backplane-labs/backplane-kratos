@@ -187,11 +187,13 @@ func message(topic, key string, payload any, identityID string) outbox.Message {
 	}
 }
 
-// stamp is a version time as part of a message key.
+// stamp is a version time as part of a message key, in microseconds: what
+// Kratos stores (PostgreSQL), while its write answers carry the nanoseconds
+// it made them with — the same version read back is the same key.
 func stamp(t *time.Time) string {
 	if t == nil {
 		return "0"
 	}
 
-	return t.UTC().Format(time.RFC3339Nano)
+	return t.UTC().Truncate(time.Microsecond).Format(time.RFC3339Nano)
 }

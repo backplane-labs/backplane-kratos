@@ -168,6 +168,9 @@ KRATOS_IMAGE ?= oryd/kratos:v26.2.0
 OIDC_IMAGE   ?= ghcr.io/navikt/mock-oauth2-server:3.0.0
 DB_IMAGE     ?= postgres:17-alpine
 IT_DB        ?= postgres://postgres:it@127.0.0.1:24432/postgres?sslmode=disable
+# Kratos's own database: an in-memory one vanishes with its last pooled
+# connection, mid-suite.
+IT_KRATOS_DSN ?= postgres://postgres:it@127.0.0.1:24432/kratos?sslmode=disable
 IT_DIR       ?= /tmp/backplane-kratos-it
 
 .PHONY: it-up
@@ -177,12 +180,15 @@ it-up: ## Start the Kratos, the OIDC provider and the PostgreSQL of the integrat
 	docker run -d --name backplane-kratos-it-db --network host -e POSTGRES_PASSWORD=it -e PGPORT=24432 $(DB_IMAGE)
 	docker run -d --name backplane-kratos-it-oidc --network host -e SERVER_PORT=24480 \
 	  -e JSON_CONFIG="$$(cat internal/it/testdata/mock-oidc.json)" $(OIDC_IMAGE)
-	docker run -d --name backplane-kratos-it --network host \
+	for i in $$(seq 1 60); do docker exec backplane-kratos-it-db pg_isready -q -U postgres -p 24432 && break; sleep 1; done
+	docker exec backplane-kratos-it-db createdb -U postgres -p 24432 kratos
+	docker run --rm --network host -e DSN="$(IT_KRATOS_DSN)" -v "$(CURDIR)/internal/it/testdata:/etc/kratos:ro" \
+	  $(KRATOS_IMAGE) migrate sql -e --yes -c /etc/kratos/kratos.yml
+	docker run -d --name backplane-kratos-it --network host -e DSN="$(IT_KRATOS_DSN)" \
 	  -v "$(CURDIR)/internal/it/testdata:/etc/kratos:ro" -v "$(IT_DIR):/etc/backplane" \
 	  $(KRATOS_IMAGE) serve -c /etc/kratos/kratos.yml -c /etc/backplane/overlay.yml --watch-courier
 	for i in $$(seq 1 60); do curl -sf http://127.0.0.1:24434/health/ready >/dev/null && \
-	  curl -sf http://127.0.0.1:24480/default/.well-known/openid-configuration >/dev/null && \
-	  docker exec backplane-kratos-it-db pg_isready -q -p 24432 && exit 0; sleep 1; done; \
+	  curl -sf http://127.0.0.1:24480/default/.well-known/openid-configuration >/dev/null && exit 0; sleep 1; done; \
 	  docker logs backplane-kratos-it; docker logs backplane-kratos-it-oidc; exit 1
 
 .PHONY: it-down

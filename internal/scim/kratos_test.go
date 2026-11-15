@@ -37,7 +37,20 @@ func (k *kratos) GetIdentity(_ context.Context, id string, _ ...string) (ory.Ide
 		return ory.Identity{}, missing()
 	}
 
-	return i, nil
+	return stored(i), nil
+}
+
+// stored is an identity as Kratos reads it back from PostgreSQL: its times
+// in microseconds, while a write answers them as it made them.
+func stored(i ory.Identity) ory.Identity {
+	for _, t := range []**time.Time{&i.CreatedAt, &i.UpdatedAt, &i.StateChangedAt} {
+		if *t != nil {
+			v := (*t).Truncate(time.Microsecond)
+			*t = &v
+		}
+	}
+
+	return i
 }
 
 func (k *kratos) GetIdentityByExternalID(_ context.Context, ext string) (ory.Identity, error) {
@@ -46,7 +59,7 @@ func (k *kratos) GetIdentityByExternalID(_ context.Context, ext string) (ory.Ide
 
 	for _, i := range k.identities {
 		if i.ExternalID == ext {
-			return i, nil
+			return stored(i), nil
 		}
 	}
 
@@ -62,7 +75,7 @@ func (k *kratos) ListIdentities(_ context.Context, f ory.IdentityFilter) (ory.Pa
 	for _, i := range k.identities {
 		for _, c := range i.Credentials {
 			if slices.Contains(c.Identifiers, f.CredentialsIdentifier) {
-				out = append(out, i)
+				out = append(out, stored(i))
 			}
 		}
 	}

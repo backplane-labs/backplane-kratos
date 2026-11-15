@@ -1,6 +1,7 @@
 # The deployment's base file of the integration tests: what a deployment
 # owns (dsn, serve, secrets); backplane-kratos writes the overlay.
 version: v26.2.0
+# dsn: replaced by the stand's PostgreSQL (DSN of make it-up).
 dsn: memory
 serve:
   # base_url is the test's TLS front (env.front: flows.Public), as a
