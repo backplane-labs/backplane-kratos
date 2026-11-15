@@ -23,6 +23,7 @@ import (
 	"github.com/backplane-labs/backplane/pkg/backplane/config"
 	"github.com/backplane-labs/backplane/pkg/backplane/deps"
 	"github.com/backplane-labs/backplane/pkg/backplane/drivers/standard"
+	"github.com/backplane-labs/backplane/pkg/backplane/tracehttp"
 	"google.golang.org/grpc"
 
 	"github.com/gopherex/xprobe/pkg/probe"
@@ -30,11 +31,13 @@ import (
 	"github.com/backplane-labs/backplane-kratos/internal/activities"
 	"github.com/backplane-labs/backplane-kratos/internal/admin"
 	"github.com/backplane-labs/backplane-kratos/internal/apply"
+	"github.com/backplane-labs/backplane-kratos/internal/backchannel"
 	"github.com/backplane-labs/backplane-kratos/internal/events"
 	"github.com/backplane-labs/backplane-kratos/internal/flows"
 	"github.com/backplane-labs/backplane-kratos/internal/jwks"
 	"github.com/backplane-labs/backplane-kratos/internal/ory"
 	"github.com/backplane-labs/backplane-kratos/internal/overlay"
+	"github.com/backplane-labs/backplane-kratos/internal/scim"
 	"github.com/backplane-labs/backplane-kratos/internal/ui"
 	kratosconsolev1 "github.com/backplane-labs/backplane-kratos/proto/kratos/console/v1"
 )
@@ -69,7 +72,18 @@ type Config struct {
 	FailOpen config.Live[[]string] `json:"fail_open,omitempty" schemapb:"description=Flow hooks (e.g. AfterLogin) whose failure lets the flow continue"`
 	// TokenExchange bounds the native apps' session token exchange.
 	TokenExchange TokenExchange `json:"token_exchange"`
+	// Directories are the corporate IdPs provisioning people over SCIM; live.
+	Directories config.Live[[]scim.Directory] `json:"directories,omitempty" schemapb:"description=Corporate directories provisioning people over SCIM 2.0"`
+	// DirectoryTokens are the directories' bearer tokens by directory id;
+	// live secrets, kept apart from the directories.
+	DirectoryTokens config.Live[map[string]config.Secret] `json:"directory_tokens,omitempty" schemapb:"description=Bearer token of each directory's SCIM requests by directory id"`
+	// OIDCBackchannel are the OIDC providers whose IdPs send back-channel
+	// logout tokens; live.
+	OIDCBackchannel config.Live[[]backchannel.Provider] `json:"oidc_backchannel,omitempty" schemapb:"description=OIDC providers sending back-channel logout tokens"`
 }
+
+// keysTimeout bounds a fetch of an IdP's signing keys.
+const keysTimeout = 10 * time.Second
 
 // TokenExchange of the native sign-in: Kratos answers an exchange code
 // pair for ever; the service answers it only this long after the session
@@ -116,6 +130,14 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("settings: %w", err)
 	}
 
+	if err := scim.Validate(c.Directories.Get()); err != nil {
+		return fmt.Errorf("directories: %w", err)
+	}
+
+	if err := backchannel.Validate(c.OIDCBackchannel.Get(), false); err != nil {
+		return fmt.Errorf("oidc_backchannel: %w", err)
+	}
+
 	return nil
 }
 
@@ -148,11 +170,13 @@ type State struct {
 	// Kratos is the installation, probed for the console's health but not
 	// part of readiness: Kratos calls this service (webhooks), so it starts
 	// after it is ready.
-	Kratos     deps.Optional[ory.Client]
-	Flows      *flows.Flows
-	Applier    *apply.Applier
-	Activities *activities.Activities
-	Admin      *admin.Admin
+	Kratos      deps.Optional[ory.Client]
+	Flows       *flows.Flows
+	Applier     *apply.Applier
+	Activities  *activities.Activities
+	Admin       *admin.Admin
+	Directories *scim.Directories
+	Backchannel *backchannel.Receiver
 
 	callbacks string                        // listen address of the callbacks
 	settings  config.Live[overlay.Settings] // the tokens' public keys among them
@@ -180,6 +204,8 @@ func Run(ctx context.Context) error {
 	svc.HTTP("/.well-known/", jwks.Handler(st.settings))
 	svc.HTTP(flows.SelfServicePath, st.public)
 	svc.HTTP(flows.TokenExchangePath, st.public)
+	svc.HTTP(scim.Path, st.Directories.Handler())
+	svc.HTTP(backchannel.Path, st.Backchannel.Handler())
 	svc.Internal(func(r grpc.ServiceRegistrar) { kratosconsolev1.RegisterAdminServiceServer(r, st.Admin) })
 
 	if bundle := ui.Bundle(); bundle != nil {
@@ -251,6 +277,11 @@ func newState(root backplane.Root[Config]) (*State, error) {
 		},
 	)
 	st.Activities = activities.New(root, client)
+	st.Directories = scim.New(root, cfg.Directories, cfg.DirectoryTokens, client,
+		st.Activities.IdentityEvent("IdentityCreated"), st.Activities.IdentityEvent("IdentityUpdated"),
+		st.Activities.IdentityEvent("IdentityDeleted"))
+	st.Backchannel = backchannel.New(root, cfg.OIDCBackchannel, client, st.Activities.RevokedEvent(),
+		&http.Client{Transport: tracehttp.NewTransport(nil), Timeout: keysTimeout}, time.Now)
 	st.Admin = admin.New(
 		root, client, st.Flows, st.Applier, cfg.FailOpen, cfg.Settings, cfg.TokenKey, cfg.NATS.Enabled(), st.Activities,
 	)

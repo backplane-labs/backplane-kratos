@@ -3,6 +3,7 @@ package it_test
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -119,11 +120,26 @@ func nativeSignIn(t *testing.T, e env, kind, provider string, transient map[stri
 func nativeSignInVia(t *testing.T, e env, base, kind, provider string, transient map[string]any) native {
 	t.Helper()
 
+	n, err := trySignIn(t, e, base, kind, provider, transient)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return n
+}
+
+// errNoCallback: a sign-in did not reach the app's callback.
+var errNoCallback = errors.New("sign-in did not reach the app's callback")
+
+// trySignIn is nativeSignInVia reporting a sign-in Kratos does not complete.
+func trySignIn(t *testing.T, e env, base, kind, provider string, transient map[string]any) (native, error) {
+	t.Helper()
+
 	q := url.Values{"return_session_token_exchange_code": {"true"}, "return_to": {nativeCallback}}
 
 	status, flow := call(t, http.MethodGet, "/self-service/"+kind+"/api?"+q.Encode(), nil)
 	if status != http.StatusOK {
-		t.Fatalf("%s flow: %d %v", kind, status, flow)
+		return native{}, fmt.Errorf("%w: %s flow: %d %v", errNoCallback, kind, status, flow)
 	}
 
 	n := native{flow: fmt.Sprint(flow["id"])}
@@ -139,7 +155,7 @@ func nativeSignInVia(t *testing.T, e env, base, kind, provider string, transient
 
 	next, _ := body["redirect_browser_to"].(string)
 	if next == "" {
-		t.Fatalf("submit: %d %v", status, body)
+		return n, fmt.Errorf("%w: submit: %d %v", errNoCallback, status, body)
 	}
 
 	b := e.browser(t)
@@ -148,27 +164,28 @@ func nativeSignInVia(t *testing.T, e env, base, kind, provider string, transient
 		if strings.HasPrefix(next, nativeCallback) {
 			callback, err := url.Parse(next)
 			if err != nil {
-				t.Fatal(err)
+				return n, fmt.Errorf("callback: %w", err)
 			}
 
 			n.returnToCode = callback.Query().Get("code")
+			if n.returnToCode == "" {
+				return n, fmt.Errorf("%w: %s", errNoCallback, next)
+			}
 
-			return n
+			return n, nil
 		}
 
 		code, location := hop(t, b, http.MethodGet, next, nil)
 		n.trace = append(n.trace, fmt.Sprintf("%d %s", code, next))
 
 		if location == "" {
-			t.Fatalf("no redirect after %v", n.trace)
+			return n, fmt.Errorf("%w: no redirect after %v", errNoCallback, n.trace)
 		}
 
 		next = location
 	}
 
-	t.Fatalf("no callback after %v", n.trace)
-
-	return n
+	return n, fmt.Errorf("%w: %v", errNoCallback, n.trace)
 }
 
 // callAt is a JSON request to target (Kratos or the front) with header.

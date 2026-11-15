@@ -12,7 +12,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file kratos/events/v1/events.proto.
  */
 export const file_kratos_events_v1_events: GenFile = /*@__PURE__*/
-  fileDesc("Ch1rcmF0b3MvZXZlbnRzL3YxL2V2ZW50cy5wcm90bxIQa3JhdG9zLmV2ZW50cy52MSKPAgoJRmxvd0V2ZW50EhMKC2lkZW50aXR5X2lkGAEgASgJEhEKCXNjaGVtYV9pZBgCIAEoCRIOCgZtZXRob2QYAyABKAkSDwoHZmxvd19pZBgEIAEoCRInCgZ0cmFpdHMYBSABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0EioKB3Nlc3Npb24YBiABKAsyGS5rcmF0b3MuZXZlbnRzLnYxLlNlc3Npb24SMgoRdHJhbnNpZW50X3BheWxvYWQYByABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0EjAKD3ByZXZpb3VzX3RyYWl0cxgIIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QikgEKB1Nlc3Npb24SCgoCaWQYASABKAkSNAoQYXV0aGVudGljYXRlZF9hdBgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASCwoDYWFsGAMgASgJEhIKCmlwX2FkZHJlc3MYBCABKAkSEgoKdXNlcl9hZ2VudBgFIAEoCRIQCghsb2NhdGlvbhgGIAEoCSJsCg1JZGVudGl0eUV2ZW50EhMKC2lkZW50aXR5X2lkGAEgASgJEhEKCXNjaGVtYV9pZBgCIAEoCRInCgZ0cmFpdHMYAyABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0EgoKAmJ5GAQgASgJIkYKD1Nlc3Npb25zUmV2b2tlZBITCgtpZGVudGl0eV9pZBgBIAEoCRISCgpzZXNzaW9uX2lkGAIgASgJEgoKAmJ5GAMgASgJQlJaUGdpdGh1Yi5jb20vYmFja3BsYW5lLWxhYnMvYmFja3BsYW5lLWtyYXRvcy9wcm90by9rcmF0b3MvZXZlbnRzL3YxO2tyYXRvc2V2ZW50c3YxYgZwcm90bzM", [file_google_protobuf_struct, file_google_protobuf_timestamp]);
+  fileDesc("Ch1rcmF0b3MvZXZlbnRzL3YxL2V2ZW50cy5wcm90bxIQa3JhdG9zLmV2ZW50cy52MSKPAgoJRmxvd0V2ZW50EhMKC2lkZW50aXR5X2lkGAEgASgJEhEKCXNjaGVtYV9pZBgCIAEoCRIOCgZtZXRob2QYAyABKAkSDwoHZmxvd19pZBgEIAEoCRInCgZ0cmFpdHMYBSABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0EioKB3Nlc3Npb24YBiABKAsyGS5rcmF0b3MuZXZlbnRzLnYxLlNlc3Npb24SMgoRdHJhbnNpZW50X3BheWxvYWQYByABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0EjAKD3ByZXZpb3VzX3RyYWl0cxgIIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QikgEKB1Nlc3Npb24SCgoCaWQYASABKAkSNAoQYXV0aGVudGljYXRlZF9hdBgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASCwoDYWFsGAMgASgJEhIKCmlwX2FkZHJlc3MYBCABKAkSEgoKdXNlcl9hZ2VudBgFIAEoCRIQCghsb2NhdGlvbhgGIAEoCSJsCg1JZGVudGl0eUV2ZW50EhMKC2lkZW50aXR5X2lkGAEgASgJEhEKCXNjaGVtYV9pZBgCIAEoCRInCgZ0cmFpdHMYAyABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0EgoKAmJ5GAQgASgJIkYKD1Nlc3Npb25zUmV2b2tlZBITCgtpZGVudGl0eV9pZBgBIAEoCRISCgpzZXNzaW9uX2lkGAIgASgJEgoKAmJ5GAMgASgJImkKFElkZW50aXR5U3RhdGVDaGFuZ2VkEhMKC2lkZW50aXR5X2lkGAEgASgJEg0KBXN0YXRlGAIgASgJEgoKAmJ5GAMgASgJEhEKCWRpcmVjdG9yeRgEIAEoCRIOCgZyZWFzb24YBSABKAlCUlpQZ2l0aHViLmNvbS9iYWNrcGxhbmUtbGFicy9iYWNrcGxhbmUta3JhdG9zL3Byb3RvL2tyYXRvcy9ldmVudHMvdjE7a3JhdG9zZXZlbnRzdjFiBnByb3RvMw", [file_google_protobuf_struct, file_google_protobuf_timestamp]);
 
 /**
  * FlowEvent is a completed self-service flow: kratos.Registered,
@@ -147,8 +147,8 @@ export const SessionSchema: GenMessage<Session> = /*@__PURE__*/
   messageDesc(file_kratos_events_v1_events, 1);
 
 /**
- * IdentityEvent is an identity changed through backplane-kratos (wiring or
- * console): kratos.IdentityCreated, kratos.IdentityUpdated,
+ * IdentityEvent is an identity changed through backplane-kratos (wiring, the
+ * console or a corporate directory): kratos.IdentityCreated, kratos.IdentityUpdated,
  * kratos.IdentityDeleted. A deleted identity carries its id only.
  *
  * @generated from message kratos.events.v1.IdentityEvent
@@ -176,7 +176,7 @@ export type IdentityEvent = Message<"kratos.events.v1.IdentityEvent"> & {
   traits?: JsonObject | undefined;
 
   /**
-   * Who changed it: wiring or console.
+   * Who changed it: wiring, console or directory.
    *
    * @generated from field: string by = 4;
    */
@@ -193,8 +193,8 @@ export const IdentityEventSchema: GenMessage<IdentityEvent> = /*@__PURE__*/
 /**
  * SessionsRevoked (kratos.SessionsRevoked): one session of an identity was
  * revoked (session_id set), or every session of it (session_id empty), by
- * an operator in the console or by wiring. The event's key is the
- * identity.
+ * an operator in the console, by wiring, or by the IdP's back-channel
+ * logout. The event's key is the identity.
  *
  * @generated from message kratos.events.v1.SessionsRevoked
  */
@@ -215,7 +215,7 @@ export type SessionsRevoked = Message<"kratos.events.v1.SessionsRevoked"> & {
   sessionId: string;
 
   /**
-   * Who revoked them: wiring or console.
+   * Who revoked them: wiring, console or backchannel.
    *
    * @generated from field: string by = 3;
    */
@@ -228,4 +228,57 @@ export type SessionsRevoked = Message<"kratos.events.v1.SessionsRevoked"> & {
  */
 export const SessionsRevokedSchema: GenMessage<SessionsRevoked> = /*@__PURE__*/
   messageDesc(file_kratos_events_v1_events, 3);
+
+/**
+ * IdentityStateChanged (kratos.IdentityStateChanged): a corporate directory
+ * (SCIM) deactivated or reactivated an identity, or deleted one it keeps
+ * inactive. A deactivation has deleted every session of the identity by the
+ * time it is published. The event's key is the identity; its id is fixed
+ * when the change is written, so a repeat of the same change is one event.
+ *
+ * @generated from message kratos.events.v1.IdentityStateChanged
+ */
+export type IdentityStateChanged = Message<"kratos.events.v1.IdentityStateChanged"> & {
+  /**
+   * Identity whose state changed.
+   *
+   * @generated from field: string identity_id = 1;
+   */
+  identityId: string;
+
+  /**
+   * Kratos's new state: active or inactive.
+   *
+   * @generated from field: string state = 2;
+   */
+  state: string;
+
+  /**
+   * Who changed it: directory.
+   *
+   * @generated from field: string by = 3;
+   */
+  by: string;
+
+  /**
+   * Directory (its id in the configuration) that changed it.
+   *
+   * @generated from field: string directory = 4;
+   */
+  directory: string;
+
+  /**
+   * Why: deactivated, reactivated, deleted.
+   *
+   * @generated from field: string reason = 5;
+   */
+  reason: string;
+};
+
+/**
+ * Describes the message kratos.events.v1.IdentityStateChanged.
+ * Use `create(IdentityStateChangedSchema)` to create a new message.
+ */
+export const IdentityStateChangedSchema: GenMessage<IdentityStateChanged> = /*@__PURE__*/
+  messageDesc(file_kratos_events_v1_events, 4);
 

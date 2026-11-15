@@ -49,8 +49,8 @@ message Session {
   string location = 6;
 }
 
-// IdentityEvent is an identity changed through backplane-kratos (wiring or
-// console): kratos.IdentityCreated, kratos.IdentityUpdated,
+// IdentityEvent is an identity changed through backplane-kratos (wiring, the
+// console or a corporate directory): kratos.IdentityCreated, kratos.IdentityUpdated,
 // kratos.IdentityDeleted. A deleted identity carries its id only.
 message IdentityEvent {
   // Identity the change is about.
@@ -59,20 +59,38 @@ message IdentityEvent {
   string schema_id = 2;
   // Traits of the identity after the change.
   google.protobuf.Struct traits = 3;
-  // Who changed it: wiring or console.
+  // Who changed it: wiring, console or directory.
   string by = 4;
 }
 
 // SessionsRevoked (kratos.SessionsRevoked): one session of an identity was
 // revoked (session_id set), or every session of it (session_id empty), by
-// an operator in the console or by wiring. The event's key is the
-// identity.
+// an operator in the console, by wiring, or by the IdP's back-channel
+// logout. The event's key is the identity.
 message SessionsRevoked {
   // Identity whose sessions were revoked; empty only when one session was
   // revoked that Kratos no longer knew.
   string identity_id = 1;
   // Session revoked; empty when every session of the identity was.
   string session_id = 2;
-  // Who revoked them: wiring or console.
+  // Who revoked them: wiring, console or backchannel.
   string by = 3;
+}
+
+// IdentityStateChanged (kratos.IdentityStateChanged): a corporate directory
+// (SCIM) deactivated or reactivated an identity, or deleted one it keeps
+// inactive. A deactivation has deleted every session of the identity by the
+// time it is published. The event's key is the identity; its id is fixed
+// when the change is written, so a repeat of the same change is one event.
+message IdentityStateChanged {
+  // Identity whose state changed.
+  string identity_id = 1;
+  // Kratos's new state: active or inactive.
+  string state = 2;
+  // Who changed it: directory.
+  string by = 3;
+  // Directory (its id in the configuration) that changed it.
+  string directory = 4;
+  // Why: deactivated, reactivated, deleted.
+  string reason = 5;
 }

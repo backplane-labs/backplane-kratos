@@ -196,6 +196,8 @@ recovery link is a GET, FedCM has its own endpoint). Kratos's
 | --- | --- |
 | `/self-service/` | `SessionIssued`, `client_flow_id`, the OIDC start hop, `LoggedOut` |
 | `GET /sessions/token-exchange` | The native exchange's age check and `SessionIssued` |
+| `/scim/v2/` | Corporate directories (SCIM), below |
+| `POST /oidc/backchannel-logout/` | IdPs' back-channel logout, below |
 
 How the client's flow travels:
 
@@ -221,6 +223,134 @@ How the client's flow travels:
   deletes none; Kratos sends it on to a GET that brings the cookie.
 - Apple's form_post callback works: Kratos answers the POST with a
   redirect to a GET, and the session is issued on that GET.
+
+## Corporate directories: SCIM and back-channel logout
+
+A corporate IdP (Entra ID, Okta, Keycloak with a SCIM extension, Authentik,
+Google Workspace) keeps its people in step with Kratos through two inbound
+boundaries of this service. Both sit on the public front next to
+`/self-service/`; route them to the HTTP port as well.
+
+| Path | Who calls it | What it does |
+| --- | --- | --- |
+| `/scim/v2/<directory>/` | The IdP's provisioning (SCIM 2.0, RFC 7643/7644) | Creates, updates, deactivates, reactivates and deletes identities |
+| `POST /oidc/backchannel-logout/<provider>` | The IdP's OIDC Back-Channel Logout 1.0 | Ends sessions; never deactivates |
+
+Deactivation and logout stay separate: a logout token ends sessions, only the
+directory decides whether a person may sign in.
+
+### Directories
+
+`directories` (live) lists them; `directory_tokens` (live, secret) holds each
+one's bearer token by directory id, written only when an operator enters a
+new one.
+
+| Key | |
+| --- | --- |
+| `id` | Path segment of the directory's SCIM base URL |
+| `provider` | Kratos OIDC provider id the directory's people sign in with |
+| `mapper` | Jsonnet turning the SCIM user (`std.extVar('user')`) into `{ traits, metadata_public }` for the identity schema; empty: `{ traits: { email } }`, the primary e-mail (else the work one, else the first, else `userName`) |
+| `schema_id` | Identity schema of the identities it creates (empty: Kratos's default) |
+| `on_delete` | `deactivate` (default) or `delete`: what a SCIM `DELETE` does |
+
+The token is compared in constant time; `Authorization: Bearer <token>` and a
+bare token are both accepted (Okta sends either). A wrong or missing token is
+a 401 SCIM error.
+
+### Who is who
+
+A directory's user and a person's OIDC login are one identity because the
+IdP sends the same stable id through both:
+
+| IdP | OIDC subject Kratos stores | SCIM `externalId` mapping |
+| --- | --- | --- |
+| Entra ID | `oid` (provider `subject_source: oid`, scope `profile`); `sub` is pairwise per app | `objectId` |
+| Okta | ID token `sub` (`00u…`) | `user.id` |
+| Keycloak | `sub` (user UUID) | the extension's user id |
+| Authentik | hashed user id (default subject mode) | the same id (default) |
+
+On create the identity gets the OIDC credential `<provider>:<externalId>`
+pre-linked, so the first login finds it; nothing is ever matched by an
+e-mail the caller supplies. Kratos indexes both keys a SCIM filter asks for:
+
+- `externalId eq "x"` is the credential identifier `<provider>:x`;
+- `userName eq "x"` is the identity's `external_id`, `<directory>:<lowercased userName>`.
+
+The SCIM `id` is the Kratos identity id. A user who signed in before the
+directory created them is adopted by a `POST` that finds their credential:
+the answer is that identity (201), not a 409. `externalId` is required on
+create and cannot change afterwards (a 400 `mutability`): it is the login.
+A filter on the work e-mail looks the address up as a Kratos credential
+identifier, so it finds users only where the identity schema makes the
+e-mail one; a `GET /Users` without a filter answers an empty page (Kratos
+cannot list a directory's identities, only look them up).
+
+### SCIM surface
+
+`/Users` with `POST`, `GET` (`filter` with `eq` and `and` on `userName`,
+`externalId`, `emails[type eq "work"].value`; `startIndex`, `count`),
+`GET /Users/{id}`, `PUT`, `PATCH`, `DELETE`; static `/ServiceProviderConfig`,
+`/ResourceTypes`, `/Schemas`; `/Groups` answers an empty list. Answers are
+`application/scim+json`; a filter that matches nothing is a 200 empty
+`ListResponse`. PATCH takes what IdPs send in the wild: `op` in any case,
+`active` as a boolean or the strings `True`/`False`, a path-less `replace`
+whose value is an object (one operation per key), and dotted or extension
+paths. Okta's placeholder `password` is dropped unread.
+
+| SCIM | Kratos |
+| --- | --- |
+| create / `active=true` | identity `active` |
+| `active=false` | identity `inactive`, then every session deleted (Kratos's state alone does not end them) |
+| `DELETE`, `on_delete: deactivate` | as `active=false`; the user stays readable |
+| `DELETE`, `on_delete: delete` | identity deleted |
+
+A deactivated identity is reactivated only by the directory (`active=true`);
+an operator's block in a product is the product's own state and is never
+reversed by it.
+
+The SCIM user as the directory last wrote it lives in the identity's
+`metadata_admin.scim` (without the password), so a `GET` returns it and a
+`PATCH` applies to it; `active` is Kratos's state. Other `metadata_admin`
+keys are kept.
+
+### Events
+
+Every state change a directory makes publishes `kratos.IdentityStateChanged`
+(key: the identity) with the identity, the new state, `by: directory`, the
+directory and the reason (`deactivated`, `reactivated`, `deleted`); creating
+and updating publish `kratos.IdentityCreated`/`kratos.IdentityUpdated` with
+`by: directory`. A request that changes nothing publishes nothing.
+
+A change and its events commit together: the events are written into the
+identity's `metadata_admin.scim.pending` with the change, each with an id
+fixed then, published after it and cleared. A deactivation deletes every
+session before its event goes out. When the broker (or the session delete)
+fails, the answer is a 503: the change stays in Kratos, and the IdP's retry
+publishes the same events with the same ids. A `DELETE` that deletes the
+identity publishes `kratos.IdentityDeleted` first, then deletes. A
+back-channel logout publishes `kratos.SessionsRevoked` with
+`by: backchannel`.
+
+### Back-channel logout
+
+`oidc_backchannel` (live) names, per Kratos OIDC provider, the issuer, the
+audience (the client id) and the JWKS URL. A logout token is a `POST` form
+field `logout_token`, validated as the specification requires: signature
+from the JWKS (no `alg: none`), `iss`, `aud`, `iat`/`exp`, the
+back-channel-logout event, no `nonce`, and `sub`. A replica remembers each
+`jti` until the token expires and ignores a repeat; across replicas a repeat
+only deletes the same sessions again, and its event carries the `jti` as its
+id, so it is published once.
+Every session of the identity holding `<provider>:<sub>` is deleted. A token
+with only `sid` is refused: Kratos keeps no link from the IdP's session to its
+own (Keycloak and Authentik always send `sub`). The answer is 200 (also for a
+person already signed out) or 400 with `invalid_request`,
+`Cache-Control: no-store`.
+
+Entra ID and Okta send no back-channel logout tokens; a person they disable
+loses their sessions when the directory's `active=false` arrives (Entra's
+provisioning cycle is about 40 minutes). Keycloak sends them only when the
+client's front-channel logout is off.
 
 ## How Kratos picks up the settings
 
@@ -267,6 +397,8 @@ cannot read leaves it on the previous configuration.
 | `oidc_secrets`, `oauth2_provider_headers` | Live secrets kept apart from the settings: the console writes them only when an operator enters new ones |
 | `fail_open` | Live: flow hooks whose failure lets the flow continue (default: none — a failing hook stops the flow) |
 | `token_exchange.max_age` | How long after sign-in a native app's exchange code pair is answered (default `5m`) |
+| `directories`, `directory_tokens` | Live: corporate directories (SCIM) and their bearer tokens, below |
+| `oidc_backchannel` | Live: OIDC providers whose IdPs send back-channel logout tokens (`id`, `issuer`, `audience`, `jwks_url`, https) |
 
 ### Tracing
 

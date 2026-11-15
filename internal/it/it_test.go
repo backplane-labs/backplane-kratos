@@ -31,10 +31,12 @@ import (
 	"github.com/backplane-labs/backplane-kratos/internal/activities"
 	kratosadmin "github.com/backplane-labs/backplane-kratos/internal/admin"
 	"github.com/backplane-labs/backplane-kratos/internal/apply"
+	"github.com/backplane-labs/backplane-kratos/internal/backchannel"
 	"github.com/backplane-labs/backplane-kratos/internal/events"
 	"github.com/backplane-labs/backplane-kratos/internal/flows"
 	"github.com/backplane-labs/backplane-kratos/internal/ory"
 	"github.com/backplane-labs/backplane-kratos/internal/overlay"
+	"github.com/backplane-labs/backplane-kratos/internal/scim"
 	consolev1 "github.com/backplane-labs/backplane-kratos/proto/kratos/console/v1"
 	kratoseventsv1 "github.com/backplane-labs/backplane-kratos/proto/kratos/events/v1"
 )
@@ -60,6 +62,11 @@ type env struct {
 	settings   config.Live[overlay.Settings]
 	tokenKey   config.Live[config.Secret]
 	kratos     ory.Client
+	// directories are testDirectories over SCIM.
+	directories *scim.Directories
+	// backchannel receives logout tokens of logoutProviders.
+	backchannel     *backchannel.Receiver
+	logoutProviders config.Live[[]backchannel.Provider]
 	// front is flows.Public at frontURL, Kratos's base_url.
 	front *httptest.Server
 }
@@ -139,6 +146,13 @@ func startKeyed(t *testing.T, tokenKey string, edit func(*overlay.Settings), bin
 	e := env{h: h, kratos: client, settings: config.LiveOf(settings), tokenKey: config.LiveOf(config.Secret(tokenKey))}
 	e.flows = flows.New(h.Root(), key, config.LiveOf([]string(nil)), client)
 	e.activities = activities.New(h.Root(), client)
+	e.directories = scim.New(h.Root(), config.LiveOf(testDirectories()),
+		config.LiveOf(map[string]config.Secret{"corp": directoryToken, "gone": directoryToken}), client,
+		e.activities.IdentityEvent("IdentityCreated"), e.activities.IdentityEvent("IdentityUpdated"),
+		e.activities.IdentityEvent("IdentityDeleted"))
+	e.logoutProviders = config.LiveOf([]backchannel.Provider(nil))
+	e.backchannel = backchannel.New(h.Root(), e.logoutProviders, client, e.activities.RevokedEvent(),
+		http.DefaultClient, time.Now)
 	e.console = kratosadmin.New(h.Root(), client, e.flows, nil, config.LiveOf([]string(nil)), e.settings, e.tokenKey,
 		true, e.activities)
 	apply.New(h.Root(), path, 0o644, e.settings, apply.Secrets{

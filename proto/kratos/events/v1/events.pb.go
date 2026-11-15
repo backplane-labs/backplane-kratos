@@ -229,8 +229,8 @@ func (x *Session) GetLocation() string {
 	return ""
 }
 
-// IdentityEvent is an identity changed through backplane-kratos (wiring or
-// console): kratos.IdentityCreated, kratos.IdentityUpdated,
+// IdentityEvent is an identity changed through backplane-kratos (wiring, the
+// console or a corporate directory): kratos.IdentityCreated, kratos.IdentityUpdated,
 // kratos.IdentityDeleted. A deleted identity carries its id only.
 type IdentityEvent struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -240,7 +240,7 @@ type IdentityEvent struct {
 	SchemaId string `protobuf:"bytes,2,opt,name=schema_id,json=schemaId,proto3" json:"schema_id,omitempty"`
 	// Traits of the identity after the change.
 	Traits *structpb.Struct `protobuf:"bytes,3,opt,name=traits,proto3" json:"traits,omitempty"`
-	// Who changed it: wiring or console.
+	// Who changed it: wiring, console or directory.
 	By            string `protobuf:"bytes,4,opt,name=by,proto3" json:"by,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -306,8 +306,8 @@ func (x *IdentityEvent) GetBy() string {
 
 // SessionsRevoked (kratos.SessionsRevoked): one session of an identity was
 // revoked (session_id set), or every session of it (session_id empty), by
-// an operator in the console or by wiring. The event's key is the
-// identity.
+// an operator in the console, by wiring, or by the IdP's back-channel
+// logout. The event's key is the identity.
 type SessionsRevoked struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Identity whose sessions were revoked; empty only when one session was
@@ -315,7 +315,7 @@ type SessionsRevoked struct {
 	IdentityId string `protobuf:"bytes,1,opt,name=identity_id,json=identityId,proto3" json:"identity_id,omitempty"`
 	// Session revoked; empty when every session of the identity was.
 	SessionId string `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	// Who revoked them: wiring or console.
+	// Who revoked them: wiring, console or backchannel.
 	By            string `protobuf:"bytes,3,opt,name=by,proto3" json:"by,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -372,6 +372,92 @@ func (x *SessionsRevoked) GetBy() string {
 	return ""
 }
 
+// IdentityStateChanged (kratos.IdentityStateChanged): a corporate directory
+// (SCIM) deactivated or reactivated an identity, or deleted one it keeps
+// inactive. A deactivation has deleted every session of the identity by the
+// time it is published. The event's key is the identity; its id is fixed
+// when the change is written, so a repeat of the same change is one event.
+type IdentityStateChanged struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Identity whose state changed.
+	IdentityId string `protobuf:"bytes,1,opt,name=identity_id,json=identityId,proto3" json:"identity_id,omitempty"`
+	// Kratos's new state: active or inactive.
+	State string `protobuf:"bytes,2,opt,name=state,proto3" json:"state,omitempty"`
+	// Who changed it: directory.
+	By string `protobuf:"bytes,3,opt,name=by,proto3" json:"by,omitempty"`
+	// Directory (its id in the configuration) that changed it.
+	Directory string `protobuf:"bytes,4,opt,name=directory,proto3" json:"directory,omitempty"`
+	// Why: deactivated, reactivated, deleted.
+	Reason        string `protobuf:"bytes,5,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *IdentityStateChanged) Reset() {
+	*x = IdentityStateChanged{}
+	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IdentityStateChanged) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IdentityStateChanged) ProtoMessage() {}
+
+func (x *IdentityStateChanged) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_kratos_events_v1_events_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IdentityStateChanged.ProtoReflect.Descriptor instead.
+func (*IdentityStateChanged) Descriptor() ([]byte, []int) {
+	return file_proto_kratos_events_v1_events_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *IdentityStateChanged) GetIdentityId() string {
+	if x != nil {
+		return x.IdentityId
+	}
+	return ""
+}
+
+func (x *IdentityStateChanged) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *IdentityStateChanged) GetBy() string {
+	if x != nil {
+		return x.By
+	}
+	return ""
+}
+
+func (x *IdentityStateChanged) GetDirectory() string {
+	if x != nil {
+		return x.Directory
+	}
+	return ""
+}
+
+func (x *IdentityStateChanged) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
 var File_proto_kratos_events_v1_events_proto protoreflect.FileDescriptor
 
 const file_proto_kratos_events_v1_events_proto_rawDesc = "" +
@@ -407,7 +493,14 @@ const file_proto_kratos_events_v1_events_proto_rawDesc = "" +
 	"identityId\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x02 \x01(\tR\tsessionId\x12\x0e\n" +
-	"\x02by\x18\x03 \x01(\tR\x02byBRZPgithub.com/backplane-labs/backplane-kratos/proto/kratos/events/v1;kratoseventsv1b\x06proto3"
+	"\x02by\x18\x03 \x01(\tR\x02by\"\x93\x01\n" +
+	"\x14IdentityStateChanged\x12\x1f\n" +
+	"\videntity_id\x18\x01 \x01(\tR\n" +
+	"identityId\x12\x14\n" +
+	"\x05state\x18\x02 \x01(\tR\x05state\x12\x0e\n" +
+	"\x02by\x18\x03 \x01(\tR\x02by\x12\x1c\n" +
+	"\tdirectory\x18\x04 \x01(\tR\tdirectory\x12\x16\n" +
+	"\x06reason\x18\x05 \x01(\tR\x06reasonBRZPgithub.com/backplane-labs/backplane-kratos/proto/kratos/events/v1;kratoseventsv1b\x06proto3"
 
 var (
 	file_proto_kratos_events_v1_events_proto_rawDescOnce sync.Once
@@ -421,22 +514,23 @@ func file_proto_kratos_events_v1_events_proto_rawDescGZIP() []byte {
 	return file_proto_kratos_events_v1_events_proto_rawDescData
 }
 
-var file_proto_kratos_events_v1_events_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_proto_kratos_events_v1_events_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_proto_kratos_events_v1_events_proto_goTypes = []any{
 	(*FlowEvent)(nil),             // 0: kratos.events.v1.FlowEvent
 	(*Session)(nil),               // 1: kratos.events.v1.Session
 	(*IdentityEvent)(nil),         // 2: kratos.events.v1.IdentityEvent
 	(*SessionsRevoked)(nil),       // 3: kratos.events.v1.SessionsRevoked
-	(*structpb.Struct)(nil),       // 4: google.protobuf.Struct
-	(*timestamppb.Timestamp)(nil), // 5: google.protobuf.Timestamp
+	(*IdentityStateChanged)(nil),  // 4: kratos.events.v1.IdentityStateChanged
+	(*structpb.Struct)(nil),       // 5: google.protobuf.Struct
+	(*timestamppb.Timestamp)(nil), // 6: google.protobuf.Timestamp
 }
 var file_proto_kratos_events_v1_events_proto_depIdxs = []int32{
-	4, // 0: kratos.events.v1.FlowEvent.traits:type_name -> google.protobuf.Struct
+	5, // 0: kratos.events.v1.FlowEvent.traits:type_name -> google.protobuf.Struct
 	1, // 1: kratos.events.v1.FlowEvent.session:type_name -> kratos.events.v1.Session
-	4, // 2: kratos.events.v1.FlowEvent.transient_payload:type_name -> google.protobuf.Struct
-	4, // 3: kratos.events.v1.FlowEvent.previous_traits:type_name -> google.protobuf.Struct
-	5, // 4: kratos.events.v1.Session.authenticated_at:type_name -> google.protobuf.Timestamp
-	4, // 5: kratos.events.v1.IdentityEvent.traits:type_name -> google.protobuf.Struct
+	5, // 2: kratos.events.v1.FlowEvent.transient_payload:type_name -> google.protobuf.Struct
+	5, // 3: kratos.events.v1.FlowEvent.previous_traits:type_name -> google.protobuf.Struct
+	6, // 4: kratos.events.v1.Session.authenticated_at:type_name -> google.protobuf.Timestamp
+	5, // 5: kratos.events.v1.IdentityEvent.traits:type_name -> google.protobuf.Struct
 	6, // [6:6] is the sub-list for method output_type
 	6, // [6:6] is the sub-list for method input_type
 	6, // [6:6] is the sub-list for extension type_name
@@ -455,7 +549,7 @@ func file_proto_kratos_events_v1_events_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_kratos_events_v1_events_proto_rawDesc), len(file_proto_kratos_events_v1_events_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
