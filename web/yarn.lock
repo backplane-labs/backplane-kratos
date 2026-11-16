@@ -121,22 +121,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backplane-labs/backplane-api@npm:0.6.100":
-  version: 0.6.100
-  resolution: "@backplane-labs/backplane-api@npm:0.6.100::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40backplane-labs%2Fbackplane-api%2F0.6.100%2F0fa0a8cf98282bb21e6831e9ea6d7250f1268fd2"
+"@backplane-labs/backplane-api@npm:0.6.104":
+  version: 0.6.104
+  resolution: "@backplane-labs/backplane-api@npm:0.6.104::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40backplane-labs%2Fbackplane-api%2F0.6.104%2F9a29586731b1baab879b42d45d984d38b07fcbe9"
   dependencies:
     "@bufbuild/protobuf": "npm:2.16.0"
     "@gopherex/ws-proto-transport": "npm:1.11.1"
-  checksum: 10c0/331e2ebe328984b75d18d6304c24300505e94fba4bcc5daa75a80ed7a660e5f1263d4e22e435b0b20cddd40d979824e9192017ce99729dd044f3258be73d4dfe
+  checksum: 10c0/08c73955668d4e5f6a134e0038d3397b44f2be6728e88e0fdfc40a32bf43036aedbd7bf366c62d2f9e6ea7727abe0d4db93159e0f1d40fae8d55795e9074c541
   languageName: node
   linkType: hard
 
-"@backplane-labs/backplane-charts@npm:0.6.100":
-  version: 0.6.100
-  resolution: "@backplane-labs/backplane-charts@npm:0.6.100::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40backplane-labs%2Fbackplane-charts%2F0.6.100%2F69b15aa1b28779a9df9e1f45dda65b2dc267827a"
+"@backplane-labs/backplane-charts@npm:0.6.104":
+  version: 0.6.104
+  resolution: "@backplane-labs/backplane-charts@npm:0.6.104::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40backplane-labs%2Fbackplane-charts%2F0.6.104%2F51fc6e73f7dc853d427fc2ba607494662bdcd55e"
   dependencies:
-    "@backplane-labs/backplane-theme": "npm:0.6.100"
-    "@backplane-labs/backplane-ui": "npm:0.6.100"
+    "@backplane-labs/backplane-theme": "npm:0.6.104"
+    "@backplane-labs/backplane-ui": "npm:0.6.104"
     "@grafana/data": "npm:13.2.3"
     "@grafana/schema": "npm:13.2.3"
     "@grafana/ui": "npm:13.2.3"
@@ -146,25 +146,25 @@ __metadata:
     react: ">=19 <20"
     react-dom: ">=19 <20"
     react-i18next: ">=17 <18"
-  checksum: 10c0/a2e85e89c01a63befc2800bc07141e7705a918116946ff55b18027d3b741698d0901a252e8637fba7e6ee060c0c275907f9cb8bdde2d81659b36f99c8bd75b0d
+  checksum: 10c0/fb482e72efac1510f2dfa0d36b101507e694458e3509ce9fdfd60c758547da435a7aa4dd00173fecbd78c569905dda9da184e26ac456234ee0160202f7d7afc1
   languageName: node
   linkType: hard
 
-"@backplane-labs/backplane-client@npm:0.6.100":
-  version: 0.6.100
-  resolution: "@backplane-labs/backplane-client@npm:0.6.100::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40backplane-labs%2Fbackplane-client%2F0.6.100%2Faf3b6ab99163c1af1e42ecba4ba54896da014d4e"
+"@backplane-labs/backplane-client@npm:0.6.104":
+  version: 0.6.104
+  resolution: "@backplane-labs/backplane-client@npm:0.6.104::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40backplane-labs%2Fbackplane-client%2F0.6.104%2Ffb55745abd11b2ab7cdc8bae4db9497612e61139"
   dependencies:
     "@gopherex/ws-proto-transport": "npm:1.11.1"
-  checksum: 10c0/94bb93e1c7022e27fda6b3c58cfcfcf917b3e931a0bc517b459a8f1f954025a89706c4dbca64e1b4adad1fa34328fea48abb703c3ab2e864df98f42b6254b4ac
+  checksum: 10c0/434cabc607ee230e5b81c8ba13730aeef6197d9547eced059cff7eeab3458bc9add7f1e757496ce3a1a9f7cb503f2ed9c91f0646ad98943be048333c454054bf
   languageName: node
   linkType: hard
 
-"@backplane-labs/backplane-editors@npm:0.6.100":
-  version: 0.6.100
-  resolution: "@backplane-labs/backplane-editors@npm:0.6.100::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40backplane-labs%2Fbackplane-editors%2F0.6.100%2F65eecbfaffdb3910bd166cdbd6b63f2e5c178e1d"
+"@backplane-labs/backplane-editors@npm:0.6.104":
+  version: 0.6.104
+  resolution: "@backplane-labs/backplane-editors@npm:0.6.104::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40backplane-labs%2Fbackplane-editors%2F0.6.104%2Fad0a16386e252575180fe8e0a94a012ddb5cd790"
   dependencies:
-    "@backplane-labs/backplane-theme": "npm:0.6.100"
-    "@backplane-labs/backplane-ui": "npm:0.6.100"
+    "@backplane-labs/backplane-theme": "npm:0.6.104"
+    "@backplane-labs/backplane-ui": "npm:0.6.104"
     "@codemirror/autocomplete": "npm:6.20.3"
     "@codemirror/commands": "npm:6.11.1"
     "@codemirror/lang-html": "npm:6.4.12"
@@ -181,55 +181,55 @@ __metadata:
     react: ">=19 <20"
     react-dom: ">=19 <20"
     react-i18next: ">=17 <18"
-  checksum: 10c0/c06c0a8457ff3ce1d3e03467bc83555c049b206141ab6206aa6d9b1662ae1bd6a5a0f925f71a64c84bacd2fe32ca341233dbe2a56ce84ca619a4795ef056e2a6
+  checksum: 10c0/ec1b6299141c91c5dcdf790519964731c2b5012ee44b4fc53efef119c74c03fa8c3bc29ff5922e7e2e0b3797ea048594921bc73a666fa349f195bc7f335f8abd
   languageName: node
   linkType: hard
 
-"@backplane-labs/backplane-observability-ui@npm:0.6.100":
-  version: 0.6.100
-  resolution: "@backplane-labs/backplane-observability-ui@npm:0.6.100::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40backplane-labs%2Fbackplane-observability-ui%2F0.6.100%2F44c3dff599d1e0d99aa67ba4945cb27c74e9a830"
+"@backplane-labs/backplane-observability-ui@npm:0.6.104":
+  version: 0.6.104
+  resolution: "@backplane-labs/backplane-observability-ui@npm:0.6.104::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40backplane-labs%2Fbackplane-observability-ui%2F0.6.104%2F82925d54a5a2a041028dba3de3f3aecb14f9ff34"
   dependencies:
-    "@backplane-labs/backplane-editors": "npm:0.6.100"
-    "@backplane-labs/backplane-ui": "npm:0.6.100"
+    "@backplane-labs/backplane-editors": "npm:0.6.104"
+    "@backplane-labs/backplane-ui": "npm:0.6.104"
   peerDependencies:
     i18next: ">=26 <27"
     react: ">=19 <20"
     react-dom: ">=19 <20"
     react-i18next: ">=17 <18"
-  checksum: 10c0/1c3c5bfb3eb694f7a5616323659879eb3a76e9ce0278afeb14b346b9fb26bbdd125cc9f0d78b0cbcb328677860d62be7edb669112da16fd4726f2af687593e49
+  checksum: 10c0/b2fe49a381838252a8cf6f8c6712837394796ccf97eebf537f956644f4b6586d8c29279ea8ac1284eb183d5122dc70b784ade80e6b356ef5338715a9e0dff1c0
   languageName: node
   linkType: hard
 
-"@backplane-labs/backplane-platform-ui@npm:0.6.100":
-  version: 0.6.100
-  resolution: "@backplane-labs/backplane-platform-ui@npm:0.6.100::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40backplane-labs%2Fbackplane-platform-ui%2F0.6.100%2Fe2fb9b3301bc6db5844ee97776c4e0085736cbf8"
+"@backplane-labs/backplane-platform-ui@npm:0.6.104":
+  version: 0.6.104
+  resolution: "@backplane-labs/backplane-platform-ui@npm:0.6.104::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40backplane-labs%2Fbackplane-platform-ui%2F0.6.104%2F0b2722a61a7880b0addd17c7d2c93fc465dfea54"
   dependencies:
-    "@backplane-labs/backplane-api": "npm:0.6.100"
-    "@backplane-labs/backplane-charts": "npm:0.6.100"
-    "@backplane-labs/backplane-client": "npm:0.6.100"
-    "@backplane-labs/backplane-editors": "npm:0.6.100"
-    "@backplane-labs/backplane-observability-ui": "npm:0.6.100"
-    "@backplane-labs/backplane-react": "npm:0.6.100"
-    "@backplane-labs/backplane-schema-forms": "npm:0.6.100"
-    "@backplane-labs/backplane-ui": "npm:0.6.100"
+    "@backplane-labs/backplane-api": "npm:0.6.104"
+    "@backplane-labs/backplane-charts": "npm:0.6.104"
+    "@backplane-labs/backplane-client": "npm:0.6.104"
+    "@backplane-labs/backplane-editors": "npm:0.6.104"
+    "@backplane-labs/backplane-observability-ui": "npm:0.6.104"
+    "@backplane-labs/backplane-react": "npm:0.6.104"
+    "@backplane-labs/backplane-schema-forms": "npm:0.6.104"
+    "@backplane-labs/backplane-ui": "npm:0.6.104"
     "@bufbuild/protobuf": "npm:2.16.0"
-    "@gopherex/schemapb": "npm:1.10.1"
     "@xyflow/react": "npm:12.10.2"
     lossless-json: "npm:4.3.1"
     lucide-react: "npm:1.48.0"
     yaml: "npm:2.9.1"
   peerDependencies:
+    "@gopherex/schemapb": ^1.12.1
     i18next: ">=26 <27"
     react: ">=19 <20"
     react-dom: ">=19 <20"
     react-i18next: ">=17 <18"
-  checksum: 10c0/87526a0abc71db79c1eee361d413a5f84f4166945866b96426430eb98b67bf439800a2fa52e431d7e618f421549a69f75ae695f8a214f24736b02e84636cc8e3
+  checksum: 10c0/1013474eead1b2a5367d32e0bd0ea3e92419b521777ace3af306bc28f6ba8a2d9c660817d7c3d99fb9d5e49d16404fac21622b819868208835a156a1c415cf01
   languageName: node
   linkType: hard
 
-"@backplane-labs/backplane-plugin-build@npm:0.6.100":
-  version: 0.6.100
-  resolution: "@backplane-labs/backplane-plugin-build@npm:0.6.100::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40backplane-labs%2Fbackplane-plugin-build%2F0.6.100%2Fad002fbf9a91c7ad24d7be943a951fd78fc481cb"
+"@backplane-labs/backplane-plugin-build@npm:0.6.104":
+  version: 0.6.104
+  resolution: "@backplane-labs/backplane-plugin-build@npm:0.6.104::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40backplane-labs%2Fbackplane-plugin-build%2F0.6.104%2F058f5574cddffc8c8c7d104990cbd195a83204c1"
   dependencies:
     "@module-federation/vite": "npm:1.23.0"
     "@vitejs/plugin-react": "npm:6.1.1"
@@ -238,15 +238,15 @@ __metadata:
     react: ">=19 <20"
     react-dom: ">=19 <20"
     vite: ">=8 <9"
-  checksum: 10c0/5a59296f97427e0fc132f5a2050f37ed111dbcdecf93b99776fa361eeb5788e125735d351846dd2e9c0d9d295d2497bff2445c5582fd48cc32827f16248f8940
+  checksum: 10c0/a508fd7376288f7222079dc6e6a9203e4ff9ec2f13da9e77bf9d04cbab095c0bfc73e9ec4d53f0acaf2bf8c5fa752a06f821caff845c6bddcde9c0718fe99063
   languageName: node
   linkType: hard
 
-"@backplane-labs/backplane-plugin-sdk@npm:0.6.100":
-  version: 0.6.100
-  resolution: "@backplane-labs/backplane-plugin-sdk@npm:0.6.100::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40backplane-labs%2Fbackplane-plugin-sdk%2F0.6.100%2Fab4680bde5a99184ab51e644241b96156b703ad5"
+"@backplane-labs/backplane-plugin-sdk@npm:0.6.104":
+  version: 0.6.104
+  resolution: "@backplane-labs/backplane-plugin-sdk@npm:0.6.104::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40backplane-labs%2Fbackplane-plugin-sdk%2F0.6.104%2Fe13c8ed8f16c6ab7a52a9f128fa79c0cce029712"
   dependencies:
-    "@backplane-labs/backplane-theme": "npm:0.6.100"
+    "@backplane-labs/backplane-theme": "npm:0.6.104"
     "@module-federation/runtime": "npm:2.9.1"
   peerDependencies:
     i18next: ">=26 <27"
@@ -255,55 +255,55 @@ __metadata:
     react-i18next: ">=17 <18"
     react-router: ">=7 <8"
     react-router-dom: ">=7 <8"
-  checksum: 10c0/9d420349560b730155baa19bb3add37f172ba972b9004bef74e751176fe093a61e4375718fb7ae21cad60f73007d0d0eb98e151236cde8f1abc705a9963c4c7a
+  checksum: 10c0/87b57df45c4501f3ff28d52e0f60d7067f98f7dd17854983bff1473392cd1b1a8b8f08ac01dab00347de9e246475b223d702b50073cf9ad4d796d1ff8d9843f4
   languageName: node
   linkType: hard
 
-"@backplane-labs/backplane-react@npm:0.6.100":
-  version: 0.6.100
-  resolution: "@backplane-labs/backplane-react@npm:0.6.100::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40backplane-labs%2Fbackplane-react%2F0.6.100%2F32b1c77c8668f6c30e2bfba490f1207afd3e4861"
+"@backplane-labs/backplane-react@npm:0.6.104":
+  version: 0.6.104
+  resolution: "@backplane-labs/backplane-react@npm:0.6.104::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40backplane-labs%2Fbackplane-react%2F0.6.104%2F518ad029d450f4a235dc8f74db2d4685d4658681"
   dependencies:
-    "@backplane-labs/backplane-client": "npm:0.6.100"
+    "@backplane-labs/backplane-client": "npm:0.6.104"
   peerDependencies:
     react: ">=19 <20"
     react-dom: ">=19 <20"
-  checksum: 10c0/fd52857856400550252f36e1133f9e320323370fb8ac00f7d83286404577846bc1d9ed7d3e7c1d5455052fc924f3c72e95f4e2ee62f07287d185a0500c9c1d71
+  checksum: 10c0/f81116758ac07d9dea3cb4da1478e6bc36f5cdc3f0700ab4120eddbfcd1feb8b51113b140719ea7899a35a6ead16514a66772bb1aead57a5e1ba055cf10027fb
   languageName: node
   linkType: hard
 
-"@backplane-labs/backplane-schema-forms@npm:0.6.100":
-  version: 0.6.100
-  resolution: "@backplane-labs/backplane-schema-forms@npm:0.6.100::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40backplane-labs%2Fbackplane-schema-forms%2F0.6.100%2F275337dc40b07f00f6d45503baa7614c0105bed1"
+"@backplane-labs/backplane-schema-forms@npm:0.6.104":
+  version: 0.6.104
+  resolution: "@backplane-labs/backplane-schema-forms@npm:0.6.104::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40backplane-labs%2Fbackplane-schema-forms%2F0.6.104%2Fb12e716a2d4027caae04b69590c9a210f0166b92"
   dependencies:
-    "@backplane-labs/backplane-ui": "npm:0.6.100"
+    "@backplane-labs/backplane-ui": "npm:0.6.104"
     "@bufbuild/protobuf": "npm:2.16.0"
-    "@gopherex/schemapb": "npm:1.10.1"
   peerDependencies:
+    "@gopherex/schemapb": ^1.12.1
     i18next: ">=26 <27"
     react: ">=19 <20"
     react-dom: ">=19 <20"
     react-i18next: ">=17 <18"
-  checksum: 10c0/6afb612fc8b963472886b17cc7915d49182eb90601dc6f8e18503e5dccee2b3edcb3d521bbbcbbe66e97d3466b72369c932e9b9a9b79aa9749f2e7c0ce836952
+  checksum: 10c0/7ae03308fe537da6f8d39ab91800fe084162904876bcf4875a5d4d6046f109484b8e082d47b574ae0f4d83487a53be3953f4df916ae22b8c2f0526b071b306ba
   languageName: node
   linkType: hard
 
-"@backplane-labs/backplane-theme@npm:0.6.100":
-  version: 0.6.100
-  resolution: "@backplane-labs/backplane-theme@npm:0.6.100::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40backplane-labs%2Fbackplane-theme%2F0.6.100%2F35d8fb904a473548a764ff2fdee7427ffcf965b7"
+"@backplane-labs/backplane-theme@npm:0.6.104":
+  version: 0.6.104
+  resolution: "@backplane-labs/backplane-theme@npm:0.6.104::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40backplane-labs%2Fbackplane-theme%2F0.6.104%2Fa2a86bcec33ffabbb25058bd21bbc2ef79b3ca68"
   dependencies:
     "@grafana/data": "npm:13.2.3"
   peerDependencies:
     react: ">=19 <20"
     react-dom: ">=19 <20"
-  checksum: 10c0/8acc6aeebe0cd173acac4a2f5bb23671df07db1d2cefe7074c2f0df46c2cbea5306a924c3e79f06509d688bd3206f50b6d184ee881825c94e76db8619381a89f
+  checksum: 10c0/03780f430a816455736999db5640dd0de61a2cf1a6ae940e314af0c12b53b3d5c1309723f0441f5ebf083d6e383a7d0e8945287193f418b4593c386495e29cfc
   languageName: node
   linkType: hard
 
-"@backplane-labs/backplane-ui@npm:0.6.100":
-  version: 0.6.100
-  resolution: "@backplane-labs/backplane-ui@npm:0.6.100::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40backplane-labs%2Fbackplane-ui%2F0.6.100%2F05ab863bd6b48cee8f198d9b67c15dfca145f76a"
+"@backplane-labs/backplane-ui@npm:0.6.104":
+  version: 0.6.104
+  resolution: "@backplane-labs/backplane-ui@npm:0.6.104::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40backplane-labs%2Fbackplane-ui%2F0.6.104%2Fcb3c70f2567bee3c3b3f293eaed8354323b1bd71"
   dependencies:
-    "@backplane-labs/backplane-theme": "npm:0.6.100"
+    "@backplane-labs/backplane-theme": "npm:0.6.104"
     "@grafana/data": "npm:13.2.3"
     "@grafana/ui": "npm:13.2.3"
     "@tanstack/react-table": "npm:8.21.3"
@@ -325,7 +325,7 @@ __metadata:
     react: ">=19 <20"
     react-dom: ">=19 <20"
     react-i18next: ">=17 <18"
-  checksum: 10c0/d0777508d03f057bc2b9a84ab635f662504d1405111757bbdb497f6d0a69f229a611c541daba423a77bc08db11705f6a036bbf26daf8503c0f49ed2b26ad5b33
+  checksum: 10c0/436d533c2f8e053539ff6ff0c77406d587d829be4cf53d6af2874b65fa33afa7a29f02357886677f56a7018e917b92e38a362d5fb08eb736942cd438b843ce93
   languageName: node
   linkType: hard
 
@@ -333,25 +333,25 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@backplane-labs/kratos-module@workspace:."
   dependencies:
-    "@backplane-labs/backplane-api": "npm:0.6.100"
-    "@backplane-labs/backplane-charts": "npm:0.6.100"
-    "@backplane-labs/backplane-client": "npm:0.6.100"
-    "@backplane-labs/backplane-editors": "npm:0.6.100"
-    "@backplane-labs/backplane-observability-ui": "npm:0.6.100"
-    "@backplane-labs/backplane-platform-ui": "npm:0.6.100"
-    "@backplane-labs/backplane-plugin-build": "npm:0.6.100"
-    "@backplane-labs/backplane-plugin-sdk": "npm:0.6.100"
-    "@backplane-labs/backplane-react": "npm:0.6.100"
-    "@backplane-labs/backplane-schema-forms": "npm:0.6.100"
-    "@backplane-labs/backplane-theme": "npm:0.6.100"
-    "@backplane-labs/backplane-ui": "npm:0.6.100"
+    "@backplane-labs/backplane-api": "npm:0.6.104"
+    "@backplane-labs/backplane-charts": "npm:0.6.104"
+    "@backplane-labs/backplane-client": "npm:0.6.104"
+    "@backplane-labs/backplane-editors": "npm:0.6.104"
+    "@backplane-labs/backplane-observability-ui": "npm:0.6.104"
+    "@backplane-labs/backplane-platform-ui": "npm:0.6.104"
+    "@backplane-labs/backplane-plugin-build": "npm:0.6.104"
+    "@backplane-labs/backplane-plugin-sdk": "npm:0.6.104"
+    "@backplane-labs/backplane-react": "npm:0.6.104"
+    "@backplane-labs/backplane-schema-forms": "npm:0.6.104"
+    "@backplane-labs/backplane-theme": "npm:0.6.104"
+    "@backplane-labs/backplane-ui": "npm:0.6.104"
     "@biomejs/biome": "npm:2.6.7"
     "@bufbuild/protobuf": "npm:2.16.0"
     "@bufbuild/protoc-gen-es": "npm:2.16.0"
     "@fontsource/ibm-plex-mono": "npm:5.2.6"
     "@fontsource/ibm-plex-sans": "npm:5.2.6"
     "@gopherex/protoc-gen-ws-es": "npm:1.11.1"
-    "@gopherex/schemapb": "npm:1.9.7"
+    "@gopherex/schemapb": "npm:1.12.1"
     "@gopherex/ws-proto-transport": "npm:1.11.1"
     "@grafana/data": "npm:13.2.3"
     "@grafana/ui": "npm:13.2.3"
@@ -1084,29 +1084,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gopherex/schemapb@npm:1.10.1":
-  version: 1.10.1
-  resolution: "@gopherex/schemapb@npm:1.10.1::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40gopherex%2Fschemapb%2F1.10.1%2Fc55d2f54cff665c367e48fcbfe62743e756fc681"
+"@gopherex/schemapb@npm:1.12.1":
+  version: 1.12.1
+  resolution: "@gopherex/schemapb@npm:1.12.1::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40gopherex%2Fschemapb%2F1.12.1%2Fe3bad03077942e1719cf654f7658d5cb35e339e8"
   dependencies:
     "@bufbuild/cel": "npm:0.6.0"
     "@bufbuild/protobuf": "npm:^2.11.0"
     mustache: "npm:^4.2.0"
     semver: "npm:^7.7.0"
-  checksum: 10c0/d653b12c1951704bd8a61d9ba6235ed9b9b2763497f445f363313598d2396099f3ddbd84f80ac02d2f4e56cf90002e218225b3f07b6f14fcb3c961f614a45149
-  languageName: node
-  linkType: hard
-
-"@gopherex/schemapb@npm:1.9.7":
-  version: 1.9.7
-  resolution: "@gopherex/schemapb@npm:1.9.7::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40gopherex%2Fschemapb%2F1.9.7%2Fbf1f9c6a6706a54fa1c8ef4c46ace74092c6c087"
-  dependencies:
-    "@bufbuild/cel": "npm:0.6.0"
-    "@bufbuild/protobuf": "npm:^2.11.0"
-    mustache: "npm:^4.2.0"
-    semver: "npm:^7.7.0"
-  peerDependencies:
-    zod: ^4.0.0
-  checksum: 10c0/2a1604ef17ae5d01b09f4937b2ba5b99efe3c47d2a23c41cbc4432357f86ca9cc6c9a17bb6803981741b16fe7080f7faef028e4be2c25b48ec20b7ece9733d3e
+  checksum: 10c0/4924b87404244186d071eb7114a80345095fc1b3187ff18d7037df9240da812ac35933b2d30e37fb3a79c6baab28c95687f10f6a210a66558d475fd5fe20b86d
   languageName: node
   linkType: hard
 
