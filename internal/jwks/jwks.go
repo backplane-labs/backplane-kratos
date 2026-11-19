@@ -10,6 +10,7 @@ import (
 	"github.com/backplane-labs/backplane/pkg/backplane/config"
 
 	"github.com/backplane-labs/backplane-kratos/internal/overlay"
+	"github.com/backplane-labs/backplane-kratos/internal/tokenkeys"
 )
 
 // Path is where the keys are served.
@@ -19,11 +20,17 @@ const Path = "/.well-known/jwks.json"
 // sooner anyway, a token with an unknown kid makes them fetch again.
 const maxAge = "public, max-age=60"
 
-// Handler serves the public keys of settings.tokens.keys as a JWK set.
-func Handler(settings config.Live[overlay.Settings]) http.Handler {
+// Handler serves the public keys as a JWK set: the minted ones, else the
+// settings' tokens.keys.
+func Handler(settings config.Live[overlay.Settings], source tokenkeys.Source) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET "+Path, func(w http.ResponseWriter, _ *http.Request) {
-		keys, err := overlay.PublicKeys(settings.Get().Tokens.Keys)
+		public := source.Get().Public
+		if public == nil {
+			public = settings.Get().Tokens.Keys
+		}
+
+		keys, err := overlay.PublicKeys(public)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusServiceUnavailable)
 

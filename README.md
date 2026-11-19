@@ -456,6 +456,7 @@ cannot read leaves it on the previous configuration.
 | `token_exchange.max_age` | How long after sign-in a native app's exchange code pair is answered (default `5m`) |
 | `directories`, `directory_tokens` | Live: corporate directories (SCIM) and their bearer tokens, below |
 | `oidc_backchannel` | Live: OIDC providers whose IdPs send back-channel logout tokens (`id`, `issuer`, `audience`, `jwks_url`, https) |
+| `token_rotation` | How long a minted session-token signing key signs before the next (default `720h`; used when `token_key` is empty and NATS is on) |
 | `db.dsn` (and the rest of `db`) | PostgreSQL of the security events outbox; required when events (NATS) are on, absent without them |
 
 ### Tracing
@@ -499,6 +500,17 @@ answers alike:
   A client sends the token as `Authorization: Bearer`; a service verifies it
   locally — no call per request. A revoked session gets no new token at once;
   a token already issued stays valid for the token lifetime (default 5m).
+
+  With NATS and no `token_key`, this service mints the signing key itself and
+  keeps it in the NATS JetStream KV bucket `kratos_token_keys` (it holds
+  private keys: grant `$KV.kratos_token_keys.>` to this service's NATS
+  identity alone). Replicas starting together sign with the one key the first
+  stored. Every `token_rotation` (default `720h`) a new key is published in
+  the JWKS, signs two minutes later (every replica publishes it first), and
+  the previous one stays in the JWKS a token lifetime after it stopped
+  signing. A configured `token_key` (with `settings.tokens.keys`) wins and
+  nothing is minted or rotated. The JWKS URL and shape are the same either
+  way.
 - **whoami**. The session cookie or session token itself, asked of Kratos on
   every request — no cache: a revocation shows on the next request. For the
   few actions that must not outlive a revocation.

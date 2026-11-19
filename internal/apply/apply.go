@@ -20,6 +20,7 @@ import (
 
 	"github.com/backplane-labs/backplane-kratos/internal/flows"
 	"github.com/backplane-labs/backplane-kratos/internal/overlay"
+	"github.com/backplane-labs/backplane-kratos/internal/tokenkeys"
 )
 
 const resync = 30 * time.Second
@@ -62,7 +63,8 @@ type State struct {
 type Secrets struct {
 	OIDC                  config.Live[map[string]config.Secret]
 	OAuth2ProviderHeaders config.Live[map[string]config.Secret]
-	TokenKey              config.Live[config.Secret]
+	// TokenKeys sign and verify the session tokens.
+	TokenKeys tokenkeys.Source
 }
 
 // reveal is the secrets as the overlay renders them; mask replaces each.
@@ -79,14 +81,16 @@ func (s Secrets) reveal(mask string) overlay.Secrets {
 		return r
 	}
 
-	key := s.TokenKey.Get().Reveal()
+	set := s.TokenKeys.Get()
+
+	key := set.Private
 	if key != "" && mask != "" {
 		key = mask
 	}
 
 	return overlay.Secrets{
 		OIDC: out(s.OIDC.Get()), OAuth2ProviderHeaders: out(s.OAuth2ProviderHeaders.Get()),
-		TokenKey: key, Masked: mask != "",
+		TokenKey: key, TokenKeys: set.Public, Masked: mask != "",
 	}
 }
 
@@ -104,7 +108,7 @@ func New(
 	settings.Watch(func(overlay.Settings) { a.Kick() })
 	secrets.OIDC.Watch(func(map[string]config.Secret) { a.Kick() })
 	secrets.OAuth2ProviderHeaders.Watch(func(map[string]config.Secret) { a.Kick() })
-	secrets.TokenKey.Watch(func(config.Secret) { a.Kick() })
+	secrets.TokenKeys.Watch(a.Kick)
 	a.Go(a.loop)
 
 	return a

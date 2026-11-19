@@ -126,7 +126,12 @@ func (r renderer) tokens() error {
 
 	t := r.s.Tokens
 
-	public, err := PublicKeys(t.Keys)
+	keys := t.Keys
+	if r.sec.TokenKeys != nil {
+		keys = r.sec.TokenKeys
+	}
+
+	public, err := PublicKeys(keys)
 	if err != nil {
 		return err
 	}

@@ -215,6 +215,9 @@ type Secrets struct {
 	// TokenKey is the private JWK the session tokens are signed with; empty:
 	// no tokens.
 	TokenKey string
+	// TokenKeys are the public JWKs of minted keys, the signing one first;
+	// nil: the settings' tokens.keys.
+	TokenKeys []string
 	// Masked: the secrets are placeholders (a rendering to show, not to
 	// write).
 	Masked bool

@@ -3,13 +3,15 @@ module github.com/backplane-labs/backplane-kratos
 go 1.27.4
 
 require (
-	github.com/backplane-labs/backplane v0.6.104
+	github.com/backplane-labs/backplane v0.6.108
 	github.com/go-jose/go-jose/v4 v4.1.6
 	github.com/google/go-jsonnet v0.22.0
 	github.com/google/uuid v1.6.0
 	github.com/gopherex/pg-outbox v1.6.0
 	github.com/gopherex/xlog v1.3.1
 	github.com/gopherex/xprobe v1.2.0
+	github.com/nats-io/nats-server/v2 v2.15.3
+	github.com/nats-io/nats.go v1.56.0
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.3
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.70.0
 	go.opentelemetry.io/otel v1.45.0
@@ -24,6 +26,7 @@ require (
 
 require (
 	cel.dev/expr v0.25.2 // indirect
+	github.com/antithesishq/antithesis-sdk-go v0.9.0-default-no-op // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/armon/go-metrics v0.4.1 // indirect
 	github.com/avito-tech/go-transaction-manager/drivers/pgxv5/v2 v2.0.5 // indirect
@@ -47,6 +50,7 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/google/cel-go v0.30.0 // indirect
+	github.com/google/go-tpm v0.9.8 // indirect
 	github.com/gopherex/pgtx v1.1.5 // indirect
 	github.com/gopherex/schemapb/go v1.12.1 // indirect
 	github.com/gopherex/sqld v1.1.3 // indirect
@@ -83,8 +87,9 @@ require (
 	github.com/lufia/plan9stats v0.0.0-20260330125221-c963978e514e // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.21 // indirect
+	github.com/minio/highwayhash v1.0.4 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
-	github.com/nats-io/nats.go v1.55.0 // indirect
+	github.com/nats-io/jwt/v2 v2.8.3 // indirect
 	github.com/nats-io/nkeys v0.4.17 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/nexus-rpc/nexus-proto-annotations v0.1.0 // indirect

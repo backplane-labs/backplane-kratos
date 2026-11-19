@@ -23,6 +23,7 @@ import (
 	"github.com/backplane-labs/backplane/pkg/backplane/config"
 	"github.com/backplane-labs/backplane/pkg/backplane/deps"
 	"github.com/backplane-labs/backplane/pkg/backplane/drivers/standard"
+	infranats "github.com/backplane-labs/backplane/pkg/backplane/infra/nats"
 	"github.com/backplane-labs/backplane/pkg/backplane/infra/postgres"
 	"github.com/backplane-labs/backplane/pkg/backplane/tracehttp"
 	"go.opentelemetry.io/otel"
@@ -41,6 +42,7 @@ import (
 	"github.com/backplane-labs/backplane-kratos/internal/outbox"
 	"github.com/backplane-labs/backplane-kratos/internal/overlay"
 	"github.com/backplane-labs/backplane-kratos/internal/scim"
+	"github.com/backplane-labs/backplane-kratos/internal/tokenkeys"
 	"github.com/backplane-labs/backplane-kratos/internal/ui"
 	kratosconsolev1 "github.com/backplane-labs/backplane-kratos/proto/kratos/console/v1"
 )
@@ -71,6 +73,9 @@ type Config struct {
 	// TokenKey is the private JWK (JSON) session tokens are signed with; its
 	// public key must be the first of settings.tokens.keys. Live, a secret.
 	TokenKey config.Live[config.Secret] `json:"token_key,omitempty" schemapb:"description=Private JWK the session tokens are signed with (empty: no tokens)"`
+	// TokenRotation is how long a minted signing key signs before the next
+	// one takes over (token_key empty, NATS on).
+	TokenRotation time.Duration `json:"token_rotation" schemapb:"default=720h;description=How long a minted token signing key signs before the next one"`
 	// FailOpen names flow hooks whose failure lets the flow continue.
 	FailOpen config.Live[[]string] `json:"fail_open,omitempty" schemapb:"description=Flow hooks (e.g. AfterLogin) whose failure lets the flow continue"`
 	// TokenExchange bounds the native apps' session token exchange.
@@ -191,6 +196,8 @@ type State struct {
 	Directories *scim.Directories
 	Outbox      *outbox.Outbox
 	Backchannel *backchannel.Receiver
+	// TokenKeys sign and verify the session tokens.
+	TokenKeys tokenkeys.Source
 
 	callbacks string                        // listen address of the callbacks
 	settings  config.Live[overlay.Settings] // the tokens' public keys among them
@@ -215,7 +222,7 @@ func Run(ctx context.Context) error {
 	st := svc.State()
 
 	svc.HTTP("/", st.Flows.Handler(), api.Listen("callbacks", st.callbacks))
-	svc.HTTP("/.well-known/", jwks.Handler(st.settings))
+	svc.HTTP("/.well-known/", jwks.Handler(st.settings, st.TokenKeys))
 	svc.HTTP(flows.SelfServicePath, st.public)
 	svc.HTTP(flows.TokenExchangePath, st.public)
 	svc.HTTP(scim.Path, st.Directories.Handler())
@@ -281,6 +288,8 @@ func newState(root backplane.Root[Config]) (*State, error) {
 		return nil, fmt.Errorf("%w: %q", ErrOverlayMode, cfg.OverlayMode)
 	}
 
+	st.TokenKeys = tokenKeys(root, cfg)
+
 	st.Applier = apply.New(
 		root,
 		cfg.Overlay,
@@ -289,7 +298,7 @@ func newState(root backplane.Root[Config]) (*State, error) {
 		apply.Secrets{
 			OIDC:                  cfg.OIDCSecrets,
 			OAuth2ProviderHeaders: cfg.OAuth2ProviderHeaders,
-			TokenKey:              cfg.TokenKey,
+			TokenKeys:             st.TokenKeys,
 		},
 		st.Flows,
 		overlay.Wiring{
@@ -303,7 +312,7 @@ func newState(root backplane.Root[Config]) (*State, error) {
 	st.Backchannel = backchannel.New(root, cfg.OIDCBackchannel, client, st.Activities.RevokedEvent(),
 		&http.Client{Transport: tracehttp.NewTransport(nil), Timeout: keysTimeout}, time.Now)
 	st.Admin = admin.New(
-		root, client, st.Flows, st.Applier, cfg.FailOpen, cfg.Settings, cfg.TokenKey, cfg.NATS.Enabled(), st.Activities,
+		root, client, st.Flows, st.Applier, cfg.FailOpen, cfg.Settings, st.TokenKeys, cfg.NATS.Enabled(), st.Activities,
 	)
 
 	return st, nil
@@ -347,3 +356,28 @@ func (d dependency) Probe(ctx context.Context, _ ory.Client) error {
 }
 
 func (dependency) Close(context.Context, ory.Client) error { return nil }
+
+// propagation is how long a minted key is published before it signs.
+const propagation = 2 * time.Minute
+
+// tokenKeys are the configured signing keys, else (token_key empty, NATS
+// on) the ones minted, kept in NATS KV and rotated every token_rotation.
+func tokenKeys(root backplane.Root[Config], cfg Config) tokenkeys.Source {
+	if cfg.TokenKey.Get().Reveal() != "" || !cfg.NATS.Enabled() {
+		return tokenkeys.NewConfigured(cfg.TokenKey, cfg.Settings)
+	}
+
+	section := infranats.FromBackplane(cfg.NATS)
+	conn := deps.NewDependency(root, infranats.New(section), deps.Name("nats token keys"))
+
+	minted := tokenkeys.NewMinted(root, conn, section, int(cfg.NATS.Replicas), func() tokenkeys.Schedule {
+		ttl := cfg.Settings.Get().Tokens.TTL
+		if ttl <= 0 {
+			ttl = overlay.DefaultTokenTTL
+		}
+
+		return tokenkeys.Schedule{Every: cfg.TokenRotation, Propagation: propagation, TokenTTL: ttl}
+	})
+
+	return minted.Source()
+}

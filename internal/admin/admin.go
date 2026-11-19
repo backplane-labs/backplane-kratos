@@ -30,6 +30,7 @@ import (
 	"github.com/backplane-labs/backplane-kratos/internal/jwks"
 	"github.com/backplane-labs/backplane-kratos/internal/ory"
 	"github.com/backplane-labs/backplane-kratos/internal/overlay"
+	"github.com/backplane-labs/backplane-kratos/internal/tokenkeys"
 	v1 "github.com/backplane-labs/backplane-kratos/proto/kratos/console/v1"
 )
 
@@ -51,14 +52,14 @@ type Admin struct {
 	v1.UnimplementedAdminServiceServer
 	deps.Component
 
-	kratos   ory.Client
-	flows    *flows.Flows
-	applier  *apply.Applier
-	failOpen config.Live[[]string]
-	settings config.Live[overlay.Settings]
-	tokenKey config.Live[config.Secret]
-	events   bool
-	changes  Changes
+	kratos    ory.Client
+	flows     *flows.Flows
+	applier   *apply.Applier
+	failOpen  config.Live[[]string]
+	settings  config.Live[overlay.Settings]
+	tokenKeys tokenkeys.Source
+	events    bool
+	changes   Changes
 }
 
 // New creates the component under parent.
@@ -69,7 +70,7 @@ func New(
 	a *apply.Applier,
 	failOpen config.Live[[]string],
 	settings config.Live[overlay.Settings],
-	tokenKey config.Live[config.Secret],
+	tokenKeys tokenkeys.Source,
 	events bool,
 	changes Changes,
 ) *Admin {
@@ -77,7 +78,7 @@ func New(
 		Component: deps.NewComponent(
 			parent,
 			"admin",
-		), kratos: k, flows: f, applier: a, failOpen: failOpen, settings: settings, tokenKey: tokenKey, events: events,
+		), kratos: k, flows: f, applier: a, failOpen: failOpen, settings: settings, tokenKeys: tokenKeys, events: events,
 		changes: changes,
 	}
 }
@@ -141,7 +142,7 @@ func (a *Admin) GetStatus(ctx context.Context, _ *v1.GetStatusRequest) (*v1.GetS
 	out := &v1.GetStatusResponse{
 		AdminUrl: a.kratos.AdminURL(), PublicUrl: a.kratos.PublicURL(), Events: a.events,
 		Tokens: &v1.Tokens{
-			Enabled: a.tokenKey.Get().Reveal() != "", Template: overlay.TokenTemplate, KeysPath: jwks.Path,
+			Enabled: a.tokenKeys.Get().Enabled(), Template: overlay.TokenTemplate, KeysPath: jwks.Path,
 			DefaultClaims: overlay.DefaultClaims,
 		},
 	}

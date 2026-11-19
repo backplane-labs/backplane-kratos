@@ -22,6 +22,7 @@ import (
 
 	"github.com/backplane-labs/backplane-kratos/internal/jwks"
 	"github.com/backplane-labs/backplane-kratos/internal/overlay"
+	"github.com/backplane-labs/backplane-kratos/internal/tokenkeys"
 	"github.com/backplane-labs/backplane-kratos/pkg/auth"
 )
 
@@ -87,7 +88,7 @@ func TestSessionTokens(t *testing.T) {
 		t.Fatalf("tokenize: %v", err)
 	}
 
-	keys := httptest.NewServer(jwks.Handler(e.settings))
+	keys := httptest.NewServer(jwks.Handler(e.settings, tokenkeys.NewConfigured(e.tokenKey, e.settings)))
 	t.Cleanup(keys.Close)
 
 	tokens, err := auth.NewTokens(auth.TokensOptions{KeysURL: keys.URL + jwks.Path, Issuer: frontURL + "/"})
@@ -190,7 +191,7 @@ func TestTokenKeyRotation(t *testing.T) {
 		t.Fatalf("kids: old %s, new %s", kid(t, oldToken), kid(t, newToken))
 	}
 
-	keys := httptest.NewServer(jwks.Handler(e.settings))
+	keys := httptest.NewServer(jwks.Handler(e.settings, tokenkeys.NewConfigured(e.tokenKey, e.settings)))
 	t.Cleanup(keys.Close)
 
 	tokens, _ := auth.NewTokens(auth.TokensOptions{KeysURL: keys.URL + jwks.Path})

@@ -41,6 +41,7 @@ import (
 	"github.com/backplane-labs/backplane-kratos/internal/outbox"
 	"github.com/backplane-labs/backplane-kratos/internal/overlay"
 	"github.com/backplane-labs/backplane-kratos/internal/scim"
+	"github.com/backplane-labs/backplane-kratos/internal/tokenkeys"
 	consolev1 "github.com/backplane-labs/backplane-kratos/proto/kratos/console/v1"
 	kratoseventsv1 "github.com/backplane-labs/backplane-kratos/proto/kratos/events/v1"
 )
@@ -163,11 +164,11 @@ func startKeyed(t *testing.T, tokenKey string, edit func(*overlay.Settings), bin
 	e.logoutProviders = config.LiveOf([]backchannel.Provider(nil))
 	e.backchannel = backchannel.New(h.Root(), e.logoutProviders, client, e.activities.RevokedEvent(),
 		httpClient(t), time.Now)
-	e.console = kratosadmin.New(h.Root(), client, e.flows, nil, config.LiveOf([]string(nil)), e.settings, e.tokenKey,
+	e.console = kratosadmin.New(h.Root(), client, e.flows, nil, config.LiveOf([]string(nil)), e.settings, tokenkeys.NewConfigured(e.tokenKey, e.settings),
 		true, e.activities)
 	apply.New(h.Root(), path, 0o644, e.settings, apply.Secrets{
 		OIDC: config.LiveOf(oidcSecrets(settings)), OAuth2ProviderHeaders: config.LiveOf(map[string]config.Secret{}),
-		TokenKey: e.tokenKey,
+		TokenKeys: tokenkeys.NewConfigured(e.tokenKey, e.settings),
 	}, e.flows, overlay.Wiring{
 		URL: "http://" + lis.Addr().String(), Key: key, Events: true,
 	})
