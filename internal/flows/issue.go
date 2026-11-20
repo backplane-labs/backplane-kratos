@@ -566,22 +566,22 @@ func (f *Flows) admit(ctx context.Context, a *answerOf, iss issuance, errorURL s
 
 	switch {
 	case errors.Is(err, hook.ErrNoBinding):
-		f.record(issuedPoint, start, outcomeUnbound, nil)
+		f.record(ctx, issuedPoint, start, outcomeUnbound, nil)
 		f.recordIssued(ctx, a, iss, session, errorURL)
 	case err != nil:
 		f.Log().Ctx().Warn(ctx, "new session refused: SessionIssued failed", xlog.String("session", sid), xlog.Err(err))
-		f.record(issuedPoint, start, "failed", err)
+		f.record(ctx, issuedPoint, start, "failed", err)
 		f.refuse(ctx, a, sid, errorURL, refusal{
 			id: errUnavailable, status: http.StatusServiceUnavailable, reason: "unavailable",
 			messages: []Message{{ID: UnavailableMessage, Text: unavailableText}},
 		})
 	case out.Deny != nil:
-		f.record(issuedPoint, start, "denied", nil)
+		f.record(ctx, issuedPoint, start, "denied", nil)
 		f.refuse(ctx, a, sid, errorURL, refusal{
 			id: errRefused, status: http.StatusForbidden, reason: out.Deny.Code, messages: out.Deny.Messages,
 		})
 	default:
-		f.record(issuedPoint, start, "admitted", nil)
+		f.record(ctx, issuedPoint, start, "admitted", nil)
 		f.recordIssued(ctx, a, iss, session, errorURL)
 	}
 }

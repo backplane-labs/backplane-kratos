@@ -12,9 +12,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/backplane-labs/backplane/pkg/backplane/config"
+	"go.opentelemetry.io/otel/attribute"
+
 	"github.com/gopherex/xlog"
 
 	"github.com/backplane-labs/backplane-kratos/internal/ory"
+	"github.com/backplane-labs/backplane-kratos/internal/reqmetrics"
 )
 
 // Path is the prefix of every directory's SCIM base URL, /scim/v2/<id>/.
@@ -37,7 +41,8 @@ var static embed.FS
 
 // Handler serves every directory under Path.
 func (e *Directories) Handler() http.Handler {
-	mux := http.NewServeMux()
+	mux := &metered{mux: http.NewServeMux(), rec: reqmetrics.New(e.Meter(), "kratos.scim",
+		"SCIM requests of the corporate directories, by directory, operation and status"), dirs: e.dirs}
 	base := Path + "{dir}/"
 
 	for _, doc := range []string{"ServiceProviderConfig", "ResourceTypes", "Schemas"} {
@@ -60,7 +65,26 @@ func (e *Directories) Handler() http.Handler {
 		e.fail(w, r, notFound())
 	}))
 
-	return mux
+	return mux.mux
+}
+
+// metered registers handlers counted by directory (one the configuration
+// names, else "unknown"), operation (the route) and status.
+type metered struct {
+	mux  *http.ServeMux
+	rec  reqmetrics.Recorder
+	dirs config.Live[[]Directory]
+}
+
+func (m *metered) Handle(pattern string, h http.Handler) {
+	m.mux.Handle(pattern, m.rec.Wrap(h, func(r *http.Request) []attribute.KeyValue {
+		dir := "unknown"
+		if d, ok := find(m.dirs.Get(), r.PathValue("dir")); ok {
+			dir = d.ID
+		}
+
+		return []attribute.KeyValue{attribute.String("directory", dir), attribute.String("op", pattern)}
+	}))
 }
 
 type handler func(w http.ResponseWriter, r *http.Request, d Directory)

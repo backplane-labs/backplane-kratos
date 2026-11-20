@@ -459,6 +459,17 @@ cannot read leaves it on the previous configuration.
 | `token_rotation` | How long a minted session-token signing key signs before the next (default `720h`; used when `token_key` is empty and NATS is on) |
 | `db.dsn` (and the rest of `db`) | PostgreSQL of the security events outbox; required when events (NATS) are on, absent without them |
 
+### Metrics
+
+| Name | Type | Labels |
+|---|---|---|
+| `kratos.hook.calls` | counter | `point` (the hook, event or callback Kratos called), `outcome` |
+| `kratos.hook.duration` | histogram, s | the same |
+| `kratos.scim.requests`, `kratos.scim.duration` | counter, histogram | `directory` (a configured id, else `unknown`), `op` (the route), `status` |
+| `kratos.backchannel.requests`, `kratos.backchannel.duration` | counter, histogram | `provider` (a configured id, else `unknown`), `status` |
+
+The SDK's metrics come on top (backplane `reference/metrics`).
+
 ### Tracing
 
 A flow is one trace from the browser's request to the product's hooks:

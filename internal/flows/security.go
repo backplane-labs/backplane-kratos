@@ -111,7 +111,7 @@ func (f *Flows) security(w http.ResponseWriter, r *http.Request) {
 
 	c, _, err := decode(r)
 	if err != nil {
-		f.record(point, start, "bad_request", err)
+		f.record(r.Context(), point, start, "bad_request", err)
 		http.Error(w, "bad request", http.StatusBadRequest)
 
 		return
@@ -124,7 +124,7 @@ func (f *Flows) security(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if json.Unmarshal(c.Identity, &id) != nil || id.ID == "" {
-		f.record(point, start, "no_identity", nil)
+		f.record(r.Context(), point, start, "no_identity", nil)
 		writeJSON(w, http.StatusOK, map[string]any{})
 
 		return
@@ -133,7 +133,7 @@ func (f *Flows) security(w http.ResponseWriter, r *http.Request) {
 	if err := f.enqueueSettings(r.Context(), c, id.ID, id.SchemaID, method); err != nil {
 		f.Log().Ctx().Warn(r.Context(), "settings change refused: its event cannot be recorded",
 			xlog.String("identity", id.ID), xlog.Err(err))
-		f.record(point, start, "refused", err)
+		f.record(r.Context(), point, start, "refused", err)
 
 		writeJSON(w, http.StatusBadRequest,
 			(&Deny{Messages: []Message{{ID: RecordMessage, Text: unavailableText}}}).kratos())
@@ -141,7 +141,7 @@ func (f *Flows) security(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	f.record(point, start, "enqueued", nil)
+	f.record(r.Context(), point, start, "enqueued", nil)
 	writeJSON(w, http.StatusOK, map[string]any{})
 }
 

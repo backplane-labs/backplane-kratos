@@ -101,12 +101,12 @@ func (f *Flows) loggedOut(ctx context.Context, s ory.Session, start time.Time) {
 
 	switch {
 	case err != nil:
-		f.record(logoutPoint, start, "failed", err)
+		f.record(ctx, logoutPoint, start, "failed", err)
 		f.Log().Ctx().Warn(ctx, "logout event not published: session not read", xlog.Err(err))
 
 		return
 	case stored.Active:
-		f.record(logoutPoint, start, "refused", nil)
+		f.record(ctx, logoutPoint, start, "refused", nil)
 
 		return
 	}
@@ -117,13 +117,13 @@ func (f *Flows) loggedOut(ctx context.Context, s ory.Session, start time.Time) {
 	}
 
 	if err := f.logout.Publish(ctx, ev, event.Key(s.Identity.ID), event.ID("logout-"+s.ID)); err != nil {
-		f.record(logoutPoint, start, "failed", err)
+		f.record(ctx, logoutPoint, start, "failed", err)
 		f.Log().Ctx().Warn(ctx, "logout event not published", xlog.Err(err))
 
 		return
 	}
 
-	f.record(logoutPoint, start, "published", nil)
+	f.record(ctx, logoutPoint, start, "published", nil)
 }
 
 // sessionEvent is s in an event: its id, authentication and last device.

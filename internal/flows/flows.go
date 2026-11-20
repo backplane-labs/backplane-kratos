@@ -21,6 +21,8 @@ import (
 	"github.com/backplane-labs/backplane/pkg/backplane/event"
 	"github.com/backplane-labs/backplane/pkg/backplane/hook"
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 
 	"github.com/gopherex/xlog"
 
@@ -96,6 +98,9 @@ type Flows struct {
 
 	mu    sync.Mutex
 	stats map[string]*Stat
+
+	calls   metric.Int64Counter
+	latency metric.Float64Histogram
 }
 
 // Stat is how one callback point has been doing since start.
@@ -135,6 +140,12 @@ func New(parent deps.Scope, key string, failOpen config.Live[[]string], sessions
 		points: map[string]hook.Ref[FlowIn, FlowOut]{}, events: map[string]event.Ref[FlowEvent]{},
 		stats: map[string]*Stat{},
 	}
+
+	// Instrument creation fails only on an invalid name, fixed here.
+	f.calls, _ = f.Meter().Int64Counter("kratos.hook.calls",
+		metric.WithDescription("Kratos's calls of this service's hooks, events and callbacks, by point and outcome"))
+	f.latency, _ = f.Meter().Float64Histogram("kratos.hook.duration", metric.WithUnit("s"),
+		metric.WithDescription("Time this service took to answer Kratos, by point and outcome"))
 
 	f.deliver = hook.Declare[DeliverIn, DeliverOut](f, overlay.DeliverHook, hook.DefaultTimeout(deliverTimeout),
 		hook.Describe("Deliver a message of Kratos's courier (codes, links); an error makes Kratos retry it"))
@@ -230,7 +241,7 @@ func (f *Flows) Stats() []Stat {
 	return out
 }
 
-func (f *Flows) record(point string, start time.Time, outcome string, err error) {
+func (f *Flows) record(ctx context.Context, point string, start time.Time, outcome string, err error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
@@ -242,6 +253,10 @@ func (f *Flows) record(point string, start time.Time, outcome string, err error)
 
 	s.Calls++
 	s.LastAt, s.LastOutcome, s.LastLatency, s.LastError = time.Now(), outcome, time.Since(start), ""
+
+	attrs := metric.WithAttributes(attribute.String("point", point), attribute.String("outcome", outcome))
+	f.calls.Add(ctx, 1, attrs)
+	f.latency.Record(ctx, s.LastLatency.Seconds(), attrs)
 
 	if err != nil {
 		s.Failures++
@@ -321,7 +336,7 @@ func (f *Flows) courier(w http.ResponseWriter, r *http.Request) {
 
 	c, raw, err := decode(r)
 	if err != nil {
-		f.record(point, start, "bad_request", err)
+		f.record(r.Context(), point, start, "bad_request", err)
 		http.Error(w, "bad request", http.StatusBadRequest)
 
 		return
@@ -338,7 +353,7 @@ func (f *Flows) courier(w http.ResponseWriter, r *http.Request) {
 
 	_, err = f.deliver.Call(r.Context(), in, hook.Key("kratos-message-"+hex.EncodeToString(sum[:16])))
 	if err != nil {
-		f.record(point, start, "failed", err)
+		f.record(r.Context(), point, start, "failed", err)
 		f.Log().Ctx().Warn(r.Context(), "courier message not delivered: kratos retries it",
 			xlog.String("template_type", in.TemplateType), xlog.Err(err))
 		http.Error(w, "delivery failed", http.StatusBadGateway)
@@ -346,7 +361,7 @@ func (f *Flows) courier(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	f.record(point, start, "delivered", nil)
+	f.record(r.Context(), point, start, "delivered", nil)
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -535,14 +550,14 @@ func (f *Flows) hook(w http.ResponseWriter, r *http.Request) {
 
 	c, _, err := decode(r)
 	if err != nil {
-		f.record(point, start, "bad_request", err)
+		f.record(r.Context(), point, start, "bad_request", err)
 		http.Error(w, "bad request", http.StatusBadRequest)
 
 		return
 	}
 
 	if !ref.Bound() {
-		f.record(point, start, outcomeUnbound, nil)
+		f.record(r.Context(), point, start, outcomeUnbound, nil)
 		writeJSON(w, http.StatusOK, map[string]any{})
 
 		return
@@ -567,7 +582,7 @@ func (f *Flows) hook(w http.ResponseWriter, r *http.Request) {
 		err = nil
 	}
 
-	f.record(point, start, outcome, err)
+	f.record(r.Context(), point, start, outcome, err)
 	writeJSON(w, status, body)
 }
 
@@ -617,7 +632,7 @@ func (f *Flows) event(w http.ResponseWriter, r *http.Request) {
 
 	c, _, err := decode(r)
 	if err != nil {
-		f.record(point, start, "bad_request", err)
+		f.record(r.Context(), point, start, "bad_request", err)
 		http.Error(w, "bad request", http.StatusBadRequest)
 
 		return
@@ -632,7 +647,7 @@ func (f *Flows) event(w http.ResponseWriter, r *http.Request) {
 	_ = json.Unmarshal(c.Identity, &id)
 
 	if id.ID == "" {
-		f.record(point, start, "no_identity", nil)
+		f.record(r.Context(), point, start, "no_identity", nil)
 		w.WriteHeader(http.StatusOK)
 
 		return
@@ -656,7 +671,7 @@ func (f *Flows) event(w http.ResponseWriter, r *http.Request) {
 	// credential left, under the same message id).
 	switch {
 	case flow == overlay.FlowSettings:
-		f.record(point, start, "outbox", nil)
+		f.record(r.Context(), point, start, "outbox", nil)
 	case flow == overlay.FlowLogin && c.Session != nil && c.Session.AuthenticatedAt != nil:
 		// LoggedIn means the session exists: wait for Kratos to store it.
 		login := *c.Session
@@ -687,13 +702,13 @@ func (f *Flows) publish(
 ) {
 	if err := ref.Publish(ctx, flowEvent, event.Key(flowEvent.GetIdentityId()),
 		event.ID(flow+"-"+flowEvent.GetFlowId()+"-"+flowEvent.GetMethod())); err != nil {
-		f.record(point, start, "failed", err)
+		f.record(ctx, point, start, "failed", err)
 		f.Log().Ctx().Warn(ctx, "flow event not published", xlog.String("flow", flow), xlog.Err(err))
 
 		return
 	}
 
-	f.record(point, start, "published", nil)
+	f.record(ctx, point, start, "published", nil)
 }
 
 // recordLater records flowEvent into the outbox once Kratos stored the
@@ -709,7 +724,7 @@ func (f *Flows) recordLater(flowEvent FlowEvent, flow, point string, start time.
 
 		stored, err := f.stored(ctx, flowEvent.GetIdentityId(), match)
 		if err != nil {
-			f.record(point, start, "not_stored", err)
+			f.record(ctx, point, start, "not_stored", err)
 			f.Log().Ctx().Warn(ctx, "flow event not recorded: no session stored", xlog.String("flow", flow),
 				xlog.String("identity", flowEvent.GetIdentityId()), xlog.Err(err))
 
@@ -725,13 +740,13 @@ func (f *Flows) recordLater(flowEvent FlowEvent, flow, point string, start time.
 		flowEvent.Session = sessionEvent(details)
 
 		if err := f.enqueueSession(ctx, eventName(flow), flowEvent); err != nil {
-			f.record(point, start, "failed", err)
+			f.record(ctx, point, start, "failed", err)
 			f.Log().Ctx().Warn(ctx, "flow event not recorded", xlog.String("flow", flow), xlog.Err(err))
 
 			return nil
 		}
 
-		f.record(point, start, "recorded", nil)
+		f.record(ctx, point, start, "recorded", nil)
 
 		return nil
 	})

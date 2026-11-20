@@ -11,10 +11,12 @@ import (
 	"github.com/backplane-labs/backplane/pkg/backplane/config"
 	"github.com/backplane-labs/backplane/pkg/backplane/deps"
 	"github.com/backplane-labs/backplane/pkg/backplane/event"
+	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/gopherex/xlog"
 
 	"github.com/backplane-labs/backplane-kratos/internal/ory"
+	"github.com/backplane-labs/backplane-kratos/internal/reqmetrics"
 	kratoseventsv1 "github.com/backplane-labs/backplane-kratos/proto/kratos/events/v1"
 )
 
@@ -67,8 +69,17 @@ func New(
 
 // Handler serves POST Path<provider>.
 func (r *Receiver) Handler() http.Handler {
+	rec := reqmetrics.New(r.Meter(), "kratos.backchannel", "Back-channel logouts of the IdPs, by provider and status")
 	mux := http.NewServeMux()
-	mux.HandleFunc("POST "+Path+"{provider}", r.logout)
+	labels := func(req *http.Request) []attribute.KeyValue {
+		provider := "unknown"
+		if p, ok := find(r.providers.Get(), req.PathValue("provider")); ok {
+			provider = p.ID
+		}
+
+		return []attribute.KeyValue{attribute.String("provider", provider)}
+	}
+	mux.Handle("POST "+Path+"{provider}", rec.Wrap(http.HandlerFunc(r.logout), labels))
 
 	return mux
 }
