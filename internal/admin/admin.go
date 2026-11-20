@@ -139,11 +139,13 @@ func ts(t *time.Time) *timestamppb.Timestamp {
 
 // GetStatus implements AdminService.
 func (a *Admin) GetStatus(ctx context.Context, _ *v1.GetStatusRequest) (*v1.GetStatusResponse, error) {
+	keys := a.tokenKeys.Get()
 	out := &v1.GetStatusResponse{
 		AdminUrl: a.kratos.AdminURL(), PublicUrl: a.kratos.PublicURL(), Events: a.events,
 		Tokens: &v1.Tokens{
-			Enabled: a.tokenKeys.Get().Enabled(), Template: overlay.TokenTemplate, KeysPath: jwks.Path,
-			DefaultClaims: overlay.DefaultClaims,
+			Enabled: keys.Enabled(), Template: overlay.TokenTemplate, KeysPath: jwks.Path,
+			DefaultClaims: overlay.DefaultClaims, Source: keySource(keys), SigningKid: keys.Kid(),
+			RotatesAt: ts(&keys.RotatesAt),
 		},
 	}
 
@@ -709,4 +711,16 @@ func (a *Admin) ExtendSession(ctx context.Context, r *v1.ExtendSessionRequest) (
 	}
 
 	return &v1.ExtendSessionResponse{Session: session(s, ory.Identity{})}, nil
+}
+
+// keySource is where the signing key comes from.
+func keySource(keys tokenkeys.Set) v1.TokenKeySource {
+	switch {
+	case !keys.Enabled():
+		return v1.TokenKeySource_TOKEN_KEY_SOURCE_NONE
+	case keys.Minted:
+		return v1.TokenKeySource_TOKEN_KEY_SOURCE_MINTED
+	default:
+		return v1.TokenKeySource_TOKEN_KEY_SOURCE_CONFIGURED
+	}
 }

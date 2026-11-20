@@ -22,6 +22,62 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// TokenKeySource is where session-token signing keys come from.
+type TokenKeySource int32
+
+const (
+	TokenKeySource_TOKEN_KEY_SOURCE_UNSPECIFIED TokenKeySource = 0
+	// NONE: no key, Kratos issues no tokens.
+	TokenKeySource_TOKEN_KEY_SOURCE_NONE TokenKeySource = 1
+	// CONFIGURED: token_key and settings.tokens.keys.
+	TokenKeySource_TOKEN_KEY_SOURCE_CONFIGURED TokenKeySource = 2
+	// MINTED: this service mints and rotates them in NATS KV.
+	TokenKeySource_TOKEN_KEY_SOURCE_MINTED TokenKeySource = 3
+)
+
+// Enum value maps for TokenKeySource.
+var (
+	TokenKeySource_name = map[int32]string{
+		0: "TOKEN_KEY_SOURCE_UNSPECIFIED",
+		1: "TOKEN_KEY_SOURCE_NONE",
+		2: "TOKEN_KEY_SOURCE_CONFIGURED",
+		3: "TOKEN_KEY_SOURCE_MINTED",
+	}
+	TokenKeySource_value = map[string]int32{
+		"TOKEN_KEY_SOURCE_UNSPECIFIED": 0,
+		"TOKEN_KEY_SOURCE_NONE":        1,
+		"TOKEN_KEY_SOURCE_CONFIGURED":  2,
+		"TOKEN_KEY_SOURCE_MINTED":      3,
+	}
+)
+
+func (x TokenKeySource) Enum() *TokenKeySource {
+	p := new(TokenKeySource)
+	*p = x
+	return p
+}
+
+func (x TokenKeySource) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (TokenKeySource) Descriptor() protoreflect.EnumDescriptor {
+	return file_proto_kratos_console_v1_admin_proto_enumTypes[0].Descriptor()
+}
+
+func (TokenKeySource) Type() protoreflect.EnumType {
+	return &file_proto_kratos_console_v1_admin_proto_enumTypes[0]
+}
+
+func (x TokenKeySource) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use TokenKeySource.Descriptor instead.
+func (TokenKeySource) EnumDescriptor() ([]byte, []int) {
+	return file_proto_kratos_console_v1_admin_proto_rawDescGZIP(), []int{0}
+}
+
 type GetStatusRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -189,6 +245,12 @@ type Tokens struct {
 	KeysPath string `protobuf:"bytes,3,opt,name=keys_path,json=keysPath,proto3" json:"keys_path,omitempty"`
 	// default_claims is the Jsonnet used when the settings name none.
 	DefaultClaims string `protobuf:"bytes,4,opt,name=default_claims,json=defaultClaims,proto3" json:"default_claims,omitempty"`
+	// source is where the signing key comes from.
+	Source TokenKeySource `protobuf:"varint,5,opt,name=source,proto3,enum=kratos.console.v1.TokenKeySource" json:"source,omitempty"`
+	// signing_kid is the id of the key tokens are signed with now.
+	SigningKid string `protobuf:"bytes,6,opt,name=signing_kid,json=signingKid,proto3" json:"signing_kid,omitempty"`
+	// rotates_at is when a minted key is succeeded; unset for token_key.
+	RotatesAt     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=rotates_at,json=rotatesAt,proto3" json:"rotates_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -249,6 +311,27 @@ func (x *Tokens) GetDefaultClaims() string {
 		return x.DefaultClaims
 	}
 	return ""
+}
+
+func (x *Tokens) GetSource() TokenKeySource {
+	if x != nil {
+		return x.Source
+	}
+	return TokenKeySource_TOKEN_KEY_SOURCE_UNSPECIFIED
+}
+
+func (x *Tokens) GetSigningKid() string {
+	if x != nil {
+		return x.SigningKid
+	}
+	return ""
+}
+
+func (x *Tokens) GetRotatesAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.RotatesAt
+	}
+	return nil
 }
 
 type Overlay struct {
@@ -3435,12 +3518,17 @@ const file_proto_kratos_console_v1_admin_proto_rawDesc = "" +
 	"\x06events\x18\b \x01(\bR\x06events\x12#\n" +
 	"\rcallbacks_url\x18\t \x01(\tR\fcallbacksUrl\x121\n" +
 	"\x06tokens\x18\n" +
-	" \x01(\v2\x19.kratos.console.v1.TokensR\x06tokens\"\x82\x01\n" +
+	" \x01(\v2\x19.kratos.console.v1.TokensR\x06tokens\"\x99\x02\n" +
 	"\x06Tokens\x12\x18\n" +
 	"\aenabled\x18\x01 \x01(\bR\aenabled\x12\x1a\n" +
 	"\btemplate\x18\x02 \x01(\tR\btemplate\x12\x1b\n" +
 	"\tkeys_path\x18\x03 \x01(\tR\bkeysPath\x12%\n" +
-	"\x0edefault_claims\x18\x04 \x01(\tR\rdefaultClaims\"\x82\x01\n" +
+	"\x0edefault_claims\x18\x04 \x01(\tR\rdefaultClaims\x129\n" +
+	"\x06source\x18\x05 \x01(\x0e2!.kratos.console.v1.TokenKeySourceR\x06source\x12\x1f\n" +
+	"\vsigning_kid\x18\x06 \x01(\tR\n" +
+	"signingKid\x129\n" +
+	"\n" +
+	"rotates_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\trotatesAt\"\x82\x01\n" +
 	"\aOverlay\x12\x12\n" +
 	"\x04path\x18\x01 \x01(\tR\x04path\x12\x12\n" +
 	"\x04hash\x18\x02 \x01(\tR\x04hash\x129\n" +
@@ -3686,7 +3774,12 @@ const file_proto_kratos_console_v1_admin_proto_rawDesc = "" +
 	"\brequired\x18\x04 \x01(\bR\brequired\x12\x14\n" +
 	"\x05label\x18\x05 \x01(\tR\x05label\x12\x14\n" +
 	"\x05value\x18\x06 \x01(\tR\x05value\x12\x1a\n" +
-	"\bmessages\x18\a \x03(\tR\bmessages2\xeb\x0e\n" +
+	"\bmessages\x18\a \x03(\tR\bmessages*\x8b\x01\n" +
+	"\x0eTokenKeySource\x12 \n" +
+	"\x1cTOKEN_KEY_SOURCE_UNSPECIFIED\x10\x00\x12\x19\n" +
+	"\x15TOKEN_KEY_SOURCE_NONE\x10\x01\x12\x1f\n" +
+	"\x1bTOKEN_KEY_SOURCE_CONFIGURED\x10\x02\x12\x1b\n" +
+	"\x17TOKEN_KEY_SOURCE_MINTED\x10\x032\xeb\x0e\n" +
 	"\fAdminService\x12V\n" +
 	"\tGetStatus\x12#.kratos.console.v1.GetStatusRequest\x1a$.kratos.console.v1.GetStatusResponse\x12Y\n" +
 	"\n" +
@@ -3722,147 +3815,151 @@ func file_proto_kratos_console_v1_admin_proto_rawDescGZIP() []byte {
 	return file_proto_kratos_console_v1_admin_proto_rawDescData
 }
 
+var file_proto_kratos_console_v1_admin_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_proto_kratos_console_v1_admin_proto_msgTypes = make([]protoimpl.MessageInfo, 55)
 var file_proto_kratos_console_v1_admin_proto_goTypes = []any{
-	(*GetStatusRequest)(nil),           // 0: kratos.console.v1.GetStatusRequest
-	(*GetStatusResponse)(nil),          // 1: kratos.console.v1.GetStatusResponse
-	(*Tokens)(nil),                     // 2: kratos.console.v1.Tokens
-	(*Overlay)(nil),                    // 3: kratos.console.v1.Overlay
-	(*HookPoint)(nil),                  // 4: kratos.console.v1.HookPoint
-	(*CallbackStat)(nil),               // 5: kratos.console.v1.CallbackStat
-	(*GetOverlayRequest)(nil),          // 6: kratos.console.v1.GetOverlayRequest
-	(*GetOverlayResponse)(nil),         // 7: kratos.console.v1.GetOverlayResponse
-	(*Identity)(nil),                   // 8: kratos.console.v1.Identity
-	(*Address)(nil),                    // 9: kratos.console.v1.Address
-	(*Credential)(nil),                 // 10: kratos.console.v1.Credential
-	(*ListIdentitiesRequest)(nil),      // 11: kratos.console.v1.ListIdentitiesRequest
-	(*ListIdentitiesResponse)(nil),     // 12: kratos.console.v1.ListIdentitiesResponse
-	(*GetIdentityRequest)(nil),         // 13: kratos.console.v1.GetIdentityRequest
-	(*GetIdentityResponse)(nil),        // 14: kratos.console.v1.GetIdentityResponse
-	(*CreateIdentityRequest)(nil),      // 15: kratos.console.v1.CreateIdentityRequest
-	(*CreateIdentityResponse)(nil),     // 16: kratos.console.v1.CreateIdentityResponse
-	(*UpdateIdentityRequest)(nil),      // 17: kratos.console.v1.UpdateIdentityRequest
-	(*UpdateIdentityResponse)(nil),     // 18: kratos.console.v1.UpdateIdentityResponse
-	(*DeleteIdentityRequest)(nil),      // 19: kratos.console.v1.DeleteIdentityRequest
-	(*DeleteIdentityResponse)(nil),     // 20: kratos.console.v1.DeleteIdentityResponse
-	(*DeleteCredentialsRequest)(nil),   // 21: kratos.console.v1.DeleteCredentialsRequest
-	(*DeleteCredentialsResponse)(nil),  // 22: kratos.console.v1.DeleteCredentialsResponse
-	(*CreateRecoveryCodeRequest)(nil),  // 23: kratos.console.v1.CreateRecoveryCodeRequest
-	(*CreateRecoveryCodeResponse)(nil), // 24: kratos.console.v1.CreateRecoveryCodeResponse
-	(*Session)(nil),                    // 25: kratos.console.v1.Session
-	(*Device)(nil),                     // 26: kratos.console.v1.Device
-	(*ListSessionsRequest)(nil),        // 27: kratos.console.v1.ListSessionsRequest
-	(*ListSessionsResponse)(nil),       // 28: kratos.console.v1.ListSessionsResponse
-	(*RevokeSessionsRequest)(nil),      // 29: kratos.console.v1.RevokeSessionsRequest
-	(*RevokeSessionsResponse)(nil),     // 30: kratos.console.v1.RevokeSessionsResponse
-	(*Message)(nil),                    // 31: kratos.console.v1.Message
-	(*Dispatch)(nil),                   // 32: kratos.console.v1.Dispatch
-	(*ListMessagesRequest)(nil),        // 33: kratos.console.v1.ListMessagesRequest
-	(*ListMessagesResponse)(nil),       // 34: kratos.console.v1.ListMessagesResponse
-	(*GetMessageRequest)(nil),          // 35: kratos.console.v1.GetMessageRequest
-	(*GetMessageResponse)(nil),         // 36: kratos.console.v1.GetMessageResponse
-	(*ListSchemasRequest)(nil),         // 37: kratos.console.v1.ListSchemasRequest
-	(*ListSchemasResponse)(nil),        // 38: kratos.console.v1.ListSchemasResponse
-	(*Schema)(nil),                     // 39: kratos.console.v1.Schema
-	(*SetAddressVerifiedRequest)(nil),  // 40: kratos.console.v1.SetAddressVerifiedRequest
-	(*SetAddressVerifiedResponse)(nil), // 41: kratos.console.v1.SetAddressVerifiedResponse
-	(*ImportIdentitiesRequest)(nil),    // 42: kratos.console.v1.ImportIdentitiesRequest
-	(*ImportIdentitiesResponse)(nil),   // 43: kratos.console.v1.ImportIdentitiesResponse
-	(*ImportResult)(nil),               // 44: kratos.console.v1.ImportResult
-	(*ExtendSessionRequest)(nil),       // 45: kratos.console.v1.ExtendSessionRequest
-	(*ExtendSessionResponse)(nil),      // 46: kratos.console.v1.ExtendSessionResponse
-	(*GetFlowsRequest)(nil),            // 47: kratos.console.v1.GetFlowsRequest
-	(*GetFlowsResponse)(nil),           // 48: kratos.console.v1.GetFlowsResponse
-	(*FlowCard)(nil),                   // 49: kratos.console.v1.FlowCard
-	(*FlowHook)(nil),                   // 50: kratos.console.v1.FlowHook
-	(*Finding)(nil),                    // 51: kratos.console.v1.Finding
-	(*TryFlowRequest)(nil),             // 52: kratos.console.v1.TryFlowRequest
-	(*TryFlowResponse)(nil),            // 53: kratos.console.v1.TryFlowResponse
-	(*FormNode)(nil),                   // 54: kratos.console.v1.FormNode
-	(*timestamppb.Timestamp)(nil),      // 55: google.protobuf.Timestamp
+	(TokenKeySource)(0),                // 0: kratos.console.v1.TokenKeySource
+	(*GetStatusRequest)(nil),           // 1: kratos.console.v1.GetStatusRequest
+	(*GetStatusResponse)(nil),          // 2: kratos.console.v1.GetStatusResponse
+	(*Tokens)(nil),                     // 3: kratos.console.v1.Tokens
+	(*Overlay)(nil),                    // 4: kratos.console.v1.Overlay
+	(*HookPoint)(nil),                  // 5: kratos.console.v1.HookPoint
+	(*CallbackStat)(nil),               // 6: kratos.console.v1.CallbackStat
+	(*GetOverlayRequest)(nil),          // 7: kratos.console.v1.GetOverlayRequest
+	(*GetOverlayResponse)(nil),         // 8: kratos.console.v1.GetOverlayResponse
+	(*Identity)(nil),                   // 9: kratos.console.v1.Identity
+	(*Address)(nil),                    // 10: kratos.console.v1.Address
+	(*Credential)(nil),                 // 11: kratos.console.v1.Credential
+	(*ListIdentitiesRequest)(nil),      // 12: kratos.console.v1.ListIdentitiesRequest
+	(*ListIdentitiesResponse)(nil),     // 13: kratos.console.v1.ListIdentitiesResponse
+	(*GetIdentityRequest)(nil),         // 14: kratos.console.v1.GetIdentityRequest
+	(*GetIdentityResponse)(nil),        // 15: kratos.console.v1.GetIdentityResponse
+	(*CreateIdentityRequest)(nil),      // 16: kratos.console.v1.CreateIdentityRequest
+	(*CreateIdentityResponse)(nil),     // 17: kratos.console.v1.CreateIdentityResponse
+	(*UpdateIdentityRequest)(nil),      // 18: kratos.console.v1.UpdateIdentityRequest
+	(*UpdateIdentityResponse)(nil),     // 19: kratos.console.v1.UpdateIdentityResponse
+	(*DeleteIdentityRequest)(nil),      // 20: kratos.console.v1.DeleteIdentityRequest
+	(*DeleteIdentityResponse)(nil),     // 21: kratos.console.v1.DeleteIdentityResponse
+	(*DeleteCredentialsRequest)(nil),   // 22: kratos.console.v1.DeleteCredentialsRequest
+	(*DeleteCredentialsResponse)(nil),  // 23: kratos.console.v1.DeleteCredentialsResponse
+	(*CreateRecoveryCodeRequest)(nil),  // 24: kratos.console.v1.CreateRecoveryCodeRequest
+	(*CreateRecoveryCodeResponse)(nil), // 25: kratos.console.v1.CreateRecoveryCodeResponse
+	(*Session)(nil),                    // 26: kratos.console.v1.Session
+	(*Device)(nil),                     // 27: kratos.console.v1.Device
+	(*ListSessionsRequest)(nil),        // 28: kratos.console.v1.ListSessionsRequest
+	(*ListSessionsResponse)(nil),       // 29: kratos.console.v1.ListSessionsResponse
+	(*RevokeSessionsRequest)(nil),      // 30: kratos.console.v1.RevokeSessionsRequest
+	(*RevokeSessionsResponse)(nil),     // 31: kratos.console.v1.RevokeSessionsResponse
+	(*Message)(nil),                    // 32: kratos.console.v1.Message
+	(*Dispatch)(nil),                   // 33: kratos.console.v1.Dispatch
+	(*ListMessagesRequest)(nil),        // 34: kratos.console.v1.ListMessagesRequest
+	(*ListMessagesResponse)(nil),       // 35: kratos.console.v1.ListMessagesResponse
+	(*GetMessageRequest)(nil),          // 36: kratos.console.v1.GetMessageRequest
+	(*GetMessageResponse)(nil),         // 37: kratos.console.v1.GetMessageResponse
+	(*ListSchemasRequest)(nil),         // 38: kratos.console.v1.ListSchemasRequest
+	(*ListSchemasResponse)(nil),        // 39: kratos.console.v1.ListSchemasResponse
+	(*Schema)(nil),                     // 40: kratos.console.v1.Schema
+	(*SetAddressVerifiedRequest)(nil),  // 41: kratos.console.v1.SetAddressVerifiedRequest
+	(*SetAddressVerifiedResponse)(nil), // 42: kratos.console.v1.SetAddressVerifiedResponse
+	(*ImportIdentitiesRequest)(nil),    // 43: kratos.console.v1.ImportIdentitiesRequest
+	(*ImportIdentitiesResponse)(nil),   // 44: kratos.console.v1.ImportIdentitiesResponse
+	(*ImportResult)(nil),               // 45: kratos.console.v1.ImportResult
+	(*ExtendSessionRequest)(nil),       // 46: kratos.console.v1.ExtendSessionRequest
+	(*ExtendSessionResponse)(nil),      // 47: kratos.console.v1.ExtendSessionResponse
+	(*GetFlowsRequest)(nil),            // 48: kratos.console.v1.GetFlowsRequest
+	(*GetFlowsResponse)(nil),           // 49: kratos.console.v1.GetFlowsResponse
+	(*FlowCard)(nil),                   // 50: kratos.console.v1.FlowCard
+	(*FlowHook)(nil),                   // 51: kratos.console.v1.FlowHook
+	(*Finding)(nil),                    // 52: kratos.console.v1.Finding
+	(*TryFlowRequest)(nil),             // 53: kratos.console.v1.TryFlowRequest
+	(*TryFlowResponse)(nil),            // 54: kratos.console.v1.TryFlowResponse
+	(*FormNode)(nil),                   // 55: kratos.console.v1.FormNode
+	(*timestamppb.Timestamp)(nil),      // 56: google.protobuf.Timestamp
 }
 var file_proto_kratos_console_v1_admin_proto_depIdxs = []int32{
-	3,  // 0: kratos.console.v1.GetStatusResponse.overlay:type_name -> kratos.console.v1.Overlay
-	4,  // 1: kratos.console.v1.GetStatusResponse.hooks:type_name -> kratos.console.v1.HookPoint
-	5,  // 2: kratos.console.v1.GetStatusResponse.callbacks:type_name -> kratos.console.v1.CallbackStat
-	2,  // 3: kratos.console.v1.GetStatusResponse.tokens:type_name -> kratos.console.v1.Tokens
-	55, // 4: kratos.console.v1.Overlay.written_at:type_name -> google.protobuf.Timestamp
-	55, // 5: kratos.console.v1.CallbackStat.last_at:type_name -> google.protobuf.Timestamp
-	9,  // 6: kratos.console.v1.Identity.verifiable_addresses:type_name -> kratos.console.v1.Address
-	9,  // 7: kratos.console.v1.Identity.recovery_addresses:type_name -> kratos.console.v1.Address
-	10, // 8: kratos.console.v1.Identity.credentials:type_name -> kratos.console.v1.Credential
-	55, // 9: kratos.console.v1.Identity.created_at:type_name -> google.protobuf.Timestamp
-	55, // 10: kratos.console.v1.Identity.updated_at:type_name -> google.protobuf.Timestamp
-	55, // 11: kratos.console.v1.Credential.created_at:type_name -> google.protobuf.Timestamp
-	8,  // 12: kratos.console.v1.ListIdentitiesResponse.identities:type_name -> kratos.console.v1.Identity
-	8,  // 13: kratos.console.v1.GetIdentityResponse.identity:type_name -> kratos.console.v1.Identity
-	25, // 14: kratos.console.v1.GetIdentityResponse.sessions:type_name -> kratos.console.v1.Session
-	8,  // 15: kratos.console.v1.CreateIdentityResponse.identity:type_name -> kratos.console.v1.Identity
-	8,  // 16: kratos.console.v1.UpdateIdentityResponse.identity:type_name -> kratos.console.v1.Identity
-	55, // 17: kratos.console.v1.CreateRecoveryCodeResponse.expires_at:type_name -> google.protobuf.Timestamp
-	55, // 18: kratos.console.v1.Session.authenticated_at:type_name -> google.protobuf.Timestamp
-	55, // 19: kratos.console.v1.Session.expires_at:type_name -> google.protobuf.Timestamp
-	26, // 20: kratos.console.v1.Session.devices:type_name -> kratos.console.v1.Device
-	25, // 21: kratos.console.v1.ListSessionsResponse.sessions:type_name -> kratos.console.v1.Session
-	55, // 22: kratos.console.v1.Message.created_at:type_name -> google.protobuf.Timestamp
-	55, // 23: kratos.console.v1.Message.updated_at:type_name -> google.protobuf.Timestamp
-	32, // 24: kratos.console.v1.Message.dispatches:type_name -> kratos.console.v1.Dispatch
-	55, // 25: kratos.console.v1.Dispatch.created_at:type_name -> google.protobuf.Timestamp
-	31, // 26: kratos.console.v1.ListMessagesResponse.messages:type_name -> kratos.console.v1.Message
-	31, // 27: kratos.console.v1.GetMessageResponse.message:type_name -> kratos.console.v1.Message
-	39, // 28: kratos.console.v1.ListSchemasResponse.schemas:type_name -> kratos.console.v1.Schema
-	8,  // 29: kratos.console.v1.SetAddressVerifiedResponse.identity:type_name -> kratos.console.v1.Identity
-	44, // 30: kratos.console.v1.ImportIdentitiesResponse.results:type_name -> kratos.console.v1.ImportResult
-	25, // 31: kratos.console.v1.ExtendSessionResponse.session:type_name -> kratos.console.v1.Session
-	49, // 32: kratos.console.v1.GetFlowsResponse.flows:type_name -> kratos.console.v1.FlowCard
-	51, // 33: kratos.console.v1.GetFlowsResponse.findings:type_name -> kratos.console.v1.Finding
-	50, // 34: kratos.console.v1.FlowCard.hooks:type_name -> kratos.console.v1.FlowHook
-	51, // 35: kratos.console.v1.FlowCard.findings:type_name -> kratos.console.v1.Finding
-	55, // 36: kratos.console.v1.FlowHook.last_at:type_name -> google.protobuf.Timestamp
-	54, // 37: kratos.console.v1.TryFlowResponse.nodes:type_name -> kratos.console.v1.FormNode
-	0,  // 38: kratos.console.v1.AdminService.GetStatus:input_type -> kratos.console.v1.GetStatusRequest
-	6,  // 39: kratos.console.v1.AdminService.GetOverlay:input_type -> kratos.console.v1.GetOverlayRequest
-	47, // 40: kratos.console.v1.AdminService.GetFlows:input_type -> kratos.console.v1.GetFlowsRequest
-	52, // 41: kratos.console.v1.AdminService.TryFlow:input_type -> kratos.console.v1.TryFlowRequest
-	11, // 42: kratos.console.v1.AdminService.ListIdentities:input_type -> kratos.console.v1.ListIdentitiesRequest
-	13, // 43: kratos.console.v1.AdminService.GetIdentity:input_type -> kratos.console.v1.GetIdentityRequest
-	15, // 44: kratos.console.v1.AdminService.CreateIdentity:input_type -> kratos.console.v1.CreateIdentityRequest
-	17, // 45: kratos.console.v1.AdminService.UpdateIdentity:input_type -> kratos.console.v1.UpdateIdentityRequest
-	19, // 46: kratos.console.v1.AdminService.DeleteIdentity:input_type -> kratos.console.v1.DeleteIdentityRequest
-	21, // 47: kratos.console.v1.AdminService.DeleteCredentials:input_type -> kratos.console.v1.DeleteCredentialsRequest
-	23, // 48: kratos.console.v1.AdminService.CreateRecoveryCode:input_type -> kratos.console.v1.CreateRecoveryCodeRequest
-	40, // 49: kratos.console.v1.AdminService.SetAddressVerified:input_type -> kratos.console.v1.SetAddressVerifiedRequest
-	42, // 50: kratos.console.v1.AdminService.ImportIdentities:input_type -> kratos.console.v1.ImportIdentitiesRequest
-	27, // 51: kratos.console.v1.AdminService.ListSessions:input_type -> kratos.console.v1.ListSessionsRequest
-	29, // 52: kratos.console.v1.AdminService.RevokeSessions:input_type -> kratos.console.v1.RevokeSessionsRequest
-	45, // 53: kratos.console.v1.AdminService.ExtendSession:input_type -> kratos.console.v1.ExtendSessionRequest
-	33, // 54: kratos.console.v1.AdminService.ListMessages:input_type -> kratos.console.v1.ListMessagesRequest
-	35, // 55: kratos.console.v1.AdminService.GetMessage:input_type -> kratos.console.v1.GetMessageRequest
-	37, // 56: kratos.console.v1.AdminService.ListSchemas:input_type -> kratos.console.v1.ListSchemasRequest
-	1,  // 57: kratos.console.v1.AdminService.GetStatus:output_type -> kratos.console.v1.GetStatusResponse
-	7,  // 58: kratos.console.v1.AdminService.GetOverlay:output_type -> kratos.console.v1.GetOverlayResponse
-	48, // 59: kratos.console.v1.AdminService.GetFlows:output_type -> kratos.console.v1.GetFlowsResponse
-	53, // 60: kratos.console.v1.AdminService.TryFlow:output_type -> kratos.console.v1.TryFlowResponse
-	12, // 61: kratos.console.v1.AdminService.ListIdentities:output_type -> kratos.console.v1.ListIdentitiesResponse
-	14, // 62: kratos.console.v1.AdminService.GetIdentity:output_type -> kratos.console.v1.GetIdentityResponse
-	16, // 63: kratos.console.v1.AdminService.CreateIdentity:output_type -> kratos.console.v1.CreateIdentityResponse
-	18, // 64: kratos.console.v1.AdminService.UpdateIdentity:output_type -> kratos.console.v1.UpdateIdentityResponse
-	20, // 65: kratos.console.v1.AdminService.DeleteIdentity:output_type -> kratos.console.v1.DeleteIdentityResponse
-	22, // 66: kratos.console.v1.AdminService.DeleteCredentials:output_type -> kratos.console.v1.DeleteCredentialsResponse
-	24, // 67: kratos.console.v1.AdminService.CreateRecoveryCode:output_type -> kratos.console.v1.CreateRecoveryCodeResponse
-	41, // 68: kratos.console.v1.AdminService.SetAddressVerified:output_type -> kratos.console.v1.SetAddressVerifiedResponse
-	43, // 69: kratos.console.v1.AdminService.ImportIdentities:output_type -> kratos.console.v1.ImportIdentitiesResponse
-	28, // 70: kratos.console.v1.AdminService.ListSessions:output_type -> kratos.console.v1.ListSessionsResponse
-	30, // 71: kratos.console.v1.AdminService.RevokeSessions:output_type -> kratos.console.v1.RevokeSessionsResponse
-	46, // 72: kratos.console.v1.AdminService.ExtendSession:output_type -> kratos.console.v1.ExtendSessionResponse
-	34, // 73: kratos.console.v1.AdminService.ListMessages:output_type -> kratos.console.v1.ListMessagesResponse
-	36, // 74: kratos.console.v1.AdminService.GetMessage:output_type -> kratos.console.v1.GetMessageResponse
-	38, // 75: kratos.console.v1.AdminService.ListSchemas:output_type -> kratos.console.v1.ListSchemasResponse
-	57, // [57:76] is the sub-list for method output_type
-	38, // [38:57] is the sub-list for method input_type
-	38, // [38:38] is the sub-list for extension type_name
-	38, // [38:38] is the sub-list for extension extendee
-	0,  // [0:38] is the sub-list for field type_name
+	4,  // 0: kratos.console.v1.GetStatusResponse.overlay:type_name -> kratos.console.v1.Overlay
+	5,  // 1: kratos.console.v1.GetStatusResponse.hooks:type_name -> kratos.console.v1.HookPoint
+	6,  // 2: kratos.console.v1.GetStatusResponse.callbacks:type_name -> kratos.console.v1.CallbackStat
+	3,  // 3: kratos.console.v1.GetStatusResponse.tokens:type_name -> kratos.console.v1.Tokens
+	0,  // 4: kratos.console.v1.Tokens.source:type_name -> kratos.console.v1.TokenKeySource
+	56, // 5: kratos.console.v1.Tokens.rotates_at:type_name -> google.protobuf.Timestamp
+	56, // 6: kratos.console.v1.Overlay.written_at:type_name -> google.protobuf.Timestamp
+	56, // 7: kratos.console.v1.CallbackStat.last_at:type_name -> google.protobuf.Timestamp
+	10, // 8: kratos.console.v1.Identity.verifiable_addresses:type_name -> kratos.console.v1.Address
+	10, // 9: kratos.console.v1.Identity.recovery_addresses:type_name -> kratos.console.v1.Address
+	11, // 10: kratos.console.v1.Identity.credentials:type_name -> kratos.console.v1.Credential
+	56, // 11: kratos.console.v1.Identity.created_at:type_name -> google.protobuf.Timestamp
+	56, // 12: kratos.console.v1.Identity.updated_at:type_name -> google.protobuf.Timestamp
+	56, // 13: kratos.console.v1.Credential.created_at:type_name -> google.protobuf.Timestamp
+	9,  // 14: kratos.console.v1.ListIdentitiesResponse.identities:type_name -> kratos.console.v1.Identity
+	9,  // 15: kratos.console.v1.GetIdentityResponse.identity:type_name -> kratos.console.v1.Identity
+	26, // 16: kratos.console.v1.GetIdentityResponse.sessions:type_name -> kratos.console.v1.Session
+	9,  // 17: kratos.console.v1.CreateIdentityResponse.identity:type_name -> kratos.console.v1.Identity
+	9,  // 18: kratos.console.v1.UpdateIdentityResponse.identity:type_name -> kratos.console.v1.Identity
+	56, // 19: kratos.console.v1.CreateRecoveryCodeResponse.expires_at:type_name -> google.protobuf.Timestamp
+	56, // 20: kratos.console.v1.Session.authenticated_at:type_name -> google.protobuf.Timestamp
+	56, // 21: kratos.console.v1.Session.expires_at:type_name -> google.protobuf.Timestamp
+	27, // 22: kratos.console.v1.Session.devices:type_name -> kratos.console.v1.Device
+	26, // 23: kratos.console.v1.ListSessionsResponse.sessions:type_name -> kratos.console.v1.Session
+	56, // 24: kratos.console.v1.Message.created_at:type_name -> google.protobuf.Timestamp
+	56, // 25: kratos.console.v1.Message.updated_at:type_name -> google.protobuf.Timestamp
+	33, // 26: kratos.console.v1.Message.dispatches:type_name -> kratos.console.v1.Dispatch
+	56, // 27: kratos.console.v1.Dispatch.created_at:type_name -> google.protobuf.Timestamp
+	32, // 28: kratos.console.v1.ListMessagesResponse.messages:type_name -> kratos.console.v1.Message
+	32, // 29: kratos.console.v1.GetMessageResponse.message:type_name -> kratos.console.v1.Message
+	40, // 30: kratos.console.v1.ListSchemasResponse.schemas:type_name -> kratos.console.v1.Schema
+	9,  // 31: kratos.console.v1.SetAddressVerifiedResponse.identity:type_name -> kratos.console.v1.Identity
+	45, // 32: kratos.console.v1.ImportIdentitiesResponse.results:type_name -> kratos.console.v1.ImportResult
+	26, // 33: kratos.console.v1.ExtendSessionResponse.session:type_name -> kratos.console.v1.Session
+	50, // 34: kratos.console.v1.GetFlowsResponse.flows:type_name -> kratos.console.v1.FlowCard
+	52, // 35: kratos.console.v1.GetFlowsResponse.findings:type_name -> kratos.console.v1.Finding
+	51, // 36: kratos.console.v1.FlowCard.hooks:type_name -> kratos.console.v1.FlowHook
+	52, // 37: kratos.console.v1.FlowCard.findings:type_name -> kratos.console.v1.Finding
+	56, // 38: kratos.console.v1.FlowHook.last_at:type_name -> google.protobuf.Timestamp
+	55, // 39: kratos.console.v1.TryFlowResponse.nodes:type_name -> kratos.console.v1.FormNode
+	1,  // 40: kratos.console.v1.AdminService.GetStatus:input_type -> kratos.console.v1.GetStatusRequest
+	7,  // 41: kratos.console.v1.AdminService.GetOverlay:input_type -> kratos.console.v1.GetOverlayRequest
+	48, // 42: kratos.console.v1.AdminService.GetFlows:input_type -> kratos.console.v1.GetFlowsRequest
+	53, // 43: kratos.console.v1.AdminService.TryFlow:input_type -> kratos.console.v1.TryFlowRequest
+	12, // 44: kratos.console.v1.AdminService.ListIdentities:input_type -> kratos.console.v1.ListIdentitiesRequest
+	14, // 45: kratos.console.v1.AdminService.GetIdentity:input_type -> kratos.console.v1.GetIdentityRequest
+	16, // 46: kratos.console.v1.AdminService.CreateIdentity:input_type -> kratos.console.v1.CreateIdentityRequest
+	18, // 47: kratos.console.v1.AdminService.UpdateIdentity:input_type -> kratos.console.v1.UpdateIdentityRequest
+	20, // 48: kratos.console.v1.AdminService.DeleteIdentity:input_type -> kratos.console.v1.DeleteIdentityRequest
+	22, // 49: kratos.console.v1.AdminService.DeleteCredentials:input_type -> kratos.console.v1.DeleteCredentialsRequest
+	24, // 50: kratos.console.v1.AdminService.CreateRecoveryCode:input_type -> kratos.console.v1.CreateRecoveryCodeRequest
+	41, // 51: kratos.console.v1.AdminService.SetAddressVerified:input_type -> kratos.console.v1.SetAddressVerifiedRequest
+	43, // 52: kratos.console.v1.AdminService.ImportIdentities:input_type -> kratos.console.v1.ImportIdentitiesRequest
+	28, // 53: kratos.console.v1.AdminService.ListSessions:input_type -> kratos.console.v1.ListSessionsRequest
+	30, // 54: kratos.console.v1.AdminService.RevokeSessions:input_type -> kratos.console.v1.RevokeSessionsRequest
+	46, // 55: kratos.console.v1.AdminService.ExtendSession:input_type -> kratos.console.v1.ExtendSessionRequest
+	34, // 56: kratos.console.v1.AdminService.ListMessages:input_type -> kratos.console.v1.ListMessagesRequest
+	36, // 57: kratos.console.v1.AdminService.GetMessage:input_type -> kratos.console.v1.GetMessageRequest
+	38, // 58: kratos.console.v1.AdminService.ListSchemas:input_type -> kratos.console.v1.ListSchemasRequest
+	2,  // 59: kratos.console.v1.AdminService.GetStatus:output_type -> kratos.console.v1.GetStatusResponse
+	8,  // 60: kratos.console.v1.AdminService.GetOverlay:output_type -> kratos.console.v1.GetOverlayResponse
+	49, // 61: kratos.console.v1.AdminService.GetFlows:output_type -> kratos.console.v1.GetFlowsResponse
+	54, // 62: kratos.console.v1.AdminService.TryFlow:output_type -> kratos.console.v1.TryFlowResponse
+	13, // 63: kratos.console.v1.AdminService.ListIdentities:output_type -> kratos.console.v1.ListIdentitiesResponse
+	15, // 64: kratos.console.v1.AdminService.GetIdentity:output_type -> kratos.console.v1.GetIdentityResponse
+	17, // 65: kratos.console.v1.AdminService.CreateIdentity:output_type -> kratos.console.v1.CreateIdentityResponse
+	19, // 66: kratos.console.v1.AdminService.UpdateIdentity:output_type -> kratos.console.v1.UpdateIdentityResponse
+	21, // 67: kratos.console.v1.AdminService.DeleteIdentity:output_type -> kratos.console.v1.DeleteIdentityResponse
+	23, // 68: kratos.console.v1.AdminService.DeleteCredentials:output_type -> kratos.console.v1.DeleteCredentialsResponse
+	25, // 69: kratos.console.v1.AdminService.CreateRecoveryCode:output_type -> kratos.console.v1.CreateRecoveryCodeResponse
+	42, // 70: kratos.console.v1.AdminService.SetAddressVerified:output_type -> kratos.console.v1.SetAddressVerifiedResponse
+	44, // 71: kratos.console.v1.AdminService.ImportIdentities:output_type -> kratos.console.v1.ImportIdentitiesResponse
+	29, // 72: kratos.console.v1.AdminService.ListSessions:output_type -> kratos.console.v1.ListSessionsResponse
+	31, // 73: kratos.console.v1.AdminService.RevokeSessions:output_type -> kratos.console.v1.RevokeSessionsResponse
+	47, // 74: kratos.console.v1.AdminService.ExtendSession:output_type -> kratos.console.v1.ExtendSessionResponse
+	35, // 75: kratos.console.v1.AdminService.ListMessages:output_type -> kratos.console.v1.ListMessagesResponse
+	37, // 76: kratos.console.v1.AdminService.GetMessage:output_type -> kratos.console.v1.GetMessageResponse
+	39, // 77: kratos.console.v1.AdminService.ListSchemas:output_type -> kratos.console.v1.ListSchemasResponse
+	59, // [59:78] is the sub-list for method output_type
+	40, // [40:59] is the sub-list for method input_type
+	40, // [40:40] is the sub-list for extension type_name
+	40, // [40:40] is the sub-list for extension extendee
+	0,  // [0:40] is the sub-list for field type_name
 }
 
 func init() { file_proto_kratos_console_v1_admin_proto_init() }
@@ -3875,13 +3972,14 @@ func file_proto_kratos_console_v1_admin_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_kratos_console_v1_admin_proto_rawDesc), len(file_proto_kratos_console_v1_admin_proto_rawDesc)),
-			NumEnums:      0,
+			NumEnums:      1,
 			NumMessages:   55,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_proto_kratos_console_v1_admin_proto_goTypes,
 		DependencyIndexes: file_proto_kratos_console_v1_admin_proto_depIdxs,
+		EnumInfos:         file_proto_kratos_console_v1_admin_proto_enumTypes,
 		MessageInfos:      file_proto_kratos_console_v1_admin_proto_msgTypes,
 	}.Build()
 	File_proto_kratos_console_v1_admin_proto = out.File

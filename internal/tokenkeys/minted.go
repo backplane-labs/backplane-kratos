@@ -131,7 +131,9 @@ func (m *Minted) tick(ctx context.Context) error {
 		return err
 	}
 
-	next, changed, err := st.next(now, m.schedule(), mintKey)
+	schedule := m.schedule()
+
+	next, changed, err := st.next(now, schedule, mintKey)
 	if err != nil {
 		return err
 	}
@@ -142,7 +144,7 @@ func (m *Minted) tick(ctx context.Context) error {
 		}
 	}
 
-	m.publish(next.set(now))
+	m.publish(next.set(now, schedule.Every))
 
 	return nil
 }

@@ -109,6 +109,11 @@ func TestMintedKeysRotate(t *testing.T) {
 
 	original := kid(t, first.Private)
 
+	// The console reads where the key comes from, its id and when it hands over.
+	if !first.Minted || first.Kid() != original || !first.RotatesAt.Equal(c.get().Add(schedule.Every)) {
+		t.Fatalf("minted set = minted %v kid %q rotates %v", first.Minted, first.Kid(), first.RotatesAt)
+	}
+
 	// Due: a new key is published, the old one still signs.
 	c.add(time.Hour)
 
@@ -154,11 +159,32 @@ func TestConfigured(t *testing.T) {
 	t.Parallel()
 
 	src := tokenkeys.NewConfigured(config.LiveOf(config.Secret("private")), config.LiveOf(overlay.Settings{}))
-	if set := src.Get(); set.Private != "private" || set.Public != nil || !set.Enabled() {
+	if set := src.Get(); set.Private != "private" || set.Public != nil || !set.Enabled() || set.Minted {
 		t.Fatalf("set %+v", set)
 	}
 
 	if tokenkeys.NewConfigured(config.LiveOf(config.Secret("")), config.LiveOf(overlay.Settings{})).Get().Enabled() {
 		t.Fatal("no key must mean no tokens")
+	}
+}
+
+func TestSetKid(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name, private, want string
+	}{
+		{"jwk with kid", `{"kty":"EC","kid":"2026-11-20-ab"}`, "2026-11-20-ab"},
+		{"jwk without kid", `{"kty":"EC"}`, ""},
+		{"no key", "", ""},
+		{"not json", "private", ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := (tokenkeys.Set{Private: tc.private}).Kid(); got != tc.want {
+				t.Fatalf("Kid = %q, want %q", got, tc.want)
+			}
+		})
 	}
 }

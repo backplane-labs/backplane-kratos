@@ -77,6 +77,23 @@ message Tokens {
   string keys_path = 3;
   // default_claims is the Jsonnet used when the settings name none.
   string default_claims = 4;
+  // source is where the signing key comes from.
+  TokenKeySource source = 5;
+  // signing_kid is the id of the key tokens are signed with now.
+  string signing_kid = 6;
+  // rotates_at is when a minted key is succeeded; unset for token_key.
+  google.protobuf.Timestamp rotates_at = 7;
+}
+
+// TokenKeySource is where session-token signing keys come from.
+enum TokenKeySource {
+  TOKEN_KEY_SOURCE_UNSPECIFIED = 0;
+  // NONE: no key, Kratos issues no tokens.
+  TOKEN_KEY_SOURCE_NONE = 1;
+  // CONFIGURED: token_key and settings.tokens.keys.
+  TOKEN_KEY_SOURCE_CONFIGURED = 2;
+  // MINTED: this service mints and rotates them in NATS KV.
+  TOKEN_KEY_SOURCE_MINTED = 3;
 }
 
 message Overlay {

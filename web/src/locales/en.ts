@@ -173,6 +173,10 @@ export const english = {
     'The first signs; earlier keys stay so the tokens they signed keep verifying. Remove one after a token lifetime has passed.',
   tokensNoKeys: 'No key: Kratos issues no tokens.',
   tokensSigning: 'signing',
+  tokensMinted: 'minted by this service',
+  tokensMintedHint:
+    'This service mints the signing key and rotates it in NATS KV; services get the new one from the keys URL. Set token_key to sign with your own key instead.',
+  tokensRotatesAt: 'Next key takes over on {{at}}',
   tokensPrevious: 'earlier',
   tokensGenerate: 'Generate a signing key',
   tokensRotate: 'Rotate: generate a new signing key',

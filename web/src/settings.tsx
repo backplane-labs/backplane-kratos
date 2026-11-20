@@ -16,9 +16,10 @@ import {
   StatusBadge,
 } from '@backplane-labs/backplane-ui';
 import { create } from '@bufbuild/protobuf';
+import { timestampDate } from '@bufbuild/protobuf/wkt';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { GetStatusRequestSchema } from './gen/proto/kratos/console/v1/admin_pb';
+import { GetStatusRequestSchema, TokenKeySource } from './gen/proto/kratos/console/v1/admin_pb';
 import { AdminServiceClient } from './gen/proto/kratos/console/v1/admin_ws_pb';
 import {
   ActionError,
@@ -447,6 +448,8 @@ function Tokens({ cfg }: { cfg: LiveConfig }) {
   const tokens = status.value?.tokens;
   const keys = stringArray(cfg.get(S, 'tokens.keys'));
   const keySet = Boolean(cfg.get('token_key'));
+  // Minted keys live in NATS KV: the service rotates them, the console only shows them.
+  const minted = tokens?.source === TokenKeySource.MINTED;
   const rawClaims = cfg.get(S, 'tokens.claims');
   const claims = typeof rawClaims === 'string' ? rawClaims : '';
   const defaults = tokens?.defaultClaims ?? '';
@@ -463,7 +466,7 @@ function Tokens({ cfg }: { cfg: LiveConfig }) {
       title={
         <Stack direction="row" gap={8} style={{ alignItems: 'center' }}>
           <span>{t('tokensSection')}</span>
-          {keySet && keys.length ? (
+          {tokens?.enabled ? (
             <StatusBadge tone="success">{t('on')}</StatusBadge>
           ) : (
             <Badge variant="outline">{t('off')}</Badge>
@@ -485,54 +488,69 @@ function Tokens({ cfg }: { cfg: LiveConfig }) {
         </Stack>
       </Row>
       <Duration cfg={cfg} path={S} field="tokens.ttl" label={t('tokensTtl')} hint={t('tokensTtlHint')} />
-      <Row label={t('tokensKeys')} hint={t('tokensKeysHint')}>
-        <Stack gap={6}>
-          {keys.length === 0 ? (
-            <span style={muted}>{t('tokensNoKeys')}</span>
-          ) : (
-            keys.map((raw, i) => {
-              const k = jwkOf(raw);
-              return (
-                <Stack key={k.kid ?? i} direction="row" gap={8} style={{ alignItems: 'center', fontSize: 13 }}>
-                  <code>{k.kid ?? '?'}</code>
-                  <span style={muted}>
-                    {k.alg} {k.crv}
-                  </span>
-                  {i === 0 ? (
-                    <StatusBadge tone="success">{t('tokensSigning')}</StatusBadge>
-                  ) : (
-                    <>
-                      <Badge variant="outline">{t('tokensPrevious')}</Badge>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() =>
-                          cfg.set(
-                            S,
-                            'tokens.keys',
-                            keys.filter((_, j) => j !== i),
-                          )
-                        }
-                      >
-                        {t('remove')}
-                      </Button>
-                    </>
-                  )}
-                </Stack>
-              );
-            })
-          )}
-          <Stack direction="row" gap={8} style={{ alignItems: 'center' }}>
-            <Button size="sm" variant="outline" disabled={generate.pending} onClick={rotate}>
-              {keys.length ? t('tokensRotate') : t('tokensGenerate')}
-            </Button>
-            {generate.value && <span style={muted}>{t('tokensStaged', { kid: generate.value })}</span>}
-            <ActionError error={generate.error} />
+      <Row label={t('tokensKeys')} hint={minted ? t('tokensMintedHint') : t('tokensKeysHint')}>
+        {minted ? (
+          <Stack gap={6} style={{ fontSize: 13 }}>
+            <Stack direction="row" gap={8} style={{ alignItems: 'center' }}>
+              <code>{tokens?.signingKid || '?'}</code>
+              <StatusBadge tone="success">{t('tokensSigning')}</StatusBadge>
+              <Badge variant="outline">{t('tokensMinted')}</Badge>
+            </Stack>
+            {tokens?.rotatesAt && (
+              <span style={muted}>
+                {t('tokensRotatesAt', { at: timestampDate(tokens.rotatesAt).toLocaleString() })}
+              </span>
+            )}
           </Stack>
-          {!keySet && keys.length > 0 && (
-            <span style={{ ...muted, color: 'var(--destructive)' }}>{t('tokensKeyMissing')}</span>
-          )}
-        </Stack>
+        ) : (
+          <Stack gap={6}>
+            {keys.length === 0 ? (
+              <span style={muted}>{t('tokensNoKeys')}</span>
+            ) : (
+              keys.map((raw, i) => {
+                const k = jwkOf(raw);
+                return (
+                  <Stack key={k.kid ?? i} direction="row" gap={8} style={{ alignItems: 'center', fontSize: 13 }}>
+                    <code>{k.kid ?? '?'}</code>
+                    <span style={muted}>
+                      {k.alg} {k.crv}
+                    </span>
+                    {i === 0 ? (
+                      <StatusBadge tone="success">{t('tokensSigning')}</StatusBadge>
+                    ) : (
+                      <>
+                        <Badge variant="outline">{t('tokensPrevious')}</Badge>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() =>
+                            cfg.set(
+                              S,
+                              'tokens.keys',
+                              keys.filter((_, j) => j !== i),
+                            )
+                          }
+                        >
+                          {t('remove')}
+                        </Button>
+                      </>
+                    )}
+                  </Stack>
+                );
+              })
+            )}
+            <Stack direction="row" gap={8} style={{ alignItems: 'center' }}>
+              <Button size="sm" variant="outline" disabled={generate.pending} onClick={rotate}>
+                {keys.length ? t('tokensRotate') : t('tokensGenerate')}
+              </Button>
+              {generate.value && <span style={muted}>{t('tokensStaged', { kid: generate.value })}</span>}
+              <ActionError error={generate.error} />
+            </Stack>
+            {!keySet && keys.length > 0 && (
+              <span style={{ ...muted, color: 'var(--destructive)' }}>{t('tokensKeyMissing')}</span>
+            )}
+          </Stack>
+        )}
       </Row>
       <Row label={t('tokensClaims')} hint={t('tokensClaimsHint')}>
         <Stack gap={6}>

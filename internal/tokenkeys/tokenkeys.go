@@ -27,10 +27,29 @@ type Set struct {
 	// Public are the public JWKs services verify with: the signing key's
 	// first, then the next one and the earlier ones still verifying.
 	Public []string
+	// Minted: the keys are this service's own (the bucket), not token_key.
+	Minted bool
+	// RotatesAt is when a minted signing key is succeeded; zero for the
+	// configured key.
+	RotatesAt time.Time
 }
 
 // Enabled reports whether tokens are signed.
 func (s Set) Enabled() bool { return s.Private != "" }
+
+// Kid is the signing key's id; empty without one or when its JWK names
+// none.
+func (s Set) Kid() string {
+	var jwk struct {
+		Kid string `json:"kid"`
+	}
+
+	if json.Unmarshal([]byte(s.Private), &jwk) != nil {
+		return ""
+	}
+
+	return jwk.Kid
+}
 
 // Source gives the current set and tells when it changes: the
 // configured keys or the minted ones.
@@ -82,14 +101,18 @@ func (s state) signing(now time.Time) int {
 	return -1
 }
 
-// set is what the state signs and publishes at now.
-func (s state) set(now time.Time) Set {
+// set is what the state signs and publishes at now, a key signing for
+// every before the next.
+func (s state) set(now time.Time, every time.Duration) Set {
 	i := s.signing(now)
 	if i < 0 {
 		return Set{}
 	}
 
-	out := Set{Private: string(s.Keys[i].Private), Public: make([]string, 0, len(s.Keys))}
+	out := Set{
+		Private: string(s.Keys[i].Private), Public: make([]string, 0, len(s.Keys)),
+		Minted: true, RotatesAt: s.Keys[i].Active.Add(every),
+	}
 
 	out.Public = append(out.Public, string(s.Keys[i].Public))
 	for j, k := range s.Keys {

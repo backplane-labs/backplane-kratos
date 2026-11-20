@@ -521,7 +521,9 @@ answers alike:
   the previous one stays in the JWKS a token lifetime after it stopped
   signing. A configured `token_key` (with `settings.tokens.keys`) wins and
   nothing is minted or rotated. The JWKS URL and shape are the same either
-  way.
+  way. The console (Settings → Session tokens) shows where the key comes
+  from; for a minted one, its id and when the next takes over, with no
+  manual generation offered.
 - **whoami**. The session cookie or session token itself, asked of Kratos on
   every request — no cache: a revocation shows on the next request. For the
   few actions that must not outlive a revocation.
