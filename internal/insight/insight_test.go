@@ -62,6 +62,14 @@ func TestFindings(t *testing.T) {
 		}, []string{"Deliver"}, "error:login:verification.enabled"},
 		{"native recovery", func(s *overlay.Settings) { s.Features.ContinueWith = false }, []string{"Deliver"}, "info:recovery:features.continue_with"},
 		{"hooks of an off flow", func(s *overlay.Settings) { s.Registration.Enabled = false }, []string{"Deliver", "AfterRegistration"}, "info:registration:"},
+		{"webauthn without its identifier", func(s *overlay.Settings) {
+			s.Identity.Schemas = map[string]string{"p": unkeyed}
+			s.Methods.WebAuthn.Enabled = true
+		}, []string{"Deliver"}, "error:registration:methods.webauthn.enabled"},
+		{"passkey without its display name", func(s *overlay.Settings) {
+			s.Identity.Schemas = map[string]string{"p": unkeyed}
+			s.Methods.Passkey.Enabled = true
+		}, []string{"Deliver"}, "error:registration:methods.passkey.enabled"},
 	}
 
 	for _, tc := range cases {
@@ -74,6 +82,31 @@ func TestFindings(t *testing.T) {
 			got := fields(insight.Check(insight.State{Settings: s, Bound: bound(tc.hooks...)}))
 			if !slices.Contains(got, tc.want) {
 				t.Fatalf("want %s in %v", tc.want, got)
+			}
+		})
+	}
+}
+
+const (
+	unkeyed = `{"properties": {"traits": {"properties": {"email": {"ory.sh/kratos": {"credentials": {"password": {"identifier": true}}}}}}}}`
+	keyed   = `{"properties": {"traits": {"properties": {"email": {"ory.sh/kratos": {"credentials": {
+		"webauthn": {"identifier": true}, "passkey": {"display_name": true}}}}}}}}`
+)
+
+// Marked schemas, or schemas the settings do not carry, say nothing.
+func TestKeyedMethodsQuiet(t *testing.T) {
+	t.Parallel()
+
+	for name, schemas := range map[string]map[string]string{"marked": {"p": keyed}, "not in settings": nil} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			s := healthy()
+			s.Identity.Schemas = schemas
+			s.Methods.WebAuthn.Enabled, s.Methods.Passkey.Enabled = true, true
+
+			if got := insight.Check(insight.State{Settings: s, Bound: bound("Deliver")}); len(got) != 0 {
+				t.Fatalf("findings: %v", fields(got))
 			}
 		})
 	}

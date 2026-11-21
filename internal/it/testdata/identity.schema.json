@@ -12,7 +12,10 @@
           "format": "email",
           "title": "E-Mail",
           "ory.sh/kratos": {
-            "credentials": {"password": {"identifier": true}, "code": {"identifier": true, "via": "email"}},
+            "credentials": {
+              "password": {"identifier": true}, "code": {"identifier": true, "via": "email"},
+              "webauthn": {"identifier": true}, "passkey": {"display_name": true}
+            },
             "verification": {"via": "email"},
             "recovery": {"via": "email"}
           }

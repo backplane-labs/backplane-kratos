@@ -100,3 +100,34 @@ func BenchmarkIdentifiers(b *testing.B) {
 		events.Identifiers(schemas, first)
 	}
 }
+
+func TestKeyed(t *testing.T) {
+	t.Parallel()
+
+	keyedSchema := func(credentials string) json.RawMessage {
+		return json.RawMessage(`{"properties": {"traits": {"properties": {"contact": {"properties": {"email": {"ory.sh/kratos": {"credentials": ` +
+			credentials + `}}}}}}}}`)
+	}
+
+	for _, tc := range []struct {
+		name    string
+		schemas []json.RawMessage
+		method  string
+		want    bool
+	}{
+		{"webauthn identifier, nested", []json.RawMessage{keyedSchema(`{"webauthn": {"identifier": true}}`)}, "webauthn", true},
+		{"passkey display name", []json.RawMessage{keyedSchema(`{"passkey": {"display_name": true}}`)}, "passkey", true},
+		{"other method only", []json.RawMessage{keyedSchema(`{"password": {"identifier": true}}`)}, "webauthn", false},
+		{"marked false", []json.RawMessage{keyedSchema(`{"webauthn": {"identifier": false}}`)}, "webauthn", false},
+		{"unparsable, then marked", []json.RawMessage{json.RawMessage(`{`), keyedSchema(`{"webauthn": {"identifier": true}}`)}, "webauthn", true},
+		{"no schemas", nil, "passkey", false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := events.Keyed(tc.schemas, tc.method); got != tc.want {
+				t.Fatalf("Keyed = %v, want %v", got, tc.want)
+			}
+		})
+	}
+}

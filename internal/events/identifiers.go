@@ -26,8 +26,9 @@ type schemaNode struct {
 	Properties map[string]schemaNode
 	Kratos     struct {
 		Credentials map[string]struct {
-			Identifier bool   `json:"identifier"`
-			Via        string `json:"via"`
+			Identifier  bool   `json:"identifier"`
+			DisplayName bool   `json:"display_name"`
+			Via         string `json:"via"`
 		} `json:"credentials"`
 	}
 }
@@ -58,6 +59,37 @@ func (n *schemaNode) UnmarshalJSON(raw []byte) error {
 	}
 
 	return nil
+}
+
+// Keyed reports whether some identity schema marks a trait for method:
+// credentials.<method>.identifier, or display_name for a passkey. Kratos
+// fails registration with "no identifier found" when a WebAuthn or passkey
+// method is on and nothing is marked.
+func Keyed(schemas []json.RawMessage, method string) bool {
+	var walk func(n schemaNode) bool
+
+	walk = func(n schemaNode) bool {
+		if c, ok := n.Kratos.Credentials[method]; ok && (c.Identifier || c.DisplayName) {
+			return true
+		}
+
+		for _, child := range n.Properties {
+			if walk(child) {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	for _, raw := range schemas {
+		var root schemaNode
+		if json.Unmarshal(raw, &root) == nil && walk(root) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // Identifiers are the traits of the identity schemas that an enabled

@@ -223,3 +223,68 @@ func lookupCodes(flow map[string]any) []string {
 
 	return out
 }
+
+// groups are the node groups of a flow's UI.
+func groups(flow map[string]any) map[string]bool {
+	raw, err := json.Marshal(flow)
+	if err != nil {
+		return nil
+	}
+
+	var parsed struct {
+		UI struct {
+			Nodes []struct {
+				Group string `json:"group"`
+			} `json:"nodes"`
+		} `json:"ui"`
+	}
+
+	if json.Unmarshal(raw, &parsed) != nil {
+		return nil
+	}
+
+	out := map[string]bool{}
+	for _, n := range parsed.UI.Nodes {
+		out[n.Group] = true
+	}
+
+	return out
+}
+
+// TestWebAuthnAndPasskey: the overlay's webauthn (a second factor) and
+// passkey (passwordless) render a configuration Kratos v26 runs with, and
+// its flows offer them. Kratos offers WebAuthn on browser flows only;
+// passkeys and backup codes on API flows too. The identity schema marks the
+// trait they key on (credentials.webauthn.identifier, passkey.display_name):
+// without it Kratos fails registration with "no identifier found".
+func TestWebAuthnAndPasskey(t *testing.T) {
+	t.Parallel()
+
+	rp := overlay.RelyingParty{ID: "localhost", DisplayName: "IT", Origins: []string{"http://localhost:4455"}}
+	e := startWith(t, func(s *overlay.Settings) {
+		s.Methods.WebAuthn = overlay.WebAuthn{Enabled: true, RP: rp}
+		s.Methods.Passkey = overlay.Passkey{Enabled: true, RP: rp}
+	}, nil)
+
+	browser := http.Header{"Accept": {"application/json"}}
+
+	if status, login := e.callAt(t, http.MethodGet, publicURL+"/self-service/login/browser", nil, browser); !groups(login)["passkey"] {
+		t.Fatalf("login offers no passkey: %d %v", status, groups(login))
+	}
+
+	email := unique("webauthn")
+	e.newUser(t, email)
+	auth := http.Header{"X-Session-Token": {passwordLogin(t, email)}}
+
+	if _, settings := e.callAt(t, http.MethodGet, publicURL+"/self-service/settings/api", nil, auth); !groups(settings)["passkey"] ||
+		!groups(settings)["lookup_secret"] {
+		t.Fatalf("API settings groups: %v", groups(settings))
+	}
+
+	browser.Set("X-Session-Token", auth.Get("X-Session-Token"))
+
+	if _, settings := e.callAt(t, http.MethodGet, publicURL+"/self-service/settings/browser", nil, browser); !groups(settings)["webauthn"] ||
+		!groups(settings)["passkey"] || !groups(settings)["lookup_secret"] {
+		t.Fatalf("browser settings groups: %v", groups(settings))
+	}
+}

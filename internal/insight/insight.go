@@ -4,8 +4,10 @@
 package insight
 
 import (
+	"encoding/json"
 	"strings"
 
+	"github.com/backplane-labs/backplane-kratos/internal/events"
 	"github.com/backplane-labs/backplane-kratos/internal/overlay"
 )
 
@@ -54,8 +56,36 @@ func Check(st State) []Finding {
 	f.delivering()
 	f.features()
 	f.offFlows()
+	f.keyedMethods()
 
 	return f.out
+}
+
+// keyedMethods: WebAuthn and passkeys need a trait the identity schema marks
+// for them, or Kratos fails registration ("no identifier found").
+// Schemas given another way (a file, overrides) are not seen: then nothing
+// is said.
+func (f *findings) keyedMethods() {
+	if len(f.Settings.Identity.Schemas) == 0 {
+		return
+	}
+
+	schemas := make([]json.RawMessage, 0, len(f.Settings.Identity.Schemas))
+	for _, doc := range f.Settings.Identity.Schemas {
+		schemas = append(schemas, json.RawMessage(doc))
+	}
+
+	m := f.Settings.Methods
+
+	if m.WebAuthn.Enabled && !events.Keyed(schemas, overlay.MethodWebAuthn) {
+		f.add(overlay.FlowRegistration, Error, "methods.webauthn.enabled",
+			"WebAuthn is on, but no identity schema marks a trait with credentials.webauthn.identifier: registration fails")
+	}
+
+	if m.Passkey.Enabled && !events.Keyed(schemas, overlay.MethodPasskey) {
+		f.add(overlay.FlowRegistration, Error, "methods.passkey.enabled",
+			"Passkeys are on, but no identity schema marks a trait with credentials.passkey.display_name: registration fails")
+	}
 }
 
 func (f *findings) installation() {

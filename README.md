@@ -180,6 +180,35 @@ service sits next to it and turns it into parts of Wiring:
   URLs, lifespans, methods (password, codes, passkeys, WebAuthn, TOTP, social
   sign-in), sessions, identity schemas, the Hydra login provider — live.
 
+### Passkeys, WebAuthn and backup codes
+
+| Settings key | Kratos | What |
+|---|---|---|
+| `methods.passkey.enabled`, `methods.passkey.rp.{id,display_name,origins}` | `selfservice.methods.passkey` | Passwordless sign-in with a passkey; registration, login and settings offer it, API flows included |
+| `methods.webauthn.enabled`, `methods.webauthn.passwordless`, `methods.webauthn.rp.{id,display_name,origins}` | `selfservice.methods.webauthn` | Security keys: a second factor (AAL2), or a first one with `passwordless`; Kratos offers WebAuthn on browser flows only |
+| `methods.lookup_secret.enabled` | `selfservice.methods.lookup_secret` | Backup codes: generated and confirmed in settings, a second factor at login |
+
+`rp.id` is the domain the credentials belong to (`example.com`), `origins`
+every origin a browser runs the ceremony on (`https://app.example.com`).
+
+The identity schema must mark the trait these methods key on, or Kratos
+fails registration with "no identifier found":
+
+```json
+"email": {
+  "type": "string", "format": "email",
+  "ory.sh/kratos": {"credentials": {
+    "password": {"identifier": true},
+    "webauthn": {"identifier": true},
+    "passkey": {"display_name": true}
+  }}
+}
+```
+
+With the schemas in `identity.schemas`, the console's Flows page reports
+the missing mark as an error. The integration tests run these settings
+against Kratos v26.2.0 (`TestWebAuthnAndPasskey`, `TestStepUpSecurityEvent`).
+
 ## Routing
 
 This service fronts Kratos's public host for everything that issues or ends
