@@ -3,7 +3,7 @@ module github.com/backplane-labs/backplane-kratos
 go 1.27.4
 
 require (
-	github.com/backplane-labs/backplane v0.6.117
+	github.com/backplane-labs/backplane v0.6.118
 	github.com/go-jose/go-jose/v4 v4.1.6
 	github.com/google/go-jsonnet v0.22.0
 	github.com/google/uuid v1.6.0
