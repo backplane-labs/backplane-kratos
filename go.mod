@@ -3,7 +3,7 @@ module github.com/backplane-labs/backplane-kratos
 go 1.27.4
 
 require (
-	github.com/backplane-labs/backplane v0.6.111
+	github.com/backplane-labs/backplane v0.6.117
 	github.com/go-jose/go-jose/v4 v4.1.6
 	github.com/google/go-jsonnet v0.22.0
 	github.com/google/uuid v1.6.0
@@ -54,7 +54,7 @@ require (
 	github.com/google/cel-go v0.30.0 // indirect
 	github.com/google/go-tpm v0.9.8 // indirect
 	github.com/gopherex/pgtx v1.1.5 // indirect
-	github.com/gopherex/schemapb/go v1.12.1 // indirect
+	github.com/gopherex/schemapb/go v1.13.2 // indirect
 	github.com/gopherex/sqld v1.1.3 // indirect
 	github.com/gopherex/ws-proto v1.11.1 // indirect
 	github.com/gopherex/xconf v1.4.2 // indirect
