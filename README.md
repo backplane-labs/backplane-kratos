@@ -170,6 +170,11 @@ service sits next to it and turns it into parts of Wiring:
 - **Readiness without Kratos**: Kratos calls this service (webhooks), so the
   service is ready without it; Kratos's admin API is probed for the console's
   health only. Kratos can depend on it with `service_healthy`.
+- **Startup waits for the overlay**: startup and readiness both pass only
+  once the overlay file is written completely (a temporary file renamed in
+  place). As a Kubernetes native sidecar, Kratos (the main container) starts
+  after this service's startupProbe (`/app/bin/kratos probe startup`), so it
+  never starts without its configuration.
 - **Console module**: Kratos's state and every hook point, identities (traits
   editor checked against the identity schema, credentials, verified addresses,
   sessions with extend and revoke, recovery codes and links), a batch import,

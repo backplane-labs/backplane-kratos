@@ -233,6 +233,10 @@ func Run(ctx context.Context) error {
 		svc.UI(bundle)
 	}
 
+	// The companion process reads the overlay at its start: a sidecar's
+	// startup (what Kubernetes starts the main container after) waits for
+	// the first complete write too, not only its readiness.
+	svc.StartupProbe(probe.FromError(st.Applier.Ready))
 	svc.ReadinessProbe(probe.FromError(st.Applier.Ready))
 
 	if err := svc.Run(ctx); err != nil {
