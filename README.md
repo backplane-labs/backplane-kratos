@@ -174,7 +174,9 @@ service sits next to it and turns it into parts of Wiring:
   once the overlay file is written completely (a temporary file renamed in
   place). As a Kubernetes native sidecar, Kratos (the main container) starts
   after this service's startupProbe (`/app/bin/kratos probe startup`), so it
-  never starts without its configuration.
+  never starts without its configuration. A fresh Compose named volume at
+  `/etc/backplane` inherits the image directory's ownership (`65532:65532`);
+  existing volumes and bind mounts must already give that UID write access.
 - **Console module**: Kratos's state and every hook point, identities (traits
   editor checked against the identity schema, credentials, verified addresses,
   sessions with extend and revoke, recovery codes and links), a batch import,

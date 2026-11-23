@@ -1,9 +1,11 @@
 # The release workflow supplies the trees used by the downloadable archives.
 FROM gcr.io/distroless/static-debian12:nonroot
 ARG TARGETARCH
+USER 65532:65532
+# BuildKit creates this directory as USER, so fresh volumes can inherit its ownership.
+WORKDIR /etc/backplane
 WORKDIR /app
 COPY linux_${TARGETARCH}/bin/kratos /app/bin/kratos
 COPY linux_${TARGETARCH}/LICENSE /app/LICENSE
 EXPOSE 8080 9400
-USER nonroot:nonroot
 ENTRYPOINT ["/app/bin/kratos"]
